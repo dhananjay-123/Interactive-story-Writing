@@ -28,7 +28,7 @@ export default function Profile() {
   if (loading) {
     return (
       <Centered>
-        <p style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+        <p style={{ color: 'rgba(var(--text-rgb),var(--ta30))', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
           Loading…
         </p>
       </Centered>
@@ -38,7 +38,7 @@ export default function Profile() {
   if (notFound || !data) {
     return (
       <Centered>
-        <p className="font-story" style={{ fontSize: '22px', color: 'rgba(var(--text-rgb),0.6)', fontStyle: 'italic', marginBottom: '20px' }}>
+        <p className="font-story" style={{ fontSize: '22px', color: 'rgba(var(--text-rgb),var(--ta60))', fontStyle: 'italic', marginBottom: '20px' }}>
           No author by that name.
         </p>
         <Link to="/stories" style={{ color: 'var(--gold)', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
@@ -66,7 +66,7 @@ export default function Profile() {
                 width: '64px',
                 height: '64px',
                 borderRadius: '50%',
-                border: '1px solid rgba(201,168,76,0.4)',
+                border: '1px solid rgba(var(--gold-rgb),0.4)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -81,14 +81,14 @@ export default function Profile() {
               <h1 className="font-story" style={{ fontSize: 'clamp(28px, 4vw, 44px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em', lineHeight: 1.1 }}>
                 {author.displayName}
               </h1>
-              <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),0.35)', marginTop: '4px' }}>
+              <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta35))', marginTop: '4px' }}>
                 @{author.username} · Joined {joined}
               </p>
             </div>
           </div>
 
           {author.bio && (
-            <p style={{ fontSize: '16px', color: 'rgba(var(--text-rgb),0.6)', lineHeight: 1.7, maxWidth: '620px', marginTop: '24px' }}>
+            <p style={{ fontSize: '16px', color: 'rgba(var(--text-rgb),var(--ta60))', lineHeight: 1.7, maxWidth: '620px', marginTop: '24px' }}>
               {author.bio}
             </p>
           )}
@@ -99,14 +99,14 @@ export default function Profile() {
           <h2 className="font-story" style={{ fontSize: '20px', fontWeight: 400, color: 'var(--parchment)' }}>
             Published works
           </h2>
-          <span style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),0.3)' }}>
+          <span style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta30))' }}>
             {stories.length}
           </span>
         </div>
 
         {stories.length === 0 ? (
           <div style={{ padding: '48px 0' }}>
-            <p style={{ color: 'rgba(var(--text-rgb),0.4)', fontSize: '15px', marginBottom: isOwnProfile ? '20px' : 0 }}>
+            <p style={{ color: 'rgba(var(--text-rgb),var(--ta40))', fontSize: '15px', marginBottom: isOwnProfile ? '20px' : 0 }}>
               {isOwnProfile ? "You haven't published a story yet." : 'No published stories yet.'}
             </p>
             {isOwnProfile && (

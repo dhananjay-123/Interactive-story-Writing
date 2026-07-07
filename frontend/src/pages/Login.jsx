@@ -92,7 +92,7 @@ export default function Login() {
           </button>
         </form>
 
-        <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),0.4)', marginTop: '28px' }}>
+        <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '28px' }}>
           New here?{' '}
           <Link to="/register" style={{ color: 'var(--gold)', textDecoration: 'none' }}>
             Create an account

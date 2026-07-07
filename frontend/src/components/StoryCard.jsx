@@ -7,7 +7,7 @@ const GENRE_COLORS = {
   sci_fi:   { bg: 'rgba(26,61,43,0.2)',    border: 'rgba(26,61,43,0.5)',   text: '#5fa87a' },
   romance:  { bg: 'rgba(160,90,60,0.15)',  border: 'rgba(160,90,60,0.4)',  text: '#d4956e' },
   horror:   { bg: 'rgba(20,20,20,0.3)',    border: 'rgba(80,20,20,0.6)',   text: '#a04040' },
-  default:  { bg: 'rgba(201,168,76,0.08)', border: 'rgba(201,168,76,0.25)', text: '#c9a84c' },
+  default:  { bg: 'rgba(var(--gold-rgb),0.08)', border: 'rgba(var(--gold-rgb),0.25)', text: 'var(--gold)' },
 }
 
 export default function StoryCard({ story, index }) {
@@ -32,8 +32,8 @@ export default function StoryCard({ story, index }) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          background: hovered ? 'rgba(var(--panel-rgb),0.05)' : 'rgba(var(--panel-rgb),0.02)',
-          border: `1px solid ${hovered ? 'rgba(201,168,76,0.3)' : 'rgba(var(--panel-rgb),0.08)'}`,
+          background: hovered ? 'rgba(var(--panel-rgb),var(--pa05))' : 'rgba(var(--panel-rgb),var(--pa02))',
+          border: `1px solid ${hovered ? 'rgba(var(--gold-rgb),0.3)' : 'rgba(var(--panel-rgb),var(--pa08))'}`,
           borderRadius: '6px',
           padding: '28px',
           cursor: 'pointer',
@@ -49,7 +49,7 @@ export default function StoryCard({ story, index }) {
           >
             {story.genre?.replace('_', '-') || 'Story'}
           </span>
-          <span className="text-xs" style={{ color: 'rgba(var(--text-rgb),0.3)' }}>
+          <span className="text-xs" style={{ color: 'rgba(var(--text-rgb),var(--ta30))' }}>
             {story.branchCount || 0} branches
           </span>
         </div>
@@ -61,7 +61,7 @@ export default function StoryCard({ story, index }) {
           {story.title}
         </h3>
 
-        <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(var(--text-rgb),0.55)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(var(--text-rgb),var(--ta55))', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {story.description}
         </p>
 
@@ -73,14 +73,14 @@ export default function StoryCard({ story, index }) {
               onClick={goToAuthor}
               onKeyDown={(e) => e.key === 'Enter' && goToAuthor(e)}
               className="text-xs"
-              style={{ color: 'rgba(var(--text-rgb),0.35)', cursor: 'pointer' }}
+              style={{ color: 'rgba(var(--text-rgb),var(--ta35))', cursor: 'pointer' }}
               onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.35)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
             >
               by {story.author || 'Anonymous'}
             </span>
           ) : (
-            <span className="text-xs" style={{ color: 'rgba(var(--text-rgb),0.35)' }}>
+            <span className="text-xs" style={{ color: 'rgba(var(--text-rgb),var(--ta35))' }}>
               by {story.author || 'Anonymous'}
             </span>
           )}

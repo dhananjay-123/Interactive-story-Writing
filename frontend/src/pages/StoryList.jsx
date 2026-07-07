@@ -49,9 +49,9 @@ export default function StoryList() {
                   fontSize: '11px',
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase',
-                  border: `1px solid ${genre === g ? 'var(--gold)' : 'rgba(var(--panel-rgb),0.12)'}`,
-                  background: genre === g ? 'rgba(201,168,76,0.1)' : 'transparent',
-                  color: genre === g ? 'var(--gold)' : 'rgba(var(--text-rgb),0.5)',
+                  border: `1px solid ${genre === g ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa12))'}`,
+                  background: genre === g ? 'rgba(var(--gold-rgb),0.1)' : 'transparent',
+                  color: genre === g ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))',
                   cursor: 'pointer',
                   borderRadius: '3px',
                   transition: 'all 0.2s ease',
@@ -68,8 +68,8 @@ export default function StoryList() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{
-              background: 'rgba(var(--panel-rgb),0.04)',
-              border: '1px solid rgba(var(--panel-rgb),0.1)',
+              background: 'rgba(var(--panel-rgb),var(--pa04))',
+              border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
               borderRadius: '3px',
               padding: '8px 16px',
               color: 'var(--parchment)',
@@ -78,18 +78,18 @@ export default function StoryList() {
               width: '220px',
               transition: 'border-color 0.2s ease',
             }}
-            onFocus={e => e.target.style.borderColor = 'rgba(201,168,76,0.4)'}
-            onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),0.1)'}
+            onFocus={e => e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)'}
+            onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),var(--pa10))'}
           />
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(var(--text-rgb),0.3)' }}>
+          <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(var(--text-rgb),var(--ta30))' }}>
             <div style={{ fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Loading...</div>
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <p style={{ color: 'rgba(var(--text-rgb),0.35)', fontSize: '15px' }}>No stories found.</p>
+            <p style={{ color: 'rgba(var(--text-rgb),var(--ta35))', fontSize: '15px' }}>No stories found.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>

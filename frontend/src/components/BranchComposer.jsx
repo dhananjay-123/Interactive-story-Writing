@@ -38,11 +38,11 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
 
   return (
     <div className="animate-fadeIn">
-      <p style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.6)', marginBottom: '6px' }}>
+      <p style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(var(--gold-rgb),0.6)', marginBottom: '6px' }}>
         Continue this path
       </p>
       {choiceText && (
-        <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),0.5)', marginBottom: '18px', fontStyle: 'italic' }}>
+        <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta50))', marginBottom: '18px', fontStyle: 'italic' }}>
           “{choiceText}”
         </p>
       )}
@@ -75,9 +75,9 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
               />
               {choices.length > 1 && (
                 <button onClick={() => removeChoice(i)} aria-label="Remove choice"
-                  style={{ background: 'none', border: 'none', color: 'rgba(var(--text-rgb),0.3)', cursor: 'pointer', fontSize: '18px' }}
+                  style={{ background: 'none', border: 'none', color: 'rgba(var(--text-rgb),var(--ta30))', cursor: 'pointer', fontSize: '18px' }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--crimson)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.3)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta30))')}
                 >×</button>
               )}
             </div>
@@ -85,7 +85,7 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
         </div>
         {choices.length < 4 && (
           <button onClick={addChoice}
-            style={{ marginTop: '10px', background: 'none', border: '1px dashed rgba(var(--panel-rgb),0.15)', color: 'rgba(var(--text-rgb),0.4)', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', padding: '9px 18px', borderRadius: '3px' }}
+            style={{ marginTop: '10px', background: 'none', border: '1px dashed rgba(var(--panel-rgb),var(--pa15))', color: 'rgba(var(--text-rgb),var(--ta40))', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', padding: '9px 18px', borderRadius: '3px' }}
           >+ Add choice</button>
         )}
       </div>
@@ -99,9 +99,9 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
           {submitting ? 'Saving…' : filledChoices.length ? 'Add passage' : 'Add ending'}
         </button>
         <button onClick={onCancel}
-          style={{ background: 'none', border: 'none', color: 'rgba(var(--text-rgb),0.35)', fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', padding: 0, fontFamily: 'inherit', transition: 'color 0.2s ease' }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.6)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.35)')}
+          style={{ background: 'none', border: 'none', color: 'rgba(var(--text-rgb),var(--ta35))', fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', padding: 0, fontFamily: 'inherit', transition: 'color 0.2s ease' }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta60))')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
         >
           Cancel
         </button>

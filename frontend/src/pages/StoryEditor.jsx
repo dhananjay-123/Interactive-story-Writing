@@ -66,7 +66,7 @@ export default function StoryEditor() {
   if (error || !story || !story.rootNodeId) {
     return (
       <Screen>
-        <p className="font-story" style={{ fontSize: '22px', fontStyle: 'italic', color: 'rgba(var(--text-rgb),0.6)', marginBottom: '18px' }}>
+        <p className="font-story" style={{ fontSize: '22px', fontStyle: 'italic', color: 'rgba(var(--text-rgb),var(--ta60))', marginBottom: '18px' }}>
           This story could not be found.
         </p>
         <Link to="/stories" style={{ color: 'var(--gold)', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
@@ -103,7 +103,7 @@ export default function StoryEditor() {
         <div className="animate-fadeUp" style={{ marginBottom: '32px' }}>
           <button onClick={() => navigate(`/story/${id}`)} style={backLinkStyle}
             onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.35)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
           >
             ← Read this story
           </button>
@@ -118,7 +118,7 @@ export default function StoryEditor() {
             <Stat label="endings" value={endings} />
             <Stat label="open paths" value={openPaths} accent={openPaths > 0} />
           </div>
-          <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),0.4)', lineHeight: 1.6, marginTop: '18px', maxWidth: '560px' }}>
+          <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta40))', lineHeight: 1.6, marginTop: '18px', maxWidth: '560px' }}>
             Every choice can branch into its own passage, as deep as you like. Expand a branch to keep writing,
             edit any passage, or prune a path you don’t want.
           </p>
@@ -146,8 +146,8 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
     <div style={{ marginBottom: '10px' }}>
       <div
         style={{
-          background: isRoot ? 'rgba(201,168,76,0.06)' : 'rgba(var(--panel-rgb),0.03)',
-          border: `1px solid ${isRoot ? 'rgba(201,168,76,0.3)' : 'rgba(var(--panel-rgb),0.1)'}`,
+          background: isRoot ? 'rgba(var(--gold-rgb),0.06)' : 'rgba(var(--panel-rgb),var(--pa03))',
+          border: `1px solid ${isRoot ? 'rgba(var(--gold-rgb),0.3)' : 'rgba(var(--panel-rgb),var(--pa10))'}`,
           borderRadius: '6px',
           padding: '16px 18px',
         }}
@@ -179,7 +179,7 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
         {editing ? (
           <NodeEditor node={node} ctx={ctx} />
         ) : (
-          <p className="font-story" style={{ fontSize: '15px', lineHeight: 1.6, color: 'rgba(var(--text-rgb),0.82)', whiteSpace: 'pre-wrap' }}>
+          <p className="font-story" style={{ fontSize: '15px', lineHeight: 1.6, color: 'rgba(var(--text-rgb),var(--ta82))', whiteSpace: 'pre-wrap' }}>
             {snippet(node.text)}
           </p>
         )}
@@ -187,7 +187,7 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
 
       {/* Choices + nested children */}
       {!editing && !isCollapsed && node.choices.length > 0 && (
-        <div style={{ marginLeft: '18px', marginTop: '8px', paddingLeft: '20px', borderLeft: '1px solid rgba(201,168,76,0.2)' }}>
+        <div style={{ marginLeft: '18px', marginTop: '8px', paddingLeft: '20px', borderLeft: '1px solid rgba(var(--gold-rgb),0.2)' }}>
           {node.choices.map((choice, i) => {
             const composeKey = `${nodeId}:${i}`
             const composing = ctx.activeCompose === composeKey
@@ -197,7 +197,7 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
                   <span className="font-story" style={{ color: 'var(--gold)', opacity: 0.75, fontSize: '14px' }}>
                     {String.fromCharCode(65 + i)}.
                   </span>
-                  <span style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),0.7)', lineHeight: 1.5 }}>
+                  <span style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta70))', lineHeight: 1.5 }}>
                     {choice.text}
                   </span>
                 </div>
@@ -205,7 +205,7 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
                 {choice.nextNodeId ? (
                   <TreeNode nodeId={choice.nextNodeId} parentNodeId={nodeId} choiceIndex={i} depth={depth + 1} ctx={ctx} />
                 ) : composing ? (
-                  <div style={{ background: 'rgba(var(--panel-rgb),0.03)', border: '1px solid rgba(201,168,76,0.2)', borderRadius: '6px', padding: '16px 18px' }}>
+                  <div style={{ background: 'rgba(var(--panel-rgb),var(--pa03))', border: '1px solid rgba(var(--gold-rgb),0.2)', borderRadius: '6px', padding: '16px 18px' }}>
                     <BranchComposer
                       storyId={ctx.storyId}
                       parentNodeId={nodeId}
@@ -221,7 +221,7 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
                     onClick={() => { ctx.setActiveEdit(null); ctx.setActiveCompose(composeKey) }}
                     style={{
                       background: 'none',
-                      border: '1px dashed rgba(201,168,76,0.35)',
+                      border: '1px dashed rgba(var(--gold-rgb),0.35)',
                       color: 'var(--gold)',
                       fontSize: '11px',
                       letterSpacing: '0.12em',
@@ -302,14 +302,14 @@ function NodeEditor({ node, ctx }) {
               />
               {c.nextNodeId ? (
                 <span title="This choice already leads somewhere — delete that branch to remove it"
-                  style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(var(--text-rgb),0.35)', whiteSpace: 'nowrap' }}>
+                  style={{ fontSize: '9px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(var(--text-rgb),var(--ta35))', whiteSpace: 'nowrap' }}>
                   linked
                 </span>
               ) : (
                 <button onClick={() => removeChoice(i)} aria-label="Remove choice"
-                  style={{ background: 'none', border: 'none', color: 'rgba(var(--text-rgb),0.3)', cursor: 'pointer', fontSize: '18px' }}
+                  style={{ background: 'none', border: 'none', color: 'rgba(var(--text-rgb),var(--ta30))', cursor: 'pointer', fontSize: '18px' }}
                   onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--crimson)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.3)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta30))')}
                 >×</button>
               )}
             </div>
@@ -317,10 +317,10 @@ function NodeEditor({ node, ctx }) {
         </div>
         {choices.length < 4 && (
           <button onClick={addChoice}
-            style={{ marginTop: '10px', background: 'none', border: '1px dashed rgba(var(--panel-rgb),0.15)', color: 'rgba(var(--text-rgb),0.4)', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', padding: '8px 16px', borderRadius: '3px' }}
+            style={{ marginTop: '10px', background: 'none', border: '1px dashed rgba(var(--panel-rgb),var(--pa15))', color: 'rgba(var(--text-rgb),var(--ta40))', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', padding: '8px 16px', borderRadius: '3px' }}
           >+ Add choice</button>
         )}
-        <p style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),0.3)', marginTop: '8px' }}>
+        <p style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),var(--ta30))', marginTop: '8px' }}>
           No choices makes this an ending.
         </p>
       </div>
@@ -334,8 +334,8 @@ function NodeEditor({ node, ctx }) {
           {saving ? 'Saving…' : 'Save passage'}
         </button>
         <button onClick={() => ctx.setActiveEdit(null)} style={backLinkStyle}
-          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.6)')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.35)')}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta60))')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
         >
           Cancel
         </button>
@@ -362,16 +362,16 @@ function DeleteBranchButton({ nodeId, parentNodeId, choiceIndex, ctx }) {
   if (confirming) {
     return (
       <span style={{ display: 'inline-flex', gap: '10px', alignItems: 'center' }}>
-        <span style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),0.5)' }}>Delete this & everything under it?</span>
+        <span style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),var(--ta50))' }}>Delete this & everything under it?</span>
         <button onClick={del} disabled={busy} style={{ ...miniBtn, color: 'var(--crimson)' }}>{busy ? '…' : 'yes'}</button>
         <button onClick={() => setConfirming(false)} style={miniBtn}>no</button>
       </span>
     )
   }
   return (
-    <button onClick={() => setConfirming(true)} style={{ ...miniBtn, color: 'rgba(var(--text-rgb),0.4)' }}
+    <button onClick={() => setConfirming(true)} style={{ ...miniBtn, color: 'rgba(var(--text-rgb),var(--ta40))' }}
       onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--crimson)')}
-      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.4)')}
+      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta40))')}
     >
       ⌫ delete branch
     </button>
@@ -381,9 +381,9 @@ function DeleteBranchButton({ nodeId, parentNodeId, choiceIndex, ctx }) {
 /* ── small pieces ── */
 function Badge({ children, tone }) {
   const tones = {
-    gold: { color: 'var(--gold)', border: 'rgba(201,168,76,0.4)' },
+    gold: { color: 'var(--gold)', border: 'rgba(var(--gold-rgb),0.4)' },
     crimson: { color: '#c45a6e', border: 'rgba(139,26,46,0.45)' },
-    muted: { color: 'rgba(var(--text-rgb),0.5)', border: 'rgba(var(--panel-rgb),0.18)' },
+    muted: { color: 'rgba(var(--text-rgb),var(--ta50))', border: 'rgba(var(--panel-rgb),var(--pa18))' },
   }
   const t = tones[tone] || tones.muted
   return (
@@ -397,7 +397,7 @@ function Stat({ label, value, accent }) {
   return (
     <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
       <span className="font-story" style={{ fontSize: '20px', color: accent ? 'var(--gold)' : 'var(--parchment)' }}>{value}</span>
-      <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(var(--text-rgb),0.4)' }}>{label}</span>
+      <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(var(--text-rgb),var(--ta40))' }}>{label}</span>
     </div>
   )
 }
@@ -405,7 +405,7 @@ function Stat({ label, value, accent }) {
 function Screen({ children }) {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--ink)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px', textAlign: 'center' }}>
-      <div style={{ color: 'rgba(var(--text-rgb),0.4)', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{children}</div>
+      <div style={{ color: 'rgba(var(--text-rgb),var(--ta40))', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>{children}</div>
     </div>
   )
 }
@@ -418,7 +418,7 @@ const snippet = (text) => {
 const miniBtn = {
   background: 'none',
   border: 'none',
-  color: 'rgba(var(--text-rgb),0.5)',
+  color: 'rgba(var(--text-rgb),var(--ta50))',
   fontSize: '11px',
   letterSpacing: '0.1em',
   textTransform: 'uppercase',
@@ -431,7 +431,7 @@ const miniBtn = {
 const backLinkStyle = {
   background: 'none',
   border: 'none',
-  color: 'rgba(var(--text-rgb),0.35)',
+  color: 'rgba(var(--text-rgb),var(--ta35))',
   fontSize: '12px',
   letterSpacing: '0.15em',
   textTransform: 'uppercase',

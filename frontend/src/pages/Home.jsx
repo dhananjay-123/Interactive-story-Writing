@@ -44,7 +44,7 @@ export default function Home() {
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundImage: `radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 70%)`,
+            backgroundImage: `radial-gradient(ellipse 80% 60% at 50% 0%, rgba(var(--gold-rgb),0.06) 0%, transparent 70%)`,
             pointerEvents: 'none',
           }}
         />
@@ -58,7 +58,7 @@ export default function Home() {
             left: '8%',
             width: '1px',
             height: '120px',
-            background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,0.3), transparent)',
+            background: 'linear-gradient(to bottom, transparent, rgba(var(--gold-rgb),0.3), transparent)',
           }}
         />
         <div
@@ -69,7 +69,7 @@ export default function Home() {
             right: '8%',
             width: '1px',
             height: '120px',
-            background: 'linear-gradient(to bottom, transparent, rgba(201,168,76,0.3), transparent)',
+            background: 'linear-gradient(to bottom, transparent, rgba(var(--gold-rgb),0.3), transparent)',
           }}
         />
 
@@ -110,7 +110,7 @@ export default function Home() {
             className="animate-fadeUp delay-200"
             style={{
               fontSize: '18px',
-              color: 'rgba(var(--text-rgb),0.6)',
+              color: 'rgba(var(--text-rgb),var(--ta60))',
               lineHeight: 1.7,
               marginBottom: '20px',
               maxWidth: '520px',
@@ -170,11 +170,11 @@ export default function Home() {
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 borderRadius: '3px',
-                border: '1px solid rgba(var(--text-rgb),0.25)',
+                border: '1px solid rgba(var(--text-rgb),var(--ta25))',
                 transition: 'border-color 0.2s ease, color 0.2s ease',
               }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'; e.currentTarget.style.color = 'var(--gold)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(var(--text-rgb),0.25)'; e.currentTarget.style.color = 'var(--parchment)' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--gold-rgb),0.5)'; e.currentTarget.style.color = 'var(--gold)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(var(--text-rgb),var(--ta25))'; e.currentTarget.style.color = 'var(--parchment)' }}
             >
               Write a Story
             </Link>
@@ -216,13 +216,13 @@ export default function Home() {
               className="animate-fadeUp"
               style={{ animationDelay: `${i * 0.15}s` }}
             >
-              <p className="font-story" style={{ fontSize: '42px', color: 'rgba(201,168,76,0.15)', fontWeight: 400, marginBottom: '12px', lineHeight: 1 }}>
+              <p className="font-story" style={{ fontSize: '42px', color: 'rgba(var(--gold-rgb),0.15)', fontWeight: 400, marginBottom: '12px', lineHeight: 1 }}>
                 {num}
               </p>
               <h3 style={{ fontSize: '18px', color: 'var(--parchment)', fontWeight: 500, marginBottom: '12px' }}>
                 {title}
               </h3>
-              <p style={{ fontSize: '15px', color: 'rgba(var(--text-rgb),0.5)', lineHeight: 1.7 }}>
+              <p style={{ fontSize: '15px', color: 'rgba(var(--text-rgb),var(--ta50))', lineHeight: 1.7 }}>
                 {desc}
               </p>
             </div>

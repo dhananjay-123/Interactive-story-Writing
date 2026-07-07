@@ -24,6 +24,15 @@
   --text-rgb: 250, 248, 243;   /* text / parchment overlays  */
   --panel-rgb: 255, 255, 255;  /* surfaces + borders         */
   --on-gold: #1a1a2e;          /* text that sits on the gold accent — stays dark in both themes */
+  --gold-rgb: 201, 168, 76;
+
+  /* Alpha steps for muted text (--ta*) and panel surfaces/borders (--pa*).
+     Dark-on-cream reads much fainter than white-on-ink at the same alpha,
+     so the light theme overrides these with stronger values. */
+  --ta25: 0.25; --ta30: 0.3;  --ta35: 0.35; --ta40: 0.4;  --ta45: 0.45; --ta50: 0.5;
+  --ta55: 0.55; --ta60: 0.6;  --ta65: 0.65; --ta70: 0.7;  --ta80: 0.8;  --ta82: 0.82;
+  --pa02: 0.02; --pa03: 0.03; --pa04: 0.04; --pa05: 0.05; --pa06: 0.06; --pa08: 0.08;
+  --pa10: 0.1;  --pa12: 0.12; --pa15: 0.15; --pa18: 0.18; --pa25: 0.25; --pa30: 0.3;
   color-scheme: dark;
 }
 
@@ -41,6 +50,12 @@
   --bg-rgb: 239, 231, 211;
   --text-rgb: 42, 39, 64;
   --panel-rgb: 42, 39, 64;
+  --gold-rgb: 154, 122, 43;
+
+  --ta25: 0.42; --ta30: 0.48; --ta35: 0.54; --ta40: 0.6;  --ta45: 0.63; --ta50: 0.67;
+  --ta55: 0.7;  --ta60: 0.74; --ta65: 0.78; --ta70: 0.8;  --ta80: 0.87; --ta82: 0.88;
+  --pa02: 0.04; --pa03: 0.06; --pa04: 0.07; --pa05: 0.09; --pa06: 0.1;  --pa08: 0.15;
+  --pa10: 0.22; --pa12: 0.26; --pa15: 0.3;  --pa18: 0.35; --pa25: 0.45; --pa30: 0.5;
   color-scheme: light;
 }
 
@@ -122,7 +137,7 @@ body {
 .animate-fadeIn  { animation: fadeIn 0.5s ease both; }
 .animate-pageFlip { animation: pageFlip 0.5s cubic-bezier(0.4,0,0.2,1) both; }
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(201,168,76,0.3) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--gold-rgb),0.3) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 2s linear infinite;
 }
@@ -135,6 +150,13 @@ body {
 
 /* ── Typography ── */
 .font-story { font-family: var(--serif); }
+
+/* ── Form placeholders ── */
+input::placeholder,
+textarea::placeholder {
+  color: rgba(var(--text-rgb), var(--ta45));
+  opacity: 1;
+}
 
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; }

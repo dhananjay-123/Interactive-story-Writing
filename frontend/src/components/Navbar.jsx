@@ -27,7 +27,7 @@ export default function Navbar() {
     <nav
       style={{
         background: scrolled ? 'rgba(var(--bg-rgb),0.95)' : 'transparent',
-        borderBottom: scrolled ? '1px solid rgba(201,168,76,0.15)' : '1px solid transparent',
+        borderBottom: scrolled ? '1px solid rgba(var(--gold-rgb),0.15)' : '1px solid transparent',
         backdropFilter: scrolled ? 'blur(12px)' : 'none',
         transition: 'background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease',
       }}
@@ -53,7 +53,7 @@ export default function Navbar() {
                 label={user.displayName}
                 active={location.pathname === `/author/${user.username}`}
               />
-              <button onClick={handleLogout} style={textLinkStyle('rgba(var(--text-rgb),0.45)')}>
+              <button onClick={handleLogout} style={textLinkStyle('rgba(var(--text-rgb),var(--ta45))')}>
                 Sign out
               </button>
             </>
@@ -83,9 +83,9 @@ export default function Navbar() {
             onClick={toggleTheme}
             aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
             title={theme === 'dark' ? 'Light theme' : 'Dark theme'}
-            style={iconButtonStyle('rgba(var(--text-rgb),0.5)')}
+            style={iconButtonStyle('rgba(var(--text-rgb),var(--ta50))')}
             onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.5)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta50))')}
           >
             <ThemeIcon theme={theme} />
           </button>
@@ -95,7 +95,7 @@ export default function Navbar() {
             aria-pressed={enabled}
             aria-label={enabled ? 'Mute sound' : 'Enable sound'}
             title={enabled ? 'Sound on' : 'Sound off'}
-            style={iconButtonStyle(enabled ? 'var(--gold)' : 'rgba(var(--text-rgb),0.5)')}
+            style={iconButtonStyle(enabled ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))')}
           >
             <SoundIcon on={enabled} />
           </button>
@@ -155,7 +155,7 @@ function NavLink({ to, label, active }) {
       className="transition-colors duration-200"
       style={{
         fontSize: '12px',
-        color: active ? 'var(--gold)' : 'rgba(var(--text-rgb),0.65)',
+        color: active ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta65))',
         textDecoration: 'none',
         letterSpacing: '0.12em',
         textTransform: 'uppercase',

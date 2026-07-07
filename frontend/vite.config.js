@@ -10,7 +10,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        // Live backend; switch to http://localhost:5000 when testing backend changes locally.
+        target: 'https://interactive-story-writing.onrender.com',
         changeOrigin: true,
       }
     }

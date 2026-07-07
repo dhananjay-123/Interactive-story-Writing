@@ -127,7 +127,7 @@ export default function Register() {
           </button>
         </form>
 
-        <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),0.4)', marginTop: '28px' }}>
+        <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '28px' }}>
           Already have an account?{' '}
           <Link to="/login" style={{ color: 'var(--gold)', textDecoration: 'none' }}>
             Sign in

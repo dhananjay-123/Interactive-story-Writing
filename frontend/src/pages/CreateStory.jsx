@@ -66,8 +66,8 @@ export default function CreateStory() {
 
   const inputStyle = {
     width: '100%',
-    background: 'rgba(var(--panel-rgb),0.04)',
-    border: '1px solid rgba(var(--panel-rgb),0.1)',
+    background: 'rgba(var(--panel-rgb),var(--pa04))',
+    border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
     borderRadius: '3px',
     padding: '12px 16px',
     color: 'var(--parchment)',
@@ -82,7 +82,7 @@ export default function CreateStory() {
     fontSize: '11px',
     letterSpacing: '0.15em',
     textTransform: 'uppercase',
-    color: 'rgba(var(--text-rgb),0.4)',
+    color: 'rgba(var(--text-rgb),var(--ta40))',
     marginBottom: '8px',
   }
 
@@ -108,22 +108,22 @@ export default function CreateStory() {
                   width: '24px',
                   height: '24px',
                   borderRadius: '50%',
-                  border: `1px solid ${step >= s ? 'var(--gold)' : 'rgba(var(--panel-rgb),0.12)'}`,
-                  background: step > s ? 'rgba(201,168,76,0.2)' : 'transparent',
+                  border: `1px solid ${step >= s ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa12))'}`,
+                  background: step > s ? 'rgba(var(--gold-rgb),0.2)' : 'transparent',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontSize: '11px',
-                  color: step >= s ? 'var(--gold)' : 'rgba(var(--panel-rgb),0.3)',
+                  color: step >= s ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa30))',
                   transition: 'all 0.3s ease',
                 }}
               >
                 {step > s ? '✓' : s}
               </div>
-              <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: step === s ? 'var(--parchment)' : 'rgba(var(--panel-rgb),0.25)', transition: 'color 0.3s ease' }}>
+              <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: step === s ? 'var(--parchment)' : 'rgba(var(--panel-rgb),var(--pa25))', transition: 'color 0.3s ease' }}>
                 {['Details', 'Content', 'Choices'][s - 1]}
               </span>
-              {s < 3 && <div style={{ width: '32px', height: '1px', background: step > s ? 'rgba(201,168,76,0.3)' : 'rgba(var(--panel-rgb),0.08)', marginLeft: '4px', transition: 'background 0.3s ease' }} />}
+              {s < 3 && <div style={{ width: '32px', height: '1px', background: step > s ? 'rgba(var(--gold-rgb),0.3)' : 'rgba(var(--panel-rgb),var(--pa08))', marginLeft: '4px', transition: 'background 0.3s ease' }} />}
             </div>
           ))}
         </div>
@@ -138,8 +138,8 @@ export default function CreateStory() {
                   placeholder="What is your story called?"
                   value={form.title}
                   onChange={e => update('title', e.target.value)}
-                  onFocus={e => e.target.style.borderColor = 'rgba(201,168,76,0.4)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),0.1)'}
+                  onFocus={e => e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),var(--pa10))'}
                 />
               </div>
 
@@ -154,9 +154,9 @@ export default function CreateStory() {
                         padding: '8px 16px',
                         fontSize: '12px',
                         letterSpacing: '0.08em',
-                        border: `1px solid ${form.genre === g ? 'var(--gold)' : 'rgba(var(--panel-rgb),0.1)'}`,
-                        background: form.genre === g ? 'rgba(201,168,76,0.12)' : 'transparent',
-                        color: form.genre === g ? 'var(--gold)' : 'rgba(var(--text-rgb),0.5)',
+                        border: `1px solid ${form.genre === g ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa10))'}`,
+                        background: form.genre === g ? 'rgba(var(--gold-rgb),0.12)' : 'transparent',
+                        color: form.genre === g ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))',
                         cursor: 'pointer',
                         borderRadius: '3px',
                         transition: 'all 0.2s ease',
@@ -180,8 +180,8 @@ export default function CreateStory() {
                   placeholder="A few sentences to hook the reader..."
                   value={form.description}
                   onChange={e => update('description', e.target.value)}
-                  onFocus={e => e.target.style.borderColor = 'rgba(201,168,76,0.4)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),0.1)'}
+                  onFocus={e => e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),var(--pa10))'}
                 />
               </div>
 
@@ -192,10 +192,10 @@ export default function CreateStory() {
                   placeholder="Begin your story here. Set the scene. End at a moment of decision..."
                   value={form.openingText}
                   onChange={e => update('openingText', e.target.value)}
-                  onFocus={e => e.target.style.borderColor = 'rgba(201,168,76,0.4)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),0.1)'}
+                  onFocus={e => e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)'}
+                  onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),var(--pa10))'}
                 />
-                <p style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),0.25)', marginTop: '8px' }}>
+                <p style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),var(--ta25))', marginTop: '8px' }}>
                   {form.openingText.length} characters
                 </p>
               </div>
@@ -204,7 +204,7 @@ export default function CreateStory() {
 
           {step === 3 && (
             <div>
-              <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),0.5)', marginBottom: '24px', lineHeight: 1.6 }}>
+              <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta50))', marginBottom: '24px', lineHeight: 1.6 }}>
                 Write 2–4 choices that readers can make at the end of your opening passage.
               </p>
 
@@ -222,8 +222,8 @@ export default function CreateStory() {
                       placeholder={`Choice ${String.fromCharCode(65 + i)}`}
                       value={choice.text}
                       onChange={e => updateChoice(i, e.target.value)}
-                      onFocus={e => e.target.style.borderColor = 'rgba(201,168,76,0.4)'}
-                      onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),0.1)'}
+                      onFocus={e => e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)'}
+                      onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),var(--pa10))'}
                     />
                     {form.choices.length > 2 && (
                       <button
@@ -231,14 +231,14 @@ export default function CreateStory() {
                         style={{
                           background: 'none',
                           border: 'none',
-                          color: 'rgba(var(--text-rgb),0.25)',
+                          color: 'rgba(var(--text-rgb),var(--ta25))',
                           cursor: 'pointer',
                           fontSize: '16px',
                           marginTop: '10px',
                           transition: 'color 0.2s ease',
                         }}
                         onMouseEnter={e => e.currentTarget.style.color = 'var(--crimson)'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(var(--text-rgb),0.25)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta25))'}
                       >
                         ×
                       </button>
@@ -252,8 +252,8 @@ export default function CreateStory() {
                   onClick={addChoice}
                   style={{
                     background: 'none',
-                    border: '1px dashed rgba(var(--panel-rgb),0.12)',
-                    color: 'rgba(var(--text-rgb),0.35)',
+                    border: '1px dashed rgba(var(--panel-rgb),var(--pa12))',
+                    color: 'rgba(var(--text-rgb),var(--ta35))',
                     fontSize: '12px',
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase',
@@ -263,8 +263,8 @@ export default function CreateStory() {
                     transition: 'all 0.2s ease',
                     width: '100%',
                   }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)'; e.currentTarget.style.color = 'var(--gold)' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(var(--panel-rgb),0.12)'; e.currentTarget.style.color = 'rgba(var(--text-rgb),0.35)' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--gold-rgb),0.3)'; e.currentTarget.style.color = 'var(--gold)' }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(var(--panel-rgb),var(--pa12))'; e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))' }}
                 >
                   + Add choice
                 </button>
@@ -280,7 +280,7 @@ export default function CreateStory() {
             style={{
               background: 'none',
               border: 'none',
-              color: step > 1 ? 'rgba(var(--text-rgb),0.4)' : 'transparent',
+              color: step > 1 ? 'rgba(var(--text-rgb),var(--ta40))' : 'transparent',
               fontSize: '12px',
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
@@ -289,7 +289,7 @@ export default function CreateStory() {
               transition: 'color 0.2s ease',
             }}
             onMouseEnter={e => step > 1 && (e.currentTarget.style.color = 'var(--parchment)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.4)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta40))')}
           >
             ← Back
           </button>
@@ -302,8 +302,8 @@ export default function CreateStory() {
               disabled={!canProceed()}
               style={{
                 padding: '12px 32px',
-                background: canProceed() ? 'var(--gold)' : 'rgba(201,168,76,0.2)',
-                color: canProceed() ? 'var(--on-gold)' : 'rgba(var(--text-rgb),0.3)',
+                background: canProceed() ? 'var(--gold)' : 'rgba(var(--gold-rgb),0.2)',
+                color: canProceed() ? 'var(--on-gold)' : 'rgba(var(--text-rgb),var(--ta30))',
                 border: 'none',
                 fontSize: '12px',
                 fontWeight: 600,
@@ -324,8 +324,8 @@ export default function CreateStory() {
               disabled={!canProceed() || submitting}
               style={{
                 padding: '12px 32px',
-                background: canProceed() ? 'var(--gold)' : 'rgba(201,168,76,0.2)',
-                color: canProceed() ? 'var(--on-gold)' : 'rgba(var(--text-rgb),0.3)',
+                background: canProceed() ? 'var(--gold)' : 'rgba(var(--gold-rgb),0.2)',
+                color: canProceed() ? 'var(--on-gold)' : 'rgba(var(--text-rgb),var(--ta30))',
                 border: 'none',
                 fontSize: '12px',
                 fontWeight: 600,

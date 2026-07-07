@@ -13,9 +13,9 @@ export default function ChoiceCard({ choice, index, onSelect, disabled, unwritte
       style={{
         animationDelay: `${index * 0.1}s`,
         background: hovered
-          ? 'rgba(201,168,76,0.08)'
-          : 'rgba(var(--panel-rgb),0.03)',
-        border: `1px solid ${hovered ? 'rgba(201,168,76,0.5)' : 'rgba(var(--panel-rgb),0.1)'}`,
+          ? 'rgba(var(--gold-rgb),0.08)'
+          : 'rgba(var(--panel-rgb),var(--pa03))',
+        border: `1px solid ${hovered ? 'rgba(var(--gold-rgb),0.5)' : 'rgba(var(--panel-rgb),var(--pa10))'}`,
         borderRadius: '4px',
         padding: '20px 24px',
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -33,7 +33,7 @@ export default function ChoiceCard({ choice, index, onSelect, disabled, unwritte
       >
         {String.fromCharCode(65 + index)}.
       </span>
-      <span style={{ flex: 1, color: hovered ? 'var(--parchment)' : 'rgba(var(--text-rgb),0.8)', lineHeight: '1.6', fontSize: '15px' }}>
+      <span style={{ flex: 1, color: hovered ? 'var(--parchment)' : 'rgba(var(--text-rgb),var(--ta80))', lineHeight: '1.6', fontSize: '15px' }}>
         {choice.text}
       </span>
       {unwritten && (
@@ -44,7 +44,7 @@ export default function ChoiceCard({ choice, index, onSelect, disabled, unwritte
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
             color: 'var(--gold)',
-            border: '1px solid rgba(201,168,76,0.4)',
+            border: '1px solid rgba(var(--gold-rgb),0.4)',
             borderRadius: '3px',
             padding: '3px 8px',
             marginTop: '2px',

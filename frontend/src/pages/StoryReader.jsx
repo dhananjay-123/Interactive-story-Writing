@@ -122,7 +122,7 @@ export default function StoryReader() {
   if (loading) {
     return (
       <Screen>
-        <p style={{ color: 'rgba(var(--text-rgb),0.3)', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+        <p style={{ color: 'rgba(var(--text-rgb),var(--ta30))', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
           Loading…
         </p>
       </Screen>
@@ -132,7 +132,7 @@ export default function StoryReader() {
   if (error || !node) {
     return (
       <Screen>
-        <p className="font-story" style={{ fontSize: '22px', color: 'rgba(var(--text-rgb),0.6)', fontStyle: 'italic', marginBottom: '20px' }}>
+        <p className="font-story" style={{ fontSize: '22px', color: 'rgba(var(--text-rgb),var(--ta60))', fontStyle: 'italic', marginBottom: '20px' }}>
           This story could not be found.
         </p>
         <Link to="/stories" style={{ color: 'var(--gold)', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
@@ -154,19 +154,19 @@ export default function StoryReader() {
           <div className="animate-fadeIn mb-12">
             <button onClick={() => navigate('/stories')} style={backLinkStyle}
               onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.35)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
             >
               ← Back to library
             </button>
             <h1 className="font-story" style={{ fontSize: 'clamp(26px, 4vw, 38px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em', marginBottom: '8px', marginTop: '32px' }}>
               {story.title}
             </h1>
-            <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),0.35)' }}>
+            <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta35))' }}>
               {story.author} — {history.length + 1} {history.length === 0 ? 'passage' : 'passages'} in
               {isAuthor && <span style={{ color: 'var(--gold)' }}>  ·  your story</span>}
             </p>
             {isAuthor && (
-              <Link to={`/story/${story._id}/edit`} style={{ display: 'inline-block', marginTop: '14px', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', textDecoration: 'none', borderBottom: '1px solid rgba(201,168,76,0.4)', paddingBottom: '2px' }}>
+              <Link to={`/story/${story._id}/edit`} style={{ display: 'inline-block', marginTop: '14px', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--gold)', textDecoration: 'none', borderBottom: '1px solid rgba(var(--gold-rgb),0.4)', paddingBottom: '2px' }}>
                 ✦ Open story map
               </Link>
             )}
@@ -179,7 +179,7 @@ export default function StoryReader() {
             {history.map((_, i) => (
               <div key={i} style={{ width: i === history.length - 1 ? '20px' : '6px', height: '3px', background: 'var(--gold)', opacity: i === history.length - 1 ? 0.8 : 0.3, borderRadius: '2px', transition: 'all 0.3s ease' }} />
             ))}
-            <div style={{ width: '6px', height: '3px', background: 'rgba(var(--panel-rgb),0.15)', borderRadius: '2px' }} />
+            <div style={{ width: '6px', height: '3px', background: 'rgba(var(--panel-rgb),var(--pa15))', borderRadius: '2px' }} />
           </div>
         )}
 
@@ -202,7 +202,7 @@ export default function StoryReader() {
             <EndingBlock isAuthor={isAuthor} onRestart={handleRestart} />
           ) : (
             <div>
-              <p style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(201,168,76,0.5)', marginBottom: '20px' }}>
+              <p style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(var(--gold-rgb),0.5)', marginBottom: '20px' }}>
                 What do you do?
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -219,8 +219,8 @@ export default function StoryReader() {
               </div>
 
               {deadEnd && (
-                <div className="animate-fadeIn" style={{ marginTop: '20px', padding: '16px 20px', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '4px', background: 'rgba(201,168,76,0.05)' }}>
-                  <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),0.65)', lineHeight: 1.6 }}>
+                <div className="animate-fadeIn" style={{ marginTop: '20px', padding: '16px 20px', border: '1px solid rgba(var(--gold-rgb),0.25)', borderRadius: '4px', background: 'rgba(var(--gold-rgb),0.05)' }}>
+                  <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta65))', lineHeight: 1.6 }}>
                     The author hasn’t written where this path leads yet. Try another choice.
                   </p>
                 </div>
@@ -230,10 +230,10 @@ export default function StoryReader() {
 
           {/* Go back */}
           {history.length > 0 && !composing && (
-            <div style={{ marginTop: '48px', paddingTop: '24px', borderTop: '1px solid rgba(var(--panel-rgb),0.06)' }}>
+            <div style={{ marginTop: '48px', paddingTop: '24px', borderTop: '1px solid rgba(var(--panel-rgb),var(--pa06))' }}>
               <button onClick={handleBack} style={backLinkStyle}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.6)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.35)')}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta60))')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
               >
                 ← Go back
               </button>
@@ -248,19 +248,19 @@ export default function StoryReader() {
 function EndingBlock({ isAuthor, onRestart }) {
   return (
     <div className="animate-fadeUp text-center" style={{ padding: '32px 0' }}>
-      <div style={{ width: '40px', height: '1px', background: 'rgba(201,168,76,0.3)', margin: '0 auto 24px' }} />
-      <p className="font-story" style={{ fontSize: '20px', color: 'rgba(var(--text-rgb),0.55)', fontStyle: 'italic', marginBottom: '10px' }}>
+      <div style={{ width: '40px', height: '1px', background: 'rgba(var(--gold-rgb),0.3)', margin: '0 auto 24px' }} />
+      <p className="font-story" style={{ fontSize: '20px', color: 'rgba(var(--text-rgb),var(--ta55))', fontStyle: 'italic', marginBottom: '10px' }}>
         The End
       </p>
       {isAuthor && (
-        <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),0.35)', marginBottom: '28px' }}>
+        <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta35))', marginBottom: '28px' }}>
           This passage has no choices, so it ends the story here.
         </p>
       )}
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: isAuthor ? 0 : '24px' }}>
         <button onClick={onRestart}
-          style={{ padding: '12px 28px', background: 'transparent', border: '1px solid rgba(201,168,76,0.4)', color: 'var(--gold)', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: '3px', transition: 'background 0.2s ease' }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(201,168,76,0.08)')}
+          style={{ padding: '12px 28px', background: 'transparent', border: '1px solid rgba(var(--gold-rgb),0.4)', color: 'var(--gold)', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: '3px', transition: 'background 0.2s ease' }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(var(--gold-rgb),0.08)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
         >
           Start over
@@ -278,7 +278,7 @@ function Passage({ paragraphs }) {
         const body = isItalic ? para.slice(1, -1) : para
         const parts = body.split(/(\*[^*]+\*)/g)
         return (
-          <p key={i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.05}s`, fontSize: '17px', lineHeight: 1.85, color: 'rgba(var(--text-rgb),0.82)', marginBottom: '20px', fontStyle: isItalic ? 'italic' : 'normal' }}>
+          <p key={i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.05}s`, fontSize: '17px', lineHeight: 1.85, color: 'rgba(var(--text-rgb),var(--ta82))', marginBottom: '20px', fontStyle: isItalic ? 'italic' : 'normal' }}>
             {parts.map((part, j) =>
               part.startsWith('*') && part.endsWith('*')
                 ? <em key={j} style={{ color: 'var(--parchment)', fontStyle: 'italic' }}>{part.slice(1, -1)}</em>
@@ -294,9 +294,9 @@ function Passage({ paragraphs }) {
 function Divider() {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '40px' }}>
-      <div style={{ flex: 1, height: '1px', background: 'rgba(201,168,76,0.15)' }} />
-      <div style={{ width: '4px', height: '4px', background: 'rgba(201,168,76,0.4)', borderRadius: '50%' }} />
-      <div style={{ flex: 1, height: '1px', background: 'rgba(201,168,76,0.15)' }} />
+      <div style={{ flex: 1, height: '1px', background: 'rgba(var(--gold-rgb),0.15)' }} />
+      <div style={{ width: '4px', height: '4px', background: 'rgba(var(--gold-rgb),0.4)', borderRadius: '50%' }} />
+      <div style={{ flex: 1, height: '1px', background: 'rgba(var(--gold-rgb),0.15)' }} />
     </div>
   )
 }
@@ -312,7 +312,7 @@ function Screen({ children }) {
 const backLinkStyle = {
   background: 'none',
   border: 'none',
-  color: 'rgba(var(--text-rgb),0.35)',
+  color: 'rgba(var(--text-rgb),var(--ta35))',
   fontSize: '12px',
   letterSpacing: '0.15em',
   textTransform: 'uppercase',
