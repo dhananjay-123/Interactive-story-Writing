@@ -110,7 +110,7 @@ export default function Home() {
             className="animate-fadeUp delay-200"
             style={{
               fontSize: '18px',
-              color: 'rgba(250,248,243,0.6)',
+              color: 'rgba(var(--text-rgb),0.6)',
               lineHeight: 1.7,
               marginBottom: '20px',
               maxWidth: '520px',
@@ -143,7 +143,7 @@ export default function Home() {
                 display: 'inline-block',
                 padding: '14px 36px',
                 background: 'var(--gold)',
-                color: 'var(--ink)',
+                color: 'var(--on-gold)',
                 textDecoration: 'none',
                 fontSize: '14px',
                 fontWeight: 600,
@@ -170,11 +170,11 @@ export default function Home() {
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
                 borderRadius: '3px',
-                border: '1px solid rgba(250,248,243,0.25)',
+                border: '1px solid rgba(var(--text-rgb),0.25)',
                 transition: 'border-color 0.2s ease, color 0.2s ease',
               }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)'; e.currentTarget.style.color = 'var(--gold)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(250,248,243,0.25)'; e.currentTarget.style.color = 'var(--parchment)' }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(var(--text-rgb),0.25)'; e.currentTarget.style.color = 'var(--parchment)' }}
             >
               Write a Story
             </Link>
@@ -222,7 +222,7 @@ export default function Home() {
               <h3 style={{ fontSize: '18px', color: 'var(--parchment)', fontWeight: 500, marginBottom: '12px' }}>
                 {title}
               </h3>
-              <p style={{ fontSize: '15px', color: 'rgba(250,248,243,0.5)', lineHeight: 1.7 }}>
+              <p style={{ fontSize: '15px', color: 'rgba(var(--text-rgb),0.5)', lineHeight: 1.7 }}>
                 {desc}
               </p>
             </div>

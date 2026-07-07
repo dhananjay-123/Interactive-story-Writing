@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import axios from 'axios'
+import api from '../api/client'
 import StoryCard from '../components/StoryCard'
 
 const GENRES = ['all', 'fantasy', 'mystery', 'sci_fi', 'romance', 'horror']
@@ -11,7 +11,7 @@ export default function StoryList() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    axios.get('/api/stories')
+    api.get('/api/stories')
       .then(r => setStories(r.data))
       .catch(() => setStories(SAMPLE_STORIES))
       .finally(() => setLoading(false))
@@ -49,9 +49,9 @@ export default function StoryList() {
                   fontSize: '11px',
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase',
-                  border: `1px solid ${genre === g ? 'var(--gold)' : 'rgba(255,255,255,0.12)'}`,
+                  border: `1px solid ${genre === g ? 'var(--gold)' : 'rgba(var(--panel-rgb),0.12)'}`,
                   background: genre === g ? 'rgba(201,168,76,0.1)' : 'transparent',
-                  color: genre === g ? 'var(--gold)' : 'rgba(250,248,243,0.5)',
+                  color: genre === g ? 'var(--gold)' : 'rgba(var(--text-rgb),0.5)',
                   cursor: 'pointer',
                   borderRadius: '3px',
                   transition: 'all 0.2s ease',
@@ -68,8 +68,8 @@ export default function StoryList() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: 'rgba(var(--panel-rgb),0.04)',
+              border: '1px solid rgba(var(--panel-rgb),0.1)',
               borderRadius: '3px',
               padding: '8px 16px',
               color: 'var(--parchment)',
@@ -79,17 +79,17 @@ export default function StoryList() {
               transition: 'border-color 0.2s ease',
             }}
             onFocus={e => e.target.style.borderColor = 'rgba(201,168,76,0.4)'}
-            onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+            onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),0.1)'}
           />
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(250,248,243,0.3)' }}>
+          <div style={{ textAlign: 'center', padding: '80px 0', color: 'rgba(var(--text-rgb),0.3)' }}>
             <div style={{ fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>Loading...</div>
           </div>
         ) : filtered.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <p style={{ color: 'rgba(250,248,243,0.35)', fontSize: '15px' }}>No stories found.</p>
+            <p style={{ color: 'rgba(var(--text-rgb),0.35)', fontSize: '15px' }}>No stories found.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>

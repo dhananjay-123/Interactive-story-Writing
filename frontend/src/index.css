@@ -5,6 +5,7 @@
 }
 
 :root {
+  /* Dark is the default theme. */
   --ink: #1a1a2e;
   --ink-soft: #2d2b3d;
   --parchment: #faf8f3;
@@ -17,6 +18,30 @@
   --slate-light: #7a7590;
   --serif: 'Georgia', 'Times New Roman', serif;
   --sans: 'Segoe UI', system-ui, sans-serif;
+
+  /* RGB tokens let every rgba(...) in the app re-theme without touching opacities. */
+  --bg-rgb: 26, 26, 46;        /* page background            */
+  --text-rgb: 250, 248, 243;   /* text / parchment overlays  */
+  --panel-rgb: 255, 255, 255;  /* surfaces + borders         */
+  --on-gold: #1a1a2e;          /* text that sits on the gold accent — stays dark in both themes */
+  color-scheme: dark;
+}
+
+/* Warm parchment light theme — a manuscript feel, not stark white. */
+:root[data-theme="light"] {
+  --ink: #efe7d3;              /* aged-paper page background */
+  --ink-soft: #e5d9bf;
+  --parchment: #2a2740;        /* deep ink for body text     */
+  --parchment-dark: #3a3653;
+  --gold: #9a7a2b;             /* deeper gold reads on cream */
+  --gold-dark: #7c6222;
+  --slate: #b7aa8d;
+  --slate-light: #8a7e64;
+
+  --bg-rgb: 239, 231, 211;
+  --text-rgb: 42, 39, 64;
+  --panel-rgb: 42, 39, 64;
+  color-scheme: light;
 }
 
 html {

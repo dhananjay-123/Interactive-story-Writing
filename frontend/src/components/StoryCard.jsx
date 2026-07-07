@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 const GENRE_COLORS = {
   fantasy:  { bg: 'rgba(139,26,46,0.15)',  border: 'rgba(139,26,46,0.4)',  text: '#c45a6e' },
@@ -12,7 +12,15 @@ const GENRE_COLORS = {
 
 export default function StoryCard({ story, index }) {
   const [hovered, setHovered] = useState(false)
+  const navigate = useNavigate()
   const genre = GENRE_COLORS[story.genre] || GENRE_COLORS.default
+
+  // Navigate to the author without triggering the card's own link (avoids nested <a>).
+  const goToAuthor = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    navigate(`/author/${story.authorUsername}`)
+  }
 
   return (
     <Link
@@ -24,8 +32,8 @@ export default function StoryCard({ story, index }) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          background: hovered ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)',
-          border: `1px solid ${hovered ? 'rgba(201,168,76,0.3)' : 'rgba(255,255,255,0.08)'}`,
+          background: hovered ? 'rgba(var(--panel-rgb),0.05)' : 'rgba(var(--panel-rgb),0.02)',
+          border: `1px solid ${hovered ? 'rgba(201,168,76,0.3)' : 'rgba(var(--panel-rgb),0.08)'}`,
           borderRadius: '6px',
           padding: '28px',
           cursor: 'pointer',
@@ -41,7 +49,7 @@ export default function StoryCard({ story, index }) {
           >
             {story.genre?.replace('_', '-') || 'Story'}
           </span>
-          <span className="text-xs" style={{ color: 'rgba(250,248,243,0.3)' }}>
+          <span className="text-xs" style={{ color: 'rgba(var(--text-rgb),0.3)' }}>
             {story.branchCount || 0} branches
           </span>
         </div>
@@ -53,14 +61,29 @@ export default function StoryCard({ story, index }) {
           {story.title}
         </h3>
 
-        <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(250,248,243,0.55)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(var(--text-rgb),0.55)', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {story.description}
         </p>
 
         <div className="flex items-center justify-between">
-          <span className="text-xs" style={{ color: 'rgba(250,248,243,0.35)' }}>
-            by {story.author || 'Anonymous'}
-          </span>
+          {story.authorUsername ? (
+            <span
+              role="link"
+              tabIndex={0}
+              onClick={goToAuthor}
+              onKeyDown={(e) => e.key === 'Enter' && goToAuthor(e)}
+              className="text-xs"
+              style={{ color: 'rgba(var(--text-rgb),0.35)', cursor: 'pointer' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),0.35)')}
+            >
+              by {story.author || 'Anonymous'}
+            </span>
+          ) : (
+            <span className="text-xs" style={{ color: 'rgba(var(--text-rgb),0.35)' }}>
+              by {story.author || 'Anonymous'}
+            </span>
+          )}
           <span
             className="text-xs"
             style={{ color: 'var(--gold)', opacity: hovered ? 1 : 0, transition: 'opacity 0.25s ease' }}

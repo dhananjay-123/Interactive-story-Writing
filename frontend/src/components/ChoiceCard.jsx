@@ -1,11 +1,11 @@
 import { useState } from 'react'
 
-export default function ChoiceCard({ choice, index, onSelect, disabled }) {
+export default function ChoiceCard({ choice, index, onSelect, disabled, unwritten }) {
   const [hovered, setHovered] = useState(false)
 
   return (
     <button
-      onClick={() => !disabled && onSelect(choice)}
+      onClick={() => !disabled && onSelect(choice, index)}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       disabled={disabled}
@@ -14,8 +14,8 @@ export default function ChoiceCard({ choice, index, onSelect, disabled }) {
         animationDelay: `${index * 0.1}s`,
         background: hovered
           ? 'rgba(201,168,76,0.08)'
-          : 'rgba(255,255,255,0.03)',
-        border: `1px solid ${hovered ? 'rgba(201,168,76,0.5)' : 'rgba(255,255,255,0.1)'}`,
+          : 'rgba(var(--panel-rgb),0.03)',
+        border: `1px solid ${hovered ? 'rgba(201,168,76,0.5)' : 'rgba(var(--panel-rgb),0.1)'}`,
         borderRadius: '4px',
         padding: '20px 24px',
         cursor: disabled ? 'not-allowed' : 'pointer',
@@ -33,9 +33,27 @@ export default function ChoiceCard({ choice, index, onSelect, disabled }) {
       >
         {String.fromCharCode(65 + index)}.
       </span>
-      <span style={{ color: hovered ? 'var(--parchment)' : 'rgba(250,248,243,0.8)', lineHeight: '1.6', fontSize: '15px' }}>
+      <span style={{ flex: 1, color: hovered ? 'var(--parchment)' : 'rgba(var(--text-rgb),0.8)', lineHeight: '1.6', fontSize: '15px' }}>
         {choice.text}
       </span>
+      {unwritten && (
+        <span
+          className="shrink-0"
+          style={{
+            fontSize: '10px',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'var(--gold)',
+            border: '1px solid rgba(201,168,76,0.4)',
+            borderRadius: '3px',
+            padding: '3px 8px',
+            marginTop: '2px',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          Write →
+        </span>
+      )}
     </button>
   )
 }

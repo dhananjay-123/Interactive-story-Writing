@@ -28,7 +28,7 @@ Thumbs.db
 # Vite cache
 frontend/.vite/
 
-# AI assistant / agent tooling — keep out of the public repo
+
 CLAUDE.md
 .claude/
 AGENTS.md
