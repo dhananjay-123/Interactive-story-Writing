@@ -2,6 +2,7 @@ const router = require('express').Router()
 const Node = require('../models/Node')
 const Story = require('../models/Story')
 const { requireAuth } = require('../middleware/auth')
+const { validateContent } = require('../utils/validateContent')
 
 // GET node by id (with populated choices)
 router.get('/:id', async (req, res) => {
@@ -40,9 +41,14 @@ router.get('/story/:storyId/tree', async (req, res) => {
 
 // POST add a child passage — only the story's author may extend the tree.
 router.post('/', requireAuth, async (req, res) => {
-  const { storyId, text, choices, parentNodeId, choiceIndex } = req.body
+  const { storyId, text, content, choices, parentNodeId, choiceIndex } = req.body
 
-  if (!storyId || !text) return res.status(400).json({ message: 'storyId and text are required' })
+  if (!storyId || (!text?.trim() && !content)) {
+    return res.status(400).json({ message: 'storyId and passage text are required' })
+  }
+  if (content && !validateContent(content)) {
+    return res.status(400).json({ message: 'Passage content is not valid.' })
+  }
   if (parentNodeId == null || choiceIndex == null) {
     return res.status(400).json({ message: 'parentNodeId and choiceIndex are required' })
   }
@@ -64,7 +70,7 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(409).json({ message: 'That path already continues somewhere.' })
     }
 
-    const node = await Node.create({ storyId, text, choices })
+    const node = await Node.create({ storyId, text: (text || '').trim(), content, choices })
     await Node.attachChild(parentNodeId, choiceIndex, node._id)
 
     // Keep the story's branch count in sync (passages beyond the opening).
@@ -93,8 +99,11 @@ const loadOwned = async (req, res) => {
 
 // PUT edit a passage's text and choice labels (existing branch links are preserved).
 router.put('/:id', requireAuth, async (req, res) => {
-  const { text, choices } = req.body
-  if (!text || !text.trim()) return res.status(400).json({ message: 'Passage text is required' })
+  const { text, content, choices } = req.body
+  if (!text?.trim() && !content) return res.status(400).json({ message: 'Passage text is required' })
+  if (content && !validateContent(content)) {
+    return res.status(400).json({ message: 'Passage content is not valid.' })
+  }
 
   try {
     const owned = await loadOwned(req, res)
@@ -113,7 +122,7 @@ router.put('/:id', requireAuth, async (req, res) => {
       return res.status(409).json({ message: 'Delete a written branch before removing its choice.' })
     }
 
-    const updated = await Node.update(node._id, { text: text.trim(), choices })
+    const updated = await Node.update(node._id, { text: (text || '').trim(), content, choices })
     await Story.setBranchCount(story._id, (await Node.countByStory(story._id)) - 1)
     res.json(updated)
   } catch (err) {

@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import BranchComposer from '../components/BranchComposer'
+import RichTextEditor, { textToDoc } from '../components/RichTextEditor'
 import { inputStyle, labelStyle, focusBorder, blurBorder } from '../components/authStyles'
 
 export default function StoryEditor() {
@@ -180,7 +181,7 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
           <NodeEditor node={node} ctx={ctx} />
         ) : (
           <p className="font-story" style={{ fontSize: '15px', lineHeight: 1.6, color: 'rgba(var(--text-rgb),var(--ta82))', whiteSpace: 'pre-wrap' }}>
-            {snippet(node.text)}
+            {snippet(node.text) || '(an image or embed, no text)'}
           </p>
         )}
       </div>
@@ -245,7 +246,8 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
 
 /* ── Edit an existing passage's text + choice labels ── */
 function NodeEditor({ node, ctx }) {
-  const [text, setText] = useState(node.text)
+  const [editor, setEditor] = useState(null)
+  const [empty, setEmpty] = useState(!node.text && !node.content)
   const [choices, setChoices] = useState(node.choices.map((c) => ({ ...c })))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -256,7 +258,7 @@ function NodeEditor({ node, ctx }) {
     setChoices((cs) => (cs.length >= 4 ? cs : [...cs, { text: '', nextNodeId: null }]))
   const removeChoice = (i) => setChoices((cs) => cs.filter((_, idx) => idx !== i))
 
-  const canSave = text.trim() && choices.every((c) => c.text.trim()) && !saving
+  const canSave = editor && !empty && choices.every((c) => c.text.trim()) && !saving
 
   const save = async () => {
     if (!canSave) return
@@ -264,7 +266,8 @@ function NodeEditor({ node, ctx }) {
     setError('')
     try {
       await api.put(`/api/nodes/${node._id}`, {
-        text: text.trim(),
+        text: editor.getText().trim(),
+        content: editor.getJSON(),
         choices: choices.map((c) => ({ text: c.text.trim(), nextNodeId: c.nextNodeId ?? null })),
       })
       await ctx.onReload()
@@ -277,12 +280,11 @@ function NodeEditor({ node, ctx }) {
   return (
     <div className="animate-fadeIn">
       <label style={labelStyle}>Passage</label>
-      <textarea
-        style={{ ...inputStyle, resize: 'vertical', minHeight: '140px', fontFamily: 'Georgia, serif', lineHeight: 1.7 }}
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onFocus={focusBorder}
-        onBlur={blurBorder}
+      <RichTextEditor
+        initialContent={node.content || textToDoc(node.text)}
+        minHeight="140px"
+        onEditor={setEditor}
+        onUpdate={(ed) => setEmpty(ed.isEmpty)}
       />
 
       <div style={{ marginTop: '18px' }}>

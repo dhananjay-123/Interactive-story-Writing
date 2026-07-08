@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import RichTextEditor from '../components/RichTextEditor'
 
 const GENRES = ['fantasy', 'mystery', 'sci_fi', 'romance', 'horror', 'thriller', 'literary']
 
@@ -14,6 +15,8 @@ export default function CreateStory() {
     description: '',
     genre: '',
     openingText: '',
+    openingContent: null,
+    openingEmpty: true,
     choices: [{ text: '' }, { text: '' }],
   })
   const [submitting, setSubmitting] = useState(false)
@@ -46,7 +49,7 @@ export default function CreateStory() {
 
   const canProceed = () => {
     if (step === 1) return form.title.trim() && form.genre
-    if (step === 2) return form.description.trim() && form.openingText.trim()
+    if (step === 2) return form.description.trim() && !form.openingEmpty
     if (step === 3) return form.choices.every(c => c.text.trim())
     return true
   }
@@ -187,16 +190,19 @@ export default function CreateStory() {
 
               <div>
                 <label style={labelStyle}>Opening passage</label>
-                <textarea
-                  style={{ ...inputStyle, resize: 'vertical', minHeight: '220px', fontFamily: 'Georgia, serif', lineHeight: 1.7 }}
+                <RichTextEditor
+                  initialContent={form.openingContent || undefined}
                   placeholder="Begin your story here. Set the scene. End at a moment of decision..."
-                  value={form.openingText}
-                  onChange={e => update('openingText', e.target.value)}
-                  onFocus={e => e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),var(--pa10))'}
+                  minHeight="220px"
+                  onUpdate={ed => setForm(f => ({
+                    ...f,
+                    openingText: ed.getText(),
+                    openingContent: ed.getJSON(),
+                    openingEmpty: ed.isEmpty,
+                  }))}
                 />
                 <p style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),var(--ta25))', marginTop: '8px' }}>
-                  {form.openingText.length} characters
+                  {form.openingText.trim().length} characters
                 </p>
               </div>
             </div>

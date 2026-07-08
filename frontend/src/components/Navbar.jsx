@@ -6,6 +6,7 @@ import { useTheme } from '../context/ThemeContext'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const { enabled, toggle } = useAudio()
@@ -18,17 +19,28 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
+  // Collapse the mobile menu whenever the route changes.
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname])
+
   const handleLogout = () => {
     logout()
+    setMenuOpen(false)
     navigate('/')
   }
+
+  const authorPath = user ? `/author/${user.username}` : null
 
   return (
     <nav
       style={{
-        background: scrolled ? 'rgba(var(--bg-rgb),0.95)' : 'transparent',
-        borderBottom: scrolled ? '1px solid rgba(var(--gold-rgb),0.15)' : '1px solid transparent',
-        backdropFilter: scrolled ? 'blur(12px)' : 'none',
+        background: scrolled || menuOpen ? 'rgba(var(--bg-rgb),0.95)' : 'transparent',
+        borderBottom:
+          scrolled || menuOpen
+            ? '1px solid rgba(var(--gold-rgb),0.15)'
+            : '1px solid transparent',
+        backdropFilter: scrolled || menuOpen ? 'blur(12px)' : 'none',
         transition: 'background 0.3s ease, border-color 0.3s ease, backdrop-filter 0.3s ease',
       }}
       className="fixed top-0 left-0 right-0 z-50 px-6 py-4"
@@ -42,17 +54,13 @@ export default function Navbar() {
           CraftnTales
         </Link>
 
-        <div className="flex items-center gap-7">
+        {/* Desktop navigation */}
+        <div className="hidden md:flex items-center gap-7">
           <NavLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
 
           {user ? (
             <>
               <NavLink to="/create" label="Write" active={location.pathname === '/create'} />
-              <NavLink
-                to={`/author/${user.username}`}
-                label={user.displayName}
-                active={location.pathname === `/author/${user.username}`}
-              />
               <button onClick={handleLogout} style={textLinkStyle('rgba(var(--text-rgb),var(--ta45))')}>
                 Sign out
               </button>
@@ -60,49 +68,171 @@ export default function Navbar() {
           ) : (
             <>
               <NavLink to="/login" label="Sign in" active={location.pathname === '/login'} />
-              <Link
-                to="/register"
-                style={{
-                  fontSize: '12px',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  color: 'var(--on-gold)',
-                  background: 'var(--gold)',
-                  padding: '8px 18px',
-                  borderRadius: '3px',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                }}
-              >
+              <Link to="/register" style={joinButtonStyle}>
                 Join
               </Link>
             </>
           )}
 
-          <button
-            onClick={toggleTheme}
-            aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-            title={theme === 'dark' ? 'Light theme' : 'Dark theme'}
-            style={iconButtonStyle('rgba(var(--text-rgb),var(--ta50))')}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta50))')}
-          >
-            <ThemeIcon theme={theme} />
-          </button>
+          <IconButtons
+            theme={theme}
+            toggleTheme={toggleTheme}
+            enabled={enabled}
+            toggle={toggle}
+          />
+
+          {user && (
+            <Avatar
+              to={authorPath}
+              name={user.displayName}
+              active={location.pathname === authorPath}
+            />
+          )}
+        </div>
+
+        {/* Mobile top-bar controls */}
+        <div className="flex md:hidden items-center gap-3">
+          <IconButtons
+            theme={theme}
+            toggleTheme={toggleTheme}
+            enabled={enabled}
+            toggle={toggle}
+          />
+
+          {user && (
+            <Avatar
+              to={authorPath}
+              name={user.displayName}
+              active={location.pathname === authorPath}
+            />
+          )}
 
           <button
-            onClick={toggle}
-            aria-pressed={enabled}
-            aria-label={enabled ? 'Mute sound' : 'Enable sound'}
-            title={enabled ? 'Sound on' : 'Sound off'}
-            style={iconButtonStyle(enabled ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))')}
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            style={iconButtonStyle('rgba(var(--text-rgb),var(--ta65))')}
           >
-            <SoundIcon on={enabled} />
+            <MenuIcon open={menuOpen} />
           </button>
         </div>
       </div>
+
+      {/* Mobile dropdown menu */}
+      {menuOpen && (
+        <div
+          className="md:hidden animate-fadeUp"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            marginTop: '14px',
+            paddingTop: '14px',
+            borderTop: '1px solid rgba(var(--gold-rgb),0.12)',
+          }}
+        >
+          <MobileLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
+          {user ? (
+            <>
+              <MobileLink to="/create" label="Write" active={location.pathname === '/create'} />
+              <MobileLink
+                to={authorPath}
+                label="My profile"
+                active={location.pathname === authorPath}
+              />
+              <button
+                onClick={handleLogout}
+                style={{ ...mobileLinkStyle(false), textAlign: 'left' }}
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <MobileLink to="/login" label="Sign in" active={location.pathname === '/login'} />
+              <MobileLink to="/register" label="Join" active={location.pathname === '/register'} />
+            </>
+          )}
+        </div>
+      )}
     </nav>
   )
+}
+
+function IconButtons({ theme, toggleTheme, enabled, toggle }) {
+  return (
+    <>
+      <button
+        onClick={toggleTheme}
+        aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        title={theme === 'dark' ? 'Light theme' : 'Dark theme'}
+        style={iconButtonStyle('rgba(var(--text-rgb),var(--ta50))')}
+        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
+        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta50))')}
+      >
+        <ThemeIcon theme={theme} />
+      </button>
+
+      <button
+        onClick={toggle}
+        aria-pressed={enabled}
+        aria-label={enabled ? 'Mute sound' : 'Enable sound'}
+        title={enabled ? 'Sound on' : 'Sound off'}
+        style={iconButtonStyle(enabled ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))')}
+      >
+        <SoundIcon on={enabled} />
+      </button>
+    </>
+  )
+}
+
+function Avatar({ to, name, active }) {
+  const initial = (name || '?').charAt(0).toUpperCase()
+  return (
+    <Link
+      to={to}
+      title={name}
+      aria-label={`${name} — profile`}
+      className="font-story"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '32px',
+        height: '32px',
+        borderRadius: '50%',
+        flexShrink: 0,
+        fontSize: '15px',
+        lineHeight: 1,
+        textDecoration: 'none',
+        color: 'var(--gold)',
+        border: active
+          ? '1px solid var(--gold)'
+          : '1px solid rgba(var(--gold-rgb),0.4)',
+        transition: 'border-color 0.2s ease',
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--gold)')}
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.borderColor = active
+          ? 'var(--gold)'
+          : 'rgba(var(--gold-rgb),0.4)')
+      }
+    >
+      {initial}
+    </Link>
+  )
+}
+
+const joinButtonStyle = {
+  fontSize: '12px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase',
+  color: 'var(--on-gold)',
+  background: 'var(--gold)',
+  padding: '8px 18px',
+  borderRadius: '3px',
+  textDecoration: 'none',
+  fontWeight: 600,
 }
 
 const textLinkStyle = (color) => ({
@@ -130,6 +260,28 @@ const iconButtonStyle = (color) => ({
   color,
   transition: 'color 0.2s ease',
 })
+
+const mobileLinkStyle = (active) => ({
+  fontSize: '13px',
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  color: active ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta65))',
+  textDecoration: 'none',
+  background: 'none',
+  border: 'none',
+  cursor: 'pointer',
+  padding: '10px 2px',
+  fontFamily: 'inherit',
+  width: '100%',
+})
+
+function MobileLink({ to, label, active }) {
+  return (
+    <Link to={to} style={mobileLinkStyle(active)}>
+      {label}
+    </Link>
+  )
+}
 
 function ThemeIcon({ theme }) {
   // Show the sun in dark mode (tap to go light), the moon in light mode.
@@ -167,6 +319,18 @@ function NavLink({ to, label, active }) {
     >
       {label}
     </Link>
+  )
+}
+
+function MenuIcon({ open }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {open ? (
+        <path d="M6 6l12 12M18 6L6 18" />
+      ) : (
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      )}
+    </svg>
   )
 }
 

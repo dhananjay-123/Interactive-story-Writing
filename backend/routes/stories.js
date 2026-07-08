@@ -2,6 +2,7 @@ const router = require('express').Router()
 const Story = require('../models/Story')
 const Node = require('../models/Node')
 const { requireAuth } = require('../middleware/auth')
+const { validateContent } = require('../utils/validateContent')
 
 // GET all stories
 router.get('/', async (req, res) => {
@@ -26,10 +27,13 @@ router.get('/:id', async (req, res) => {
 
 // POST create story with opening node — author comes from the signed-in user.
 router.post('/', requireAuth, async (req, res) => {
-  const { title, description, genre, openingText, choices } = req.body
+  const { title, description, genre, openingText, openingContent, choices } = req.body
 
-  if (!title || !openingText) {
+  if (!title || (!openingText?.trim() && !openingContent)) {
     return res.status(400).json({ message: 'Title and opening text are required' })
+  }
+  if (openingContent && !validateContent(openingContent)) {
+    return res.status(400).json({ message: 'Opening passage content is not valid.' })
   }
 
   try {
@@ -43,7 +47,8 @@ router.post('/', requireAuth, async (req, res) => {
 
     const rootNode = await Node.create({
       storyId: story._id,
-      text: openingText,
+      text: (openingText || '').trim(),
+      content: openingContent,
       choices,
     })
 

@@ -5,6 +5,7 @@ const mapNode = (row) =>
     _id: row.id,
     storyId: row.story_id,
     text: row.text,
+    content: row.content,
     choices: row.choices,
     isEnding: row.is_ending,
     createdAt: row.created_at,
@@ -14,13 +15,13 @@ const mapNode = (row) =>
 const normalizeChoices = (choices) =>
   (choices || []).map((c) => ({ text: c.text, nextNodeId: c.nextNodeId ?? null }))
 
-const create = async ({ storyId, text, choices }) => {
+const create = async ({ storyId, text, content, choices }) => {
   const normalized = normalizeChoices(choices)
   const { rows } = await db.query(
-    `INSERT INTO nodes (story_id, text, choices, is_ending)
-     VALUES ($1, $2, $3::jsonb, $4)
+    `INSERT INTO nodes (story_id, text, content, choices, is_ending)
+     VALUES ($1, $2, $3::jsonb, $4::jsonb, $5)
      RETURNING *`,
-    [storyId, text, JSON.stringify(normalized), normalized.length === 0]
+    [storyId, text, content ? JSON.stringify(content) : null, JSON.stringify(normalized), normalized.length === 0]
   )
   return mapNode(rows[0])
 }
@@ -48,17 +49,17 @@ const findByStory = async (storyId) => {
 
 // Edit an existing passage's text and choice labels. Callers pass the full
 // choices array (each with its nextNodeId preserved) so existing links survive.
-const update = async (id, { text, choices }) => {
+const update = async (id, { text, content, choices }) => {
   const normalized = (choices || []).map((c) => ({
     text: c.text,
     nextNodeId: c.nextNodeId ?? null,
   }))
   const { rows } = await db.query(
     `UPDATE nodes
-     SET text = $2, choices = $3::jsonb, is_ending = $4, updated_at = NOW()
+     SET text = $2, content = $3::jsonb, choices = $4::jsonb, is_ending = $5, updated_at = NOW()
      WHERE id = $1
      RETURNING *`,
-    [id, text, JSON.stringify(normalized), normalized.length === 0]
+    [id, text, content ? JSON.stringify(content) : null, JSON.stringify(normalized), normalized.length === 0]
   )
   return mapNode(rows[0])
 }

@@ -4,6 +4,8 @@ import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import ChoiceCard from '../components/ChoiceCard'
 import BranchComposer from '../components/BranchComposer'
+import { generateHTML } from '@tiptap/core'
+import { editorExtensions } from '../components/RichTextEditor'
 
 export default function StoryReader() {
   const { id } = useParams()
@@ -142,7 +144,6 @@ export default function StoryReader() {
     )
   }
 
-  const paragraphs = node.text.split('\n\n')
   const isEnding = node.choices.length === 0
 
   return (
@@ -185,7 +186,7 @@ export default function StoryReader() {
 
         {/* Body */}
         <div style={{ opacity: transitioning ? 0 : 1, transform: transitioning ? 'translateY(12px)' : 'translateY(0)', transition: 'opacity 0.26s ease, transform 0.26s ease' }}>
-          <Passage paragraphs={paragraphs} />
+          <Passage node={node} />
 
           <Divider />
 
@@ -270,7 +271,20 @@ function EndingBlock({ isAuthor, onRestart }) {
   )
 }
 
-function Passage({ paragraphs }) {
+function Passage({ node }) {
+  // Rich passages carry their content as Tiptap JSON, validated server-side,
+  // so it can be rendered directly. Older passages fall back to plain text.
+  if (node.content) {
+    return (
+      <div
+        className="font-story passage-prose animate-fadeUp"
+        style={{ marginBottom: '48px', fontSize: '17px', lineHeight: 1.85, color: 'rgba(var(--text-rgb),var(--ta82))' }}
+        dangerouslySetInnerHTML={{ __html: generateHTML(node.content, editorExtensions) }}
+      />
+    )
+  }
+
+  const paragraphs = node.text.split('\n\n')
   return (
     <div className="font-story" style={{ marginBottom: '48px' }}>
       {paragraphs.map((para, i) => {

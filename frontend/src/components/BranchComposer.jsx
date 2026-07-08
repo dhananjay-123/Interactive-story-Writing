@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import api from '../api/client'
 import { inputStyle, labelStyle, focusBorder, blurBorder } from './authStyles'
+import RichTextEditor from './RichTextEditor'
 
 // Inline editor for writing a new passage at the end of an unwritten choice.
 // Used by both the reader (write-as-you-read) and the story map editor.
 export default function BranchComposer({ storyId, parentNodeId, choiceIndex, choiceText, onCancel, onDone, compact }) {
-  const [text, setText] = useState('')
+  const [editor, setEditor] = useState(null)
+  const [empty, setEmpty] = useState(true)
   const [choices, setChoices] = useState(['', ''])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -15,7 +17,7 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
   const removeChoice = (i) => setChoices((c) => c.filter((_, idx) => idx !== i))
 
   const filledChoices = choices.map((c) => c.trim()).filter(Boolean)
-  const canSubmit = text.trim().length > 0 && !submitting
+  const canSubmit = editor && !empty && !submitting
 
   const submit = async () => {
     if (!canSubmit) return
@@ -24,7 +26,8 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
     try {
       const { data: newNode } = await api.post('/api/nodes', {
         storyId,
-        text: text.trim(),
+        text: editor.getText().trim(),
+        content: editor.getJSON(),
         choices: filledChoices.map((t) => ({ text: t })),
         parentNodeId,
         choiceIndex,
@@ -48,13 +51,11 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
       )}
 
       <label style={labelStyle}>What happens next</label>
-      <textarea
-        style={{ ...inputStyle, resize: 'vertical', minHeight: compact ? '120px' : '180px', fontFamily: 'Georgia, serif', lineHeight: 1.7 }}
+      <RichTextEditor
         placeholder="Write the next passage. End at a decision, or leave no choices to make this an ending…"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        onFocus={focusBorder}
-        onBlur={blurBorder}
+        minHeight={compact ? '120px' : '180px'}
+        onEditor={setEditor}
+        onUpdate={(ed) => setEmpty(ed.isEmpty)}
       />
 
       <div style={{ marginTop: '20px' }}>

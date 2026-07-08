@@ -58,6 +58,9 @@ const initDb = async () => {
       updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    -- Rich passage content (Tiptap JSON). Older passages only have plain text.
+    ALTER TABLE nodes ADD COLUMN IF NOT EXISTS content JSONB;
+
     CREATE INDEX IF NOT EXISTS idx_nodes_story_id ON nodes (story_id);
     CREATE INDEX IF NOT EXISTS idx_stories_published_created ON stories (published, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_stories_author ON stories (author_id, created_at DESC);
