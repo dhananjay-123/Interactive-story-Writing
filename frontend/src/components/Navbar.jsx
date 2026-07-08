@@ -85,6 +85,7 @@ export default function Navbar() {
             <Avatar
               to={authorPath}
               name={user.displayName}
+              src={user.avatarUrl}
               active={location.pathname === authorPath}
             />
           )}
@@ -103,6 +104,7 @@ export default function Navbar() {
             <Avatar
               to={authorPath}
               name={user.displayName}
+              src={user.avatarUrl}
               active={location.pathname === authorPath}
             />
           )}
@@ -186,7 +188,7 @@ function IconButtons({ theme, toggleTheme, enabled, toggle }) {
   )
 }
 
-function Avatar({ to, name, active }) {
+function Avatar({ to, name, src, active }) {
   const initial = (name || '?').charAt(0).toUpperCase()
   return (
     <Link
@@ -202,6 +204,7 @@ function Avatar({ to, name, active }) {
         height: '32px',
         borderRadius: '50%',
         flexShrink: 0,
+        overflow: 'hidden',
         fontSize: '15px',
         lineHeight: 1,
         textDecoration: 'none',
@@ -218,7 +221,11 @@ function Avatar({ to, name, active }) {
           : 'rgba(var(--gold-rgb),0.4)')
       }
     >
-      {initial}
+      {src ? (
+        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      ) : (
+        initial
+      )}
     </Link>
   )
 }

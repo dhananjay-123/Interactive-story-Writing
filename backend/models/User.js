@@ -8,6 +8,7 @@ const mapUser = (row) =>
     email: row.email,
     displayName: row.display_name,
     bio: row.bio,
+    avatarUrl: row.avatar_url || null,
     role: row.role,
     createdAt: row.created_at,
   }
@@ -28,6 +29,14 @@ const create = async ({ username, email, passwordHash, displayName, bio }) => {
 
 const findById = async (id) => {
   const { rows } = await db.query('SELECT * FROM users WHERE id = $1', [id])
+  return mapUser(rows[0])
+}
+
+const setAvatar = async (id, avatarUrl) => {
+  const { rows } = await db.query(
+    'UPDATE users SET avatar_url = $2 WHERE id = $1 RETURNING *',
+    [id, avatarUrl]
+  )
   return mapUser(rows[0])
 }
 
@@ -64,6 +73,7 @@ const usernameOrEmailTaken = async (username, email) => {
 module.exports = {
   create,
   findById,
+  setAvatar,
   findByUsername,
   findByEmailWithHash,
   usernameOrEmailTaken,

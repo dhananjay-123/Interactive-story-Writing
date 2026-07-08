@@ -61,4 +61,24 @@ router.get('/me', requireAuth, (req, res) => {
   res.json({ user: req.user })
 })
 
+// PUT /api/auth/me/avatar — set or clear the signed-in user's profile picture.
+router.put('/me/avatar', requireAuth, async (req, res) => {
+  let { avatarUrl } = req.body || {}
+  if (avatarUrl === '' || avatarUrl == null) {
+    avatarUrl = null
+  } else if (
+    typeof avatarUrl !== 'string' ||
+    avatarUrl.length > 400 ||
+    !/^https:\/\/res\.cloudinary\.com\//.test(avatarUrl)
+  ) {
+    return res.status(400).json({ message: 'Invalid image URL.' })
+  }
+  try {
+    const user = await User.setAvatar(req.user._id, avatarUrl)
+    res.json({ user })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
 module.exports = router

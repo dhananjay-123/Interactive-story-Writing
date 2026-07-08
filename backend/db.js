@@ -25,10 +25,14 @@ const initDb = async () => {
       password_hash  TEXT NOT NULL,
       display_name   TEXT NOT NULL,
       bio            TEXT,
+      avatar_url     TEXT,
       role           TEXT NOT NULL DEFAULT 'author'
                        CHECK (role IN ('author','admin')),
       created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    -- Profile picture (a Cloudinary URL), added after the users table existed.
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
 
     CREATE TABLE IF NOT EXISTS stories (
       id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -40,6 +44,7 @@ const initDb = async () => {
       author_id     UUID REFERENCES users(id) ON DELETE SET NULL,
       root_node_id  UUID,
       branch_count  INTEGER NOT NULL DEFAULT 0,
+      ambience      TEXT,
       published     BOOLEAN NOT NULL DEFAULT TRUE,
       created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -47,6 +52,8 @@ const initDb = async () => {
 
     -- Backfill for databases created before author ownership existed.
     ALTER TABLE stories ADD COLUMN IF NOT EXISTS author_id UUID REFERENCES users(id) ON DELETE SET NULL;
+    -- Per-story background soundscape (an ambience preset id, or null for silence).
+    ALTER TABLE stories ADD COLUMN IF NOT EXISTS ambience TEXT;
 
     CREATE TABLE IF NOT EXISTS nodes (
       id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -1,10 +1,11 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import BranchComposer from '../components/BranchComposer'
 import RichTextEditor, { textToDoc } from '../components/RichTextEditor'
 import { inputStyle, labelStyle, focusBorder, blurBorder } from '../components/authStyles'
+import SoundscapePanel from '../components/SoundscapePanel'
 
 export default function StoryEditor() {
   const { id } = useParams()
@@ -124,6 +125,9 @@ export default function StoryEditor() {
             edit any passage, or prune a path you don’t want.
           </p>
         </div>
+
+        {/* Soundscape picker */}
+        <SoundscapePanel story={story} onChange={(next) => setStory((s) => ({ ...s, ambience: next }))} />
 
         {/* The tree */}
         <TreeNode nodeId={story.rootNodeId} parentNodeId={null} choiceIndex={null} depth={0} ctx={ctx} />
@@ -251,6 +255,12 @@ function NodeEditor({ node, ctx }) {
   const [choices, setChoices] = useState(node.choices.map((c) => ({ ...c })))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const editorControls = useRef(null)
+
+  const cancel = () => {
+    editorControls.current?.discard()
+    ctx.setActiveEdit(null)
+  }
 
   const setChoiceText = (i, v) =>
     setChoices((cs) => cs.map((c, idx) => (idx === i ? { ...c, text: v } : c)))
@@ -285,6 +295,7 @@ function NodeEditor({ node, ctx }) {
         minHeight="140px"
         onEditor={setEditor}
         onUpdate={(ed) => setEmpty(ed.isEmpty)}
+        controlsRef={editorControls}
       />
 
       <div style={{ marginTop: '18px' }}>
@@ -335,7 +346,7 @@ function NodeEditor({ node, ctx }) {
         >
           {saving ? 'Saving…' : 'Save passage'}
         </button>
-        <button onClick={() => ctx.setActiveEdit(null)} style={backLinkStyle}
+        <button onClick={cancel} style={backLinkStyle}
           onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta60))')}
           onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
         >

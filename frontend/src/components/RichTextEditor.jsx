@@ -4,7 +4,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Image from '@tiptap/extension-image'
 import Youtube from '@tiptap/extension-youtube'
 import { Placeholder } from '@tiptap/extensions'
-import { uploadImage } from '../api/uploads'
+import { uploadImage, deleteImages } from '../api/uploads'
 
 // The passage content schema, shared with the reader so saved passages render
 // exactly as written. Keep in sync with backend/utils/validateContent.js.
@@ -37,8 +37,18 @@ export const textToDoc = (text) => {
   return { type: 'doc', content: content.length ? content : [{ type: 'paragraph' }] }
 }
 
-export default function RichTextEditor({ initialContent, placeholder, minHeight = '180px', onEditor, onUpdate }) {
+// Walks a Tiptap doc and collects the src of every image node into `into`.
+const collectImageUrls = (node, into) => {
+  if (!node || typeof node !== 'object') return
+  if (node.type === 'image' && node.attrs?.src) into.add(node.attrs.src)
+  if (Array.isArray(node.content)) node.content.forEach((child) => collectImageUrls(child, into))
+}
+
+export default function RichTextEditor({ initialContent, placeholder, minHeight = '180px', onEditor, onUpdate, controlsRef }) {
   const fileRef = useRef(null)
+  const editorRef = useRef(null)
+  const stagedRef = useRef([]) // { url, publicId } uploaded during this session
+  const settledRef = useRef(false)
   const [uploading, setUploading] = useState(false)
   const [notice, setNotice] = useState('')
 
@@ -53,8 +63,49 @@ export default function RichTextEditor({ initialContent, placeholder, minHeight 
   })
 
   useEffect(() => {
-    if (editor) onEditor?.(editor)
+    if (editor) {
+      editorRef.current = editor
+      onEditor?.(editor)
+    }
   }, [editor, onEditor])
+
+  // Delete any staged upload whose URL isn't in `keepUrls`, and forget it.
+  const sweep = (keepUrls) => {
+    const remove = stagedRef.current.filter((s) => !keepUrls.has(s.url))
+    stagedRef.current = stagedRef.current.filter((s) => keepUrls.has(s.url))
+    if (remove.length) deleteImages(remove.map((s) => s.publicId))
+  }
+
+  // Let the parent signal intent: discard() when the edit is abandoned (drop
+  // every staged upload). Saving needs no call — the unmount sweep below keeps
+  // only images that survived into the final document.
+  useEffect(() => {
+    if (!controlsRef) return
+    controlsRef.current = {
+      discard: () => {
+        settledRef.current = true
+        sweep(new Set())
+      },
+    }
+    return () => {
+      if (controlsRef) controlsRef.current = null
+    }
+  }, [controlsRef])
+
+  // On teardown, remove uploads that aren't in the current document — this
+  // covers images the author added then deleted, or a passage left unsaved.
+  useEffect(() => {
+    return () => {
+      if (settledRef.current) return
+      const keep = new Set()
+      try {
+        collectImageUrls(editorRef.current?.getJSON(), keep)
+      } catch {
+        /* if the doc can't be read, keep nothing */
+      }
+      sweep(keep)
+    }
+  }, [])
 
   const pickImage = async (e) => {
     const file = e.target.files?.[0]
@@ -63,8 +114,9 @@ export default function RichTextEditor({ initialContent, placeholder, minHeight 
     setUploading(true)
     setNotice('')
     try {
-      const url = await uploadImage(file)
+      const { url, publicId } = await uploadImage(file)
       editor.chain().focus().setImage({ src: url }).run()
+      if (publicId) stagedRef.current.push({ url, publicId })
     } catch (err) {
       setNotice(err.response?.data?.message || err.message || 'The image could not be uploaded.')
     } finally {

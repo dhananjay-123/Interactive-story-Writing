@@ -6,11 +6,13 @@ import ChoiceCard from '../components/ChoiceCard'
 import BranchComposer from '../components/BranchComposer'
 import { generateHTML } from '@tiptap/core'
 import { editorExtensions } from '../components/RichTextEditor'
+import { useAudio } from '../audio/AudioProvider'
 
 export default function StoryReader() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { playAmbience, stopAmbience } = useAudio()
 
   const [story, setStory] = useState(null)
   const [node, setNode] = useState(null)
@@ -49,6 +51,13 @@ export default function StoryReader() {
       active = false
     }
   }, [id])
+
+  // Play the author's chosen soundscape while reading; silence it on the way out.
+  useEffect(() => {
+    if (story?.ambience) playAmbience(story.ambience)
+    else stopAmbience()
+    return () => stopAmbience()
+  }, [story?.ambience, playAmbience, stopAmbience])
 
   const goToNode = (next) => {
     setTransitioning(true)

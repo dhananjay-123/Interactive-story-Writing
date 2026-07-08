@@ -11,6 +11,7 @@ const mapStory = (row) =>
     authorUsername: row.author_username || null,
     rootNodeId: row.root_node_id,
     branchCount: row.branch_count,
+    ambience: row.ambience || null,
     published: row.published,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -71,8 +72,16 @@ const setBranchCount = async (id, count) => {
   )
 }
 
+const setAmbience = async (id, ambience) => {
+  const { rows } = await db.query(
+    `UPDATE stories SET ambience = $2, updated_at = NOW() WHERE id = $1 RETURNING *`,
+    [id, ambience]
+  )
+  return mapStory(rows[0])
+}
+
 const remove = async (id) => {
   await db.query('DELETE FROM stories WHERE id = $1', [id])
 }
 
-module.exports = { findPublished, findById, findByAuthorId, create, setRoot, setBranchCount, remove }
+module.exports = { findPublished, findById, findByAuthorId, create, setRoot, setBranchCount, setAmbience, remove }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import api from '../api/client'
 import { inputStyle, labelStyle, focusBorder, blurBorder } from './authStyles'
 import RichTextEditor from './RichTextEditor'
@@ -11,6 +11,13 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
   const [choices, setChoices] = useState(['', ''])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const editorControls = useRef(null)
+
+  // Abandon this passage: drop any images uploaded but never saved.
+  const cancel = () => {
+    editorControls.current?.discard()
+    onCancel()
+  }
 
   const setChoice = (i, v) => setChoices((c) => c.map((x, idx) => (idx === i ? v : x)))
   const addChoice = () => setChoices((c) => (c.length >= 4 ? c : [...c, '']))
@@ -56,6 +63,7 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
         minHeight={compact ? '120px' : '180px'}
         onEditor={setEditor}
         onUpdate={(ed) => setEmpty(ed.isEmpty)}
+        controlsRef={editorControls}
       />
 
       <div style={{ marginTop: '20px' }}>
@@ -99,7 +107,7 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
         >
           {submitting ? 'Saving…' : filledChoices.length ? 'Add passage' : 'Add ending'}
         </button>
-        <button onClick={onCancel}
+        <button onClick={cancel}
           style={{ background: 'none', border: 'none', color: 'rgba(var(--text-rgb),var(--ta35))', fontSize: '12px', letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', padding: 0, fontFamily: 'inherit', transition: 'color 0.2s ease' }}
           onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta60))')}
           onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}

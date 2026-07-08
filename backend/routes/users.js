@@ -14,6 +14,7 @@ router.get('/:username', async (req, res) => {
         username: user.username,
         displayName: user.displayName,
         bio: user.bio,
+        avatarUrl: user.avatarUrl,
         joinedAt: user.createdAt,
       },
       stories,
