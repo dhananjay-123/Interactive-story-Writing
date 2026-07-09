@@ -42,10 +42,13 @@ router.get('/recommendations', optionalAuth, async (req, res) => {
   }
 })
 
-// GET /api/stories/featured — the admin-curated home rail.
+// GET /api/stories/featured?limit= — the admin-curated collection. The home rail
+// asks for 6; the /featured page asks for the lot.
 router.get('/featured', optionalAuth, async (req, res) => {
+  const asked = Number.parseInt(req.query.limit, 10)
+  const limit = Number.isFinite(asked) ? Math.min(Math.max(asked, 1), 60) : 6
   try {
-    res.json(await Story.findFeatured(viewerId(req), 6))
+    res.json(await Story.findFeatured(viewerId(req), limit))
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

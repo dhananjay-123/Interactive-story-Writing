@@ -41,6 +41,15 @@ const initDb = async () => {
     -- Profile picture (a Cloudinary URL), added after the users table existed.
     ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT;
 
+    -- Stamped whenever the password changes. Tokens issued before this moment
+    -- are rejected, so a reset logs out every existing session.
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMPTZ;
+
+    -- Suspension. banned_at NULL means the account is in good standing; setting
+    -- it blocks login and kills live sessions the same way a password change does.
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS banned_at TIMESTAMPTZ;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_reason TEXT;
+
     CREATE TABLE IF NOT EXISTS stories (
       id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
       title         TEXT NOT NULL,
@@ -161,6 +170,28 @@ const initDb = async () => {
 
     CREATE INDEX IF NOT EXISTS idx_reports_status ON reports (status, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_reports_story ON reports (story_id);
+
+    -- Account recovery -------------------------------------------------------
+
+    -- A locked-out reader asks an admin to set them a new password. We store no
+    -- token and mail nothing — an admin fulfils the request by hand.
+    CREATE TABLE IF NOT EXISTS password_reset_requests (
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      note        TEXT,
+      status      TEXT NOT NULL DEFAULT 'pending'
+                    CHECK (status IN ('pending','resolved','dismissed')),
+      resolved_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      resolved_at TIMESTAMPTZ,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    -- At most one open request per account, so the form can't be used to flood
+    -- the admin queue.
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_prr_one_pending
+      ON password_reset_requests (user_id) WHERE status = 'pending';
+    CREATE INDEX IF NOT EXISTS idx_prr_status
+      ON password_reset_requests (status, created_at DESC);
   `)
 
   // Bootstrap the first admin from env, so a fresh deploy has someone who can

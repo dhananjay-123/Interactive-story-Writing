@@ -205,12 +205,12 @@ export default function Home() {
               </h2>
             </div>
             <Link
-              to="/stories"
+              to="/featured"
               style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta50))', textDecoration: 'none', letterSpacing: '0.04em' }}
               onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
               onMouseLeave={e => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta50))')}
             >
-              Browse all →
+              See the whole shelf →
             </Link>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>

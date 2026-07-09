@@ -2,11 +2,13 @@ import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/client'
 import ConnectingLoader from '../components/ConnectingLoader'
+import { useAuth } from '../context/AuthContext'
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'stories', label: 'Stories' },
   { id: 'reports', label: 'Reports' },
+  { id: 'requests', label: 'Requests' },
   { id: 'users', label: 'Users' },
 ]
 
@@ -16,6 +18,7 @@ const genreLabel = (g) =>
 export default function AdminDashboard() {
   const [tab, setTab] = useState('overview')
   const [openReports, setOpenReports] = useState(0)
+  const [openRequests, setOpenRequests] = useState(0)
 
   // Keep the reports badge fresh across tabs.
   const refreshBadge = useCallback(() => {
@@ -23,7 +26,14 @@ export default function AdminDashboard() {
       .then((r) => setOpenReports(r.data.length))
       .catch(() => {})
   }, [])
-  useEffect(() => { refreshBadge() }, [refreshBadge])
+
+  const refreshRequestBadge = useCallback(() => {
+    api.get('/api/admin/password-requests?status=pending')
+      .then((r) => setOpenRequests(r.data.length))
+      .catch(() => {})
+  }, [])
+
+  useEffect(() => { refreshBadge(); refreshRequestBadge() }, [refreshBadge, refreshRequestBadge])
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--ink)', paddingTop: '100px' }}>
@@ -71,6 +81,9 @@ export default function AdminDashboard() {
                 {t.id === 'reports' && openReports > 0 && (
                   <span style={badgeStyle}>{openReports}</span>
                 )}
+                {t.id === 'requests' && openRequests > 0 && (
+                  <span style={badgeStyle}>{openRequests}</span>
+                )}
               </button>
             )
           })}
@@ -79,6 +92,7 @@ export default function AdminDashboard() {
         {tab === 'overview' && <Overview />}
         {tab === 'stories' && <StoriesPanel />}
         {tab === 'reports' && <ReportsPanel onChange={refreshBadge} />}
+        {tab === 'requests' && <PasswordRequestsPanel onChange={refreshRequestBadge} />}
         {tab === 'users' && <UsersPanel />}
       </div>
     </div>
@@ -373,23 +387,205 @@ function ReportsPanel({ onChange }) {
 
 // ── Users ────────────────────────────────────────────────────────────────────
 
+// ── Password reset requests ──────────────────────────────────────────────────
+
+function PasswordRequestsPanel({ onChange }) {
+  const [status, setStatus] = useState('pending')
+  const [requests, setRequests] = useState(null)
+  const [busy, setBusy] = useState(null)
+  const [resetting, setResetting] = useState(null) // request id with an open form
+
+  const load = useCallback(() => {
+    setRequests(null)
+    api.get(`/api/admin/password-requests?status=${status}`)
+      .then((r) => setRequests(r.data))
+      .catch(() => setRequests([]))
+  }, [status])
+  useEffect(() => { load() }, [load])
+
+  const dismiss = async (request) => {
+    setBusy(request._id)
+    try {
+      await api.put(`/api/admin/password-requests/${request._id}`, { status: 'dismissed' })
+      load()
+      onChange?.()
+    } catch (e) {
+      window.alert(e?.response?.data?.message || 'Could not dismiss the request.')
+    } finally { setBusy(null) }
+  }
+
+  return (
+    <div className="animate-fadeUp">
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+        {['pending', 'resolved', 'dismissed', 'all'].map((s) => (
+          <button key={s} onClick={() => setStatus(s)} style={chip(status === s)}>{s}</button>
+        ))}
+      </div>
+
+      {!requests ? (
+        <ConnectingLoader fullScreen={false} message="Loading requests" />
+      ) : requests.length === 0 ? (
+        <Empty>{status === 'pending' ? 'Nobody is locked out.' : `No ${status} requests.`}</Empty>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {requests.map((r) => (
+            <div key={r._id} style={{ ...panel, padding: '16px 18px' }}>
+              <div style={{ display: 'flex', gap: '14px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+                <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <Link to={`/author/${r.user.username}`} style={{ fontSize: '15px', color: 'var(--parchment)', textDecoration: 'none', fontWeight: 500 }}>
+                      {r.user.displayName}
+                    </Link>
+                    {r.user.role === 'admin' && <Badge tone="gold">Admin</Badge>}
+                    {r.status !== 'pending' && <Badge>{r.status}</Badge>}
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '4px' }}>
+                    @{r.user.username} · {r.user.email} · asked {new Date(r.createdAt).toLocaleDateString()}
+                  </p>
+                  {r.note && (
+                    <p className="font-story" style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta60))', marginTop: '10px', lineHeight: 1.6, fontStyle: 'italic' }}>
+                      “{r.note}”
+                    </p>
+                  )}
+                </div>
+
+                {r.status === 'pending' && (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <ActionButton
+                      onClick={() => setResetting(resetting === r._id ? null : r._id)}
+                      active={resetting !== r._id}
+                    >
+                      {resetting === r._id ? 'Cancel' : 'Set password'}
+                    </ActionButton>
+                    <ActionButton onClick={() => dismiss(r)} disabled={busy === r._id} danger>
+                      Dismiss
+                    </ActionButton>
+                  </div>
+                )}
+              </div>
+
+              {resetting === r._id && (
+                <SetPasswordForm
+                  user={r.user}
+                  requestId={r._id}
+                  onDone={() => { setResetting(null); load(); onChange?.() }}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Admin-facing reset form. The new password is shown in the clear on purpose —
+// the admin has to read it back to the locked-out person somehow.
+function SetPasswordForm({ user, requestId, onDone }) {
+  const [password, setPassword] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [issued, setIssued] = useState('')
+
+  const generate = () => {
+    const bytes = new Uint8Array(9)
+    crypto.getRandomValues(bytes)
+    // base64 → url-safe, ~12 chars.
+    setPassword(btoa(String.fromCharCode(...bytes)).replace(/[+/=]/g, 'x'))
+    setError('')
+  }
+
+  const submit = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      await api.put(`/api/admin/users/${user._id}/password`, {
+        newPassword: password,
+        requestId: requestId || undefined,
+      })
+      setIssued(password)
+      setPassword('')
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Could not reset the password.')
+    } finally { setSaving(false) }
+  }
+
+  if (issued) {
+    return (
+      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(var(--panel-rgb),var(--pa08))' }}>
+        <p style={{ fontSize: '13px', color: 'var(--gold)', marginBottom: '8px' }}>
+          Password set for @{user.username}. Copy it now — it isn't stored anywhere.
+        </p>
+        <code style={{ display: 'inline-block', padding: '8px 12px', background: 'rgba(var(--panel-rgb),var(--pa06))', border: '1px solid rgba(var(--panel-rgb),var(--pa12))', borderRadius: '3px', fontSize: '14px', color: 'var(--parchment)', letterSpacing: '0.05em' }}>
+          {issued}
+        </code>
+        <div style={{ marginTop: '12px' }}>
+          <ActionButton onClick={onDone}>Done</ActionButton>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <form onSubmit={submit} style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(var(--panel-rgb),var(--pa08))' }}>
+      <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))', marginBottom: '10px' }}>
+        Signs @{user.username} out everywhere. They'll need this password to get back in.
+      </p>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <input
+          type="text"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="New password (min 8 characters)"
+          autoComplete="off"
+          style={{ ...inputStyle, flex: '1 1 240px' }}
+        />
+        <ActionButton onClick={generate}>Generate</ActionButton>
+        <button type="submit" disabled={saving || password.length < 8} style={primaryButton(saving || password.length < 8)}>
+          {saving ? 'Setting…' : 'Set password'}
+        </button>
+      </div>
+      {error && <p style={{ fontSize: '12px', color: 'var(--crimson)', marginTop: '10px' }}>{error}</p>}
+    </form>
+  )
+}
+
 function UsersPanel() {
+  const { user: me } = useAuth()
   const [users, setUsers] = useState(null)
   const [busy, setBusy] = useState(null)
+  const [open, setOpen] = useState({}) // userId -> 'detail' | 'reset' | 'ban'
 
   const load = useCallback(() => {
     api.get('/api/admin/users').then((r) => setUsers(r.data)).catch(() => setUsers([]))
   }, [])
   useEffect(() => { load() }, [load])
 
+  const toggle = (id, pane) =>
+    setOpen((o) => ({ ...o, [id]: o[id] === pane ? null : pane }))
+
+  const patch = (id, next) =>
+    setUsers((list) => list.map((x) => (x._id === id ? { ...x, ...next } : x)))
+
   const setRole = async (u, role) => {
     if (role !== 'admin' && !window.confirm(`Remove admin access from ${u.displayName}?`)) return
     setBusy(u._id)
     try {
       const r = await api.put(`/api/admin/users/${u._id}/role`, { role })
-      setUsers((list) => list.map((x) => (x._id === u._id ? { ...x, role: r.data.role } : x)))
+      patch(u._id, { role: r.data.role })
     } catch (e) {
       window.alert(e?.response?.data?.message || 'Could not change role.')
+    } finally { setBusy(null) }
+  }
+
+  const reinstate = async (u) => {
+    setBusy(u._id)
+    try {
+      const r = await api.put(`/api/admin/users/${u._id}/ban`, { banned: false })
+      patch(u._id, { banned: r.data.banned, banReason: null })
+    } catch (e) {
+      window.alert(e?.response?.data?.message || 'Could not reinstate the account.')
     } finally { setBusy(null) }
   }
 
@@ -399,25 +595,218 @@ function UsersPanel() {
   return (
     <div className="animate-fadeUp" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {users.map((u) => (
-        <div key={u._id} style={{ ...panel, padding: '14px 18px', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Link to={`/author/${u.username}`} style={{ fontSize: '15px', color: 'var(--parchment)', textDecoration: 'none', fontWeight: 500 }}>
-                {u.displayName}
-              </Link>
-              {u.role === 'admin' && <Badge tone="gold">Admin</Badge>}
+        <div key={u._id} style={{ ...panel, padding: '14px 18px', opacity: u.banned ? 0.72 : 1 }}>
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <Link to={`/author/${u.username}`} style={{ fontSize: '15px', color: 'var(--parchment)', textDecoration: 'none', fontWeight: 500 }}>
+                  {u.displayName}
+                </Link>
+                {u.role === 'admin' && <Badge tone="gold">Admin</Badge>}
+                {u.banned && <Badge tone="crimson">Suspended</Badge>}
+              </div>
+              <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '4px' }}>
+                @{u.username} · {u.email} · {u.storyCount} {u.storyCount === 1 ? 'story' : 'stories'} · joined {new Date(u.createdAt).toLocaleDateString()}
+              </p>
+              {u.banned && u.banReason && (
+                <p style={{ fontSize: '12px', color: 'var(--crimson)', marginTop: '4px' }}>
+                  Suspended: {u.banReason}
+                </p>
+              )}
             </div>
-            <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '4px' }}>
-              @{u.username} · {u.email} · {u.storyCount} {u.storyCount === 1 ? 'story' : 'stories'} · joined {new Date(u.createdAt).toLocaleDateString()}
-            </p>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+              <ActionButton onClick={() => toggle(u._id, 'detail')} active={open[u._id] === 'detail'}>
+                {open[u._id] === 'detail' ? 'Close' : 'View'}
+              </ActionButton>
+              <ActionButton onClick={() => toggle(u._id, 'reset')}>
+                {open[u._id] === 'reset' ? 'Cancel' : 'Reset password'}
+              </ActionButton>
+              {/* Suspension is offered only where the server would allow it:
+                  never on yourself, never on a sitting admin (demote first). */}
+              {u.banned ? (
+                <ActionButton onClick={() => reinstate(u)} disabled={busy === u._id} active>Reinstate</ActionButton>
+              ) : u._id !== me?._id && u.role !== 'admin' ? (
+                <ActionButton onClick={() => toggle(u._id, 'ban')} danger>
+                  {open[u._id] === 'ban' ? 'Cancel' : 'Suspend'}
+                </ActionButton>
+              ) : null}
+              {u.role === 'admin' ? (
+                <ActionButton onClick={() => setRole(u, 'author')} disabled={busy === u._id}>Revoke admin</ActionButton>
+              ) : (
+                <ActionButton onClick={() => setRole(u, 'admin')} disabled={busy === u._id} active>Make admin</ActionButton>
+              )}
+            </div>
           </div>
-          {u.role === 'admin' ? (
-            <ActionButton onClick={() => setRole(u, 'author')} disabled={busy === u._id}>Revoke admin</ActionButton>
-          ) : (
-            <ActionButton onClick={() => setRole(u, 'admin')} disabled={busy === u._id} active>Make admin</ActionButton>
+
+          {open[u._id] === 'reset' && <SetPasswordForm user={u} onDone={() => toggle(u._id, 'reset')} />}
+          {open[u._id] === 'ban' && (
+            <BanForm
+              user={u}
+              onDone={(banned, reason) => { patch(u._id, { banned, banReason: reason }); toggle(u._id, 'ban') }}
+            />
           )}
+          {open[u._id] === 'detail' && <UserDetail userId={u._id} onStoriesChanged={load} />}
         </div>
       ))}
+    </div>
+  )
+}
+
+// Suspension needs a reason on the record — "why" matters more than "who" a year later.
+function BanForm({ user, onDone }) {
+  const [reason, setReason] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const submit = async (e) => {
+    e.preventDefault()
+    setSaving(true)
+    setError('')
+    try {
+      const r = await api.put(`/api/admin/users/${user._id}/ban`, { banned: true, reason: reason.trim() || null })
+      onDone(r.data.banned, r.data.banReason)
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Could not suspend the account.')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <form onSubmit={submit} style={subPanel}>
+      <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))', marginBottom: '10px' }}>
+        Signs @{user.username} out everywhere and blocks them from signing back in. Their stories
+        stay published — hide or delete those separately.
+      </p>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <input
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason (optional, max 300 chars)"
+          maxLength={300}
+          style={{ ...inputStyle, flex: '1 1 260px' }}
+        />
+        <button type="submit" disabled={saving} style={dangerButton(saving)}>
+          {saving ? 'Suspending…' : 'Suspend account'}
+        </button>
+      </div>
+      {error && <p style={{ fontSize: '12px', color: 'var(--crimson)', marginTop: '10px' }}>{error}</p>}
+    </form>
+  )
+}
+
+// Everything about one account, plus their catalogue (including hidden stories).
+function UserDetail({ userId, onStoriesChanged }) {
+  const [data, setData] = useState(null)
+  const [busy, setBusy] = useState(null)
+
+  const load = useCallback(() => {
+    api.get(`/api/admin/users/${userId}`)
+      .then((r) => setData(r.data))
+      .catch(() => setData({ error: true }))
+  }, [userId])
+  useEffect(() => { load() }, [load])
+
+  const act = async (story, fn) => {
+    setBusy(story._id)
+    try { await fn() } catch (e) {
+      window.alert(e?.response?.data?.message || 'That action failed.')
+    } finally { setBusy(null) }
+  }
+
+  const toggleFeatured = (s) => act(s, async () => {
+    const r = await api.put(`/api/admin/stories/${s._id}/featured`, { featured: !s.featured })
+    setData((d) => ({ ...d, stories: d.stories.map((x) => (x._id === s._id ? { ...x, featured: r.data.featured } : x)) }))
+    onStoriesChanged?.()
+  })
+
+  const togglePublished = (s) => act(s, async () => {
+    const r = await api.put(`/api/admin/stories/${s._id}/published`, { published: !s.published })
+    setData((d) => ({ ...d, stories: d.stories.map((x) => (x._id === s._id ? { ...x, published: r.data.published } : x)) }))
+  })
+
+  const remove = (s) => {
+    if (!window.confirm(`Delete "${s.title}"? This removes the story and all its branches permanently.`)) return
+    act(s, async () => {
+      await api.delete(`/api/admin/stories/${s._id}`)
+      setData((d) => ({ ...d, stories: d.stories.filter((x) => x._id !== s._id) }))
+      onStoriesChanged?.()
+    })
+  }
+
+  if (!data) return <div style={subPanel}><Muted>Loading…</Muted></div>
+  if (data.error) return <div style={subPanel}><Muted>Could not load this account.</Muted></div>
+
+  const { user, stories } = data
+  const facts = [
+    ['Email', user.email],
+    ['Role', user.role],
+    ['Joined', new Date(user.createdAt).toLocaleDateString()],
+    ['Stories', `${user.publishedCount} published / ${user.storyCount} total`],
+    ['Followers', user.followerCount],
+    ['Following', user.followingCount],
+    ['Likes received', user.likesReceived],
+    ['Comments written', user.commentCount],
+    ['Open reports', user.openReports],
+    ['Status', user.banned ? `suspended${user.banReason ? ` — ${user.banReason}` : ''}` : 'in good standing'],
+  ]
+
+  return (
+    <div style={subPanel}>
+      <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))', gap: '12px 20px', margin: 0 }}>
+        {facts.map(([label, value]) => (
+          <div key={label}>
+            <dt style={{ fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(var(--text-rgb),var(--ta35))' }}>
+              {label}
+            </dt>
+            <dd style={{ margin: '3px 0 0', fontSize: '13px', color: 'var(--parchment)', wordBreak: 'break-word' }}>
+              {value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+
+      {user.bio && (
+        <p className="font-story" style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta60))', marginTop: '16px', lineHeight: 1.6, fontStyle: 'italic' }}>
+          “{user.bio}”
+        </p>
+      )}
+
+      <div style={{ marginTop: '20px' }}>
+        <p style={{ fontSize: '10px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'rgba(var(--text-rgb),var(--ta35))', marginBottom: '10px' }}>
+          Their stories
+        </p>
+        {stories.length === 0 ? (
+          <Muted>Nothing written yet.</Muted>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {stories.map((s) => (
+              <div key={s._id} style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', padding: '10px 12px', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '4px' }}>
+                <div style={{ flex: '1 1 200px', minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <Link to={`/story/${s._id}`} style={{ fontSize: '14px', color: 'var(--parchment)', textDecoration: 'none' }}>
+                      {s.title}
+                    </Link>
+                    {s.featured && <Badge tone="gold">Featured</Badge>}
+                    {!s.published && <Badge tone="crimson">Hidden</Badge>}
+                  </div>
+                  <p style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),var(--ta35))', marginTop: '3px' }}>
+                    {genreLabel(s.genre)} · ♥ {s.likeCount} · 💬 {s.commentCount} · {s.branchCount} branches
+                  </p>
+                </div>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  <ActionButton onClick={() => toggleFeatured(s)} disabled={busy === s._id} active={s.featured}>
+                    {s.featured ? 'Unfeature' : 'Feature'}
+                  </ActionButton>
+                  <ActionButton onClick={() => togglePublished(s)} disabled={busy === s._id}>
+                    {s.published ? 'Hide' : 'Restore'}
+                  </ActionButton>
+                  <ActionButton onClick={() => remove(s)} disabled={busy === s._id} danger>Delete</ActionButton>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -458,6 +847,43 @@ const badgeStyle = {
   verticalAlign: 'middle',
 }
 
+// The expandable drawer under a roster row.
+const subPanel = {
+  marginTop: '16px',
+  paddingTop: '16px',
+  borderTop: '1px solid rgba(var(--panel-rgb),var(--pa08))',
+}
+
+const dangerButton = (disabled) => ({
+  padding: '7px 16px',
+  fontSize: '12px',
+  fontWeight: 600,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  border: '1px solid rgba(139,26,46,0.5)',
+  background: 'rgba(139,26,46,0.15)',
+  color: '#c45a6e',
+  borderRadius: '3px',
+  cursor: disabled ? 'default' : 'pointer',
+  opacity: disabled ? 0.5 : 1,
+  fontFamily: 'inherit',
+})
+
+const primaryButton = (disabled) => ({
+  padding: '7px 16px',
+  fontSize: '12px',
+  fontWeight: 600,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  border: 'none',
+  background: 'var(--gold)',
+  color: 'var(--on-gold)',
+  borderRadius: '3px',
+  cursor: disabled ? 'default' : 'pointer',
+  opacity: disabled ? 0.5 : 1,
+  fontFamily: 'inherit',
+})
+
 const chip = (on) => ({
   padding: '6px 14px',
   fontSize: '12px',
@@ -472,11 +898,14 @@ const chip = (on) => ({
   transition: 'all 0.2s ease',
 })
 
-function ActionButton({ children, onClick, disabled, active, danger }) {
+// type defaults to "button": these sit inside forms, and a bare <button> would
+// submit them.
+function ActionButton({ children, onClick, disabled, active, danger, type = 'button' }) {
   const color = danger ? 'var(--crimson)' : active ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta60))'
   const border = danger ? 'rgba(139,26,46,0.4)' : active ? 'rgba(var(--gold-rgb),0.4)' : 'rgba(var(--panel-rgb),var(--pa12))'
   return (
     <button
+      type={type}
       onClick={onClick}
       disabled={disabled}
       style={{

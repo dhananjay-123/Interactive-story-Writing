@@ -5,6 +5,7 @@ import StoryCard from '../components/StoryCard'
 import { useAuth } from '../context/AuthContext'
 import { uploadImage, deleteImages, publicIdFromUrl } from '../api/uploads'
 import ConnectingLoader from '../components/ConnectingLoader'
+import ChangePasswordPanel from '../components/ChangePasswordPanel'
 
 export default function Profile() {
   const { username } = useParams()
@@ -302,6 +303,18 @@ export default function Profile() {
                 <StoryCard key={story._id} story={story} index={i} />
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Account settings — private to the owner. */}
+        {isOwnProfile && (
+          <div style={{ marginTop: '64px' }}>
+            <div className="animate-fadeUp" style={{ marginBottom: '24px' }}>
+              <h2 className="font-story" style={{ fontSize: '20px', fontWeight: 400, color: 'var(--parchment)' }}>
+                Account
+              </h2>
+            </div>
+            <ChangePasswordPanel />
           </div>
         )}
       </div>

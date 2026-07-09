@@ -103,12 +103,13 @@ const findFeatured = async (viewerId = null, limit = 6) => {
 
 // Moderation view: every story (including unpublished), optional text search.
 // Admin-only — not viewer-scoped, so the viewer flags come back falsey.
-const findAllForAdmin = async ({ q, filter } = {}) => {
+const findAllForAdmin = async ({ q, filter, authorId } = {}) => {
   const params = [null]
   const add = (val) => { params.push(val); return '$' + params.length }
   const where = []
   if (filter === 'featured') where.push('s.featured = TRUE')
   if (filter === 'unpublished') where.push('s.published = FALSE')
+  if (authorId) where.push(`s.author_id = ${add(authorId)}`)
   if (q && q.trim()) {
     const p = add('%' + q.trim() + '%')
     where.push(`(s.title ILIKE ${p} OR s.author ILIKE ${p})`)

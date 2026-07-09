@@ -13,6 +13,15 @@ const readToken = (req) => {
   return header.startsWith('Bearer ') ? header.slice(7) : null
 }
 
+// A token minted before the account's last password change is dead. `iat` has
+// one-second resolution, so allow a second of slack: the token handed back by a
+// self-serve change is signed in the same second it stamps password_changed_at.
+const STALE_SLACK_MS = 1000
+const outlivedPassword = (payload, user) => {
+  if (!user.passwordChangedAt || !payload.iat) return false
+  return payload.iat * 1000 < new Date(user.passwordChangedAt).getTime() - STALE_SLACK_MS
+}
+
 // Rejects the request when no valid token is present.
 const requireAuth = async (req, res, next) => {
   const token = readToken(req)
@@ -21,6 +30,11 @@ const requireAuth = async (req, res, next) => {
     const payload = jwt.verify(token, SECRET)
     const user = await User.findById(payload.sub)
     if (!user) return res.status(401).json({ message: 'Session expired.' })
+    if (outlivedPassword(payload, user)) {
+      return res.status(401).json({ message: 'Your password changed. Sign in again.' })
+    }
+    // A suspension takes effect immediately, not when the token expires.
+    if (user.banned) return res.status(403).json({ message: 'This account is suspended.' })
     req.user = user
     next()
   } catch {
@@ -43,7 +57,8 @@ const optionalAuth = async (req, res, next) => {
   if (token) {
     try {
       const payload = jwt.verify(token, SECRET)
-      req.user = await User.findById(payload.sub)
+      const user = await User.findById(payload.sub)
+      if (user && !user.banned && !outlivedPassword(payload, user)) req.user = user
     } catch {
       /* ignore — treat as anonymous */
     }

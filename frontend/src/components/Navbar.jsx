@@ -57,6 +57,7 @@ export default function Navbar() {
         {/* Desktop navigation */}
         <div className="hidden md:flex items-center gap-7">
           <NavLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
+          <NavLink to="/featured" label="Featured" active={location.pathname === '/featured'} />
 
           {user ? (
             <>
@@ -137,6 +138,7 @@ export default function Navbar() {
           }}
         >
           <MobileLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
+          <MobileLink to="/featured" label="Featured" active={location.pathname === '/featured'} />
           {user ? (
             <>
               <MobileLink to="/create" label="Write" active={location.pathname === '/create'} />
