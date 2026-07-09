@@ -28,6 +28,15 @@ const requireAuth = async (req, res, next) => {
   }
 }
 
+// Gate for admin-only routes. Chain after requireAuth so req.user is populated.
+const requireAdmin = (req, res, next) => {
+  if (!req.user) return res.status(401).json({ message: 'Sign in to continue.' })
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ message: 'Admin access required.' })
+  }
+  next()
+}
+
 // Attaches req.user when a token is present, but never blocks the request.
 const optionalAuth = async (req, res, next) => {
   const token = readToken(req)
@@ -42,4 +51,4 @@ const optionalAuth = async (req, res, next) => {
   next()
 }
 
-module.exports = { sign, requireAuth, optionalAuth }
+module.exports = { sign, requireAuth, requireAdmin, optionalAuth }

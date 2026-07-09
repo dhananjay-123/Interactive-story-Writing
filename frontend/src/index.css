@@ -136,6 +136,18 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* Ink travelling along the wire while a free-tier service wakes up. */
+@keyframes connFlow {
+  0%, 100% { opacity: 0.15; }
+  50%      { opacity: 1; }
+}
+
+/* Nib dipping / breathing so the loader never looks frozen. */
+@keyframes connBreath {
+  0%, 100% { opacity: 0.85; transform: translateY(0); }
+  50%      { opacity: 1;    transform: translateY(-1.5px); }
+}
+
 /* ── Utility classes ── */
 .animate-fadeUp  { animation: fadeUp 0.6s ease both; }
 .animate-fadeIn  { animation: fadeIn 0.5s ease both; }

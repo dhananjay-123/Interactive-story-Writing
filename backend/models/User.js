@@ -57,6 +57,26 @@ const findByEmailWithHash = async (email) => {
   return mapAuth(rows[0])
 }
 
+// Admin roster: every user with their published/total story counts, newest first.
+const listAllForAdmin = async () => {
+  const { rows } = await db.query(
+    `SELECT u.*,
+       (SELECT COUNT(*)::int FROM stories s WHERE s.author_id = u.id) AS story_count
+     FROM users u
+     ORDER BY u.created_at DESC`
+  )
+  return rows.map((row) => ({ ...mapUser(row), storyCount: row.story_count }))
+}
+
+// Admin: promote to admin or demote to author.
+const setRole = async (id, role) => {
+  const { rows } = await db.query(
+    'UPDATE users SET role = $2 WHERE id = $1 RETURNING *',
+    [id, role]
+  )
+  return mapUser(rows[0])
+}
+
 const usernameOrEmailTaken = async (username, email) => {
   const { rows } = await db.query(
     'SELECT username, email FROM users WHERE LOWER(username) = LOWER($1) OR LOWER(email) = LOWER($2)',
@@ -76,5 +96,7 @@ module.exports = {
   setAvatar,
   findByUsername,
   findByEmailWithHash,
+  listAllForAdmin,
+  setRole,
   usernameOrEmailTaken,
 }

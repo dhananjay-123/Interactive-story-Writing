@@ -4,6 +4,11 @@ import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import ChoiceCard from '../components/ChoiceCard'
 import BranchComposer from '../components/BranchComposer'
+import ConnectingLoader from '../components/ConnectingLoader'
+import EngagementBar from '../components/EngagementBar'
+import CommentSection from '../components/CommentSection'
+import ReportButton from '../components/ReportButton'
+import { TagRow } from '../components/TagRow'
 import { generateHTML } from '@tiptap/core'
 import { editorExtensions } from '../components/RichTextEditor'
 import { useAudio } from '../audio/AudioProvider'
@@ -131,13 +136,7 @@ export default function StoryReader() {
   }
 
   if (loading) {
-    return (
-      <Screen>
-        <p style={{ color: 'rgba(var(--text-rgb),var(--ta30))', fontSize: '13px', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-          Loading…
-        </p>
-      </Screen>
-    )
+    return <ConnectingLoader message="Fetching this story" />
   }
 
   if (error || !node) {
@@ -180,6 +179,10 @@ export default function StoryReader() {
                 ✦ Open story map
               </Link>
             )}
+
+            {story.tags?.length > 0 && <TagRow tags={story.tags} style={{ marginTop: '18px' }} />}
+
+            <EngagementBar story={story} />
           </div>
         )}
 
@@ -250,6 +253,10 @@ export default function StoryReader() {
             </div>
           )}
         </div>
+
+        {story && <ReportButton storyId={story._id} isAuthor={isAuthor} />}
+
+        {story && <CommentSection storyId={story._id} storyAuthorId={story.authorId} />}
       </div>
     </div>
   )

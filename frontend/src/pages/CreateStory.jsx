@@ -14,13 +14,33 @@ export default function CreateStory() {
     title: '',
     description: '',
     genre: '',
+    tags: [],
     openingText: '',
     openingContent: null,
     openingEmpty: true,
     choices: [{ text: '' }, { text: '' }],
   })
+  const [tagInput, setTagInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  const addTag = (raw) => {
+    const tag = raw.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+    if (!tag || tag.length > 24) return
+    setForm((f) => (f.tags.includes(tag) || f.tags.length >= 6 ? f : { ...f, tags: [...f.tags, tag] }))
+    setTagInput('')
+  }
+
+  const onTagKey = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault()
+      addTag(tagInput)
+    } else if (e.key === 'Backspace' && !tagInput && form.tags.length) {
+      setForm((f) => ({ ...f, tags: f.tags.slice(0, -1) }))
+    }
+  }
+
+  const removeTag = (t) => setForm((f) => ({ ...f, tags: f.tags.filter((x) => x !== t) }))
 
   // Writing requires an account — send guests to sign in first.
   useEffect(() => {
@@ -170,6 +190,34 @@ export default function CreateStory() {
                     </button>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <label style={labelStyle}>Tags <span style={{ textTransform: 'none', letterSpacing: 0, color: 'rgba(var(--text-rgb),var(--ta25))' }}>— up to 6, help readers find you</span></label>
+                <div
+                  style={{ ...inputStyle, display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', cursor: 'text' }}
+                  onClick={(e) => e.currentTarget.querySelector('input')?.focus()}
+                >
+                  {form.tags.map((t) => (
+                    <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', fontSize: '12px', borderRadius: '3px', background: 'rgba(var(--gold-rgb),0.12)', color: 'var(--gold)', border: '1px solid rgba(var(--gold-rgb),0.3)' }}>
+                      #{t}
+                      <button type="button" onClick={() => removeTag(t)} style={{ background: 'none', border: 'none', color: 'var(--gold)', cursor: 'pointer', padding: 0, fontSize: '14px', lineHeight: 1 }}>×</button>
+                    </span>
+                  ))}
+                  {form.tags.length < 6 && (
+                    <input
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={onTagKey}
+                      onBlur={() => tagInput && addTag(tagInput)}
+                      placeholder={form.tags.length ? 'Add another…' : 'e.g. dragons, slow-burn, heist'}
+                      style={{ flex: 1, minWidth: '140px', background: 'transparent', border: 'none', outline: 'none', color: 'var(--parchment)', fontSize: '14px', fontFamily: 'inherit' }}
+                    />
+                  )}
+                </div>
+                <p style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),var(--ta25))', marginTop: '8px' }}>
+                  Press Enter or comma to add each tag.
+                </p>
               </div>
             </div>
           )}

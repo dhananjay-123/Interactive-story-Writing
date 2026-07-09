@@ -6,6 +6,7 @@ import BranchComposer from '../components/BranchComposer'
 import RichTextEditor, { textToDoc } from '../components/RichTextEditor'
 import { inputStyle, labelStyle, focusBorder, blurBorder } from '../components/authStyles'
 import SoundscapePanel from '../components/SoundscapePanel'
+import ConnectingLoader from '../components/ConnectingLoader'
 
 export default function StoryEditor() {
   const { id } = useParams()
@@ -63,7 +64,7 @@ export default function StoryEditor() {
   }
 
   if (loading || authLoading) {
-    return <Screen>Loading…</Screen>
+    return <ConnectingLoader message="Opening the story map" />
   }
   if (error || !story || !story.rootNodeId) {
     return (

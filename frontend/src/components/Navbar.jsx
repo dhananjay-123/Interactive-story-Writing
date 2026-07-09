@@ -61,6 +61,9 @@ export default function Navbar() {
           {user ? (
             <>
               <NavLink to="/create" label="Write" active={location.pathname === '/create'} />
+              {user.role === 'admin' && (
+                <NavLink to="/admin" label="Admin" active={location.pathname === '/admin'} />
+              )}
               <button onClick={handleLogout} style={textLinkStyle('rgba(var(--text-rgb),var(--ta45))')}>
                 Sign out
               </button>
@@ -137,6 +140,9 @@ export default function Navbar() {
           {user ? (
             <>
               <MobileLink to="/create" label="Write" active={location.pathname === '/create'} />
+              {user.role === 'admin' && (
+                <MobileLink to="/admin" label="Admin" active={location.pathname === '/admin'} />
+              )}
               <MobileLink
                 to={authorPath}
                 label="My profile"

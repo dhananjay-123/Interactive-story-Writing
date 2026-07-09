@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import StarRating from './StarRating'
+import TagRow from './TagRow'
 
 const GENRE_COLORS = {
   fantasy:  { bg: 'rgba(139,26,46,0.15)',  border: 'rgba(139,26,46,0.4)',  text: '#c45a6e' },
@@ -61,9 +63,30 @@ export default function StoryCard({ story, index }) {
           {story.title}
         </h3>
 
-        <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(var(--text-rgb),var(--ta55))', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+        <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgba(var(--text-rgb),var(--ta55))', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
           {story.description}
         </p>
+
+        {story.tags?.length > 0 && (
+          <TagRow tags={story.tags.slice(0, 3)} style={{ marginBottom: '14px' }} />
+        )}
+
+        {/* Engagement metrics */}
+        {(story.likeCount > 0 || story.ratingCount > 0 || story.commentCount > 0) && (
+          <div className="flex items-center gap-4 mb-4" style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))' }}>
+            {story.likeCount > 0 && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <HeartMini /> {story.likeCount}
+              </span>
+            )}
+            {story.ratingCount > 0 && <StarRating value={story.ratingAvg} count={story.ratingCount} size={13} />}
+            {story.commentCount > 0 && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                <CommentMini /> {story.commentCount}
+              </span>
+            )}
+          </div>
+        )}
 
         <div className="flex items-center justify-between">
           {story.authorUsername ? (
@@ -93,5 +116,21 @@ export default function StoryCard({ story, index }) {
         </div>
       </div>
     </Link>
+  )
+}
+
+function HeartMini() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+    </svg>
+  )
+}
+
+function CommentMini() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.6-.8L3 21l1.9-5.7A8.38 8.38 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.38 8.38 0 0 1 21 11.5z" />
+    </svg>
   )
 }

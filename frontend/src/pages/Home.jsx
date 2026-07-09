@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import api from '../api/client'
+import StoryCard from '../components/StoryCard'
 
 const OPENING_LINES = [
   "Every choice rewrites the ending.",
@@ -11,6 +13,7 @@ const OPENING_LINES = [
 export default function Home() {
   const [lineIndex, setLineIndex] = useState(0)
   const [visible, setVisible] = useState(true)
+  const [featured, setFeatured] = useState([])
   const intervalRef = useRef(null)
 
   useEffect(() => {
@@ -22,6 +25,13 @@ export default function Home() {
       }, 400)
     }, 3000)
     return () => clearInterval(intervalRef.current)
+  }, [])
+
+  // Admin-curated picks. The section hides itself when nothing is featured.
+  useEffect(() => {
+    api.get('/api/stories/featured')
+      .then(r => setFeatured(r.data))
+      .catch(() => setFeatured([]))
   }, [])
 
   return (
@@ -181,6 +191,35 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Featured — admin-curated stories */}
+      {featured.length > 0 && (
+        <section style={{ padding: '40px 24px 20px', maxWidth: '1100px', margin: '0 auto' }}>
+          <div className="animate-fadeUp" style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '28px' }}>
+            <div>
+              <p style={{ fontSize: '10px', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '12px', opacity: 0.7 }}>
+                Editor's picks
+              </p>
+              <h2 className="font-story" style={{ fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em' }}>
+                Featured stories
+              </h2>
+            </div>
+            <Link
+              to="/stories"
+              style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta50))', textDecoration: 'none', letterSpacing: '0.04em' }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta50))')}
+            >
+              Browse all →
+            </Link>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+            {featured.slice(0, 6).map((story, i) => (
+              <StoryCard key={story._id} story={story} index={i} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* How it works */}
       <section style={{ padding: '120px 24px', maxWidth: '1000px', margin: '0 auto' }}>

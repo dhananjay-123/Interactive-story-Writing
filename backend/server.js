@@ -17,6 +17,7 @@ app.use('/api/users', require('./routes/users'))
 app.use('/api/stories', require('./routes/stories'))
 app.use('/api/nodes', require('./routes/nodes'))
 app.use('/api/uploads', require('./routes/uploads'))
+app.use('/api/admin', require('./routes/admin'))
 
 const start = async () => {
   try {
