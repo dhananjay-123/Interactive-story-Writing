@@ -171,6 +171,40 @@ const initDb = async () => {
     CREATE INDEX IF NOT EXISTS idx_reports_status ON reports (status, created_at DESC);
     CREATE INDEX IF NOT EXISTS idx_reports_story ON reports (story_id);
 
+    -- Reading progress + choice analytics -------------------------------------
+
+    -- Where a signed-in reader left off in a story. current_node_id cascades, so
+    -- if the author deletes that passage the bookmark disappears rather than
+    -- pointing at nothing.
+    CREATE TABLE IF NOT EXISTS reading_progress (
+      user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      story_id        UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      current_node_id UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+      -- The passages walked to get here, oldest first. Lets "go back" survive a reload.
+      path            UUID[] NOT NULL DEFAULT '{}',
+      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, story_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_progress_user ON reading_progress (user_id, updated_at DESC);
+
+    -- One row per choice taken. user_id is nullable: anonymous readers count too,
+    -- they just can't be told apart from one another.
+    CREATE TABLE IF NOT EXISTS choice_events (
+      id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      story_id     UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      from_node_id UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+      to_node_id   UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+      choice_index SMALLINT NOT NULL CHECK (choice_index BETWEEN 0 AND 5),
+      user_id      UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    -- The analytics query groups by (from_node_id, choice_index); the story index
+    -- serves the totals.
+    CREATE INDEX IF NOT EXISTS idx_choice_events_node ON choice_events (from_node_id, choice_index);
+    CREATE INDEX IF NOT EXISTS idx_choice_events_story ON choice_events (story_id, created_at DESC);
+
     -- Account recovery -------------------------------------------------------
 
     -- A locked-out reader asks an admin to set them a new password. We store no

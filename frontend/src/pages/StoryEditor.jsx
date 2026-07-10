@@ -6,6 +6,7 @@ import BranchComposer from '../components/BranchComposer'
 import RichTextEditor, { textToDoc } from '../components/RichTextEditor'
 import { inputStyle, labelStyle, focusBorder, blurBorder } from '../components/authStyles'
 import SoundscapePanel from '../components/SoundscapePanel'
+import ReaderPaths from '../components/ReaderPaths'
 import ConnectingLoader from '../components/ConnectingLoader'
 
 export default function StoryEditor() {
@@ -19,6 +20,7 @@ export default function StoryEditor() {
   const [error, setError] = useState('')
 
   const [collapsed, setCollapsed] = useState(() => new Set())
+  const [showPaths, setShowPaths] = useState(false) // reader analytics, fetched on demand
   const [activeEdit, setActiveEdit] = useState(null) // nodeId
   const [activeCompose, setActiveCompose] = useState(null) // `${parentId}:${choiceIndex}`
 
@@ -129,6 +131,31 @@ export default function StoryEditor() {
 
         {/* Soundscape picker */}
         <SoundscapePanel story={story} onChange={(next) => setStory((s) => ({ ...s, ambience: next }))} />
+
+        {/* Reader paths — which way people actually went. */}
+        <div style={{ margin: '0 0 36px', padding: '20px 22px', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '6px', background: 'rgba(var(--panel-rgb),var(--pa02))' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
+            <div>
+              <h2 className="font-story" style={{ fontSize: '18px', fontWeight: 400, color: 'var(--parchment)' }}>
+                Reader paths
+              </h2>
+              <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '4px' }}>
+                Which choice readers took at each fork. Your own reading isn’t counted.
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPaths((v) => !v)}
+              style={{ background: 'none', border: '1px solid rgba(var(--panel-rgb),var(--pa12))', color: 'rgba(var(--text-rgb),var(--ta60))', borderRadius: '3px', padding: '6px 14px', fontSize: '12px', letterSpacing: '0.05em', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              {showPaths ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          {showPaths && (
+            <div className="animate-fadeUp" style={{ marginTop: '22px' }}>
+              <ReaderPaths storyId={id} />
+            </div>
+          )}
+        </div>
 
         {/* The tree */}
         <TreeNode nodeId={story.rootNodeId} parentNodeId={null} choiceIndex={null} depth={0} ctx={ctx} />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -30,6 +30,10 @@ export default function StoryReader() {
   const [composing, setComposing] = useState(null) // { choiceIndex, choiceText }
   // When a reader hits a branch the author hasn't written yet.
   const [deadEnd, setDeadEnd] = useState('')
+  // A saved bookmark, offered rather than forced — landing somewhere you don't
+  // recognise is worse than one extra click.
+  const [resumable, setResumable] = useState(null) // { currentNodeId, path, passagesIn }
+  const [resuming, setResuming] = useState(false)
 
   const isAuthor = Boolean(user && story && user._id === story.authorId)
 
@@ -37,6 +41,7 @@ export default function StoryReader() {
     let active = true
     setLoading(true)
     setError('')
+    setResumable(null)
     ;(async () => {
       try {
         const { data: s } = await api.get(`/api/stories/${id}`)
@@ -46,6 +51,14 @@ export default function StoryReader() {
         setStory(s)
         setNode(root)
         setHistory([])
+
+        // A bookmark only matters if it points somewhere past the opening.
+        if (user) {
+          const { data: p } = await api.get(`/api/stories/${id}/progress`)
+          if (active && p && p.currentNodeId && p.currentNodeId !== s.rootNodeId) {
+            setResumable({ ...p, passagesIn: (p.path?.length || 0) + 1 })
+          }
+        }
       } catch {
         if (active) setError('not-found')
       } finally {
@@ -55,7 +68,60 @@ export default function StoryReader() {
     return () => {
       active = false
     }
-  }, [id])
+  }, [id, user])
+
+  // Fire-and-forget: a failed bookmark save must never interrupt the reading.
+  const saveProgress = useCallback(
+    (currentNodeId, trail) => {
+      if (!user) return
+      api
+        .put(`/api/stories/${id}/progress`, {
+          currentNodeId,
+          path: trail.map((n) => n._id),
+        })
+        .catch(() => {})
+    },
+    [user, id]
+  )
+
+  // The author walking their own draft would drown out real readers, so their
+  // choices aren't counted.
+  const recordChoice = useCallback(
+    (fromNodeId, choiceIndex) => {
+      if (isAuthor) return
+      api.post(`/api/stories/${id}/choice`, { fromNodeId, choiceIndex }).catch(() => {})
+    },
+    [isAuthor, id]
+  )
+
+  // Rebuild the trail from the saved ids so "go back" still works after a reload.
+  const handleResume = async () => {
+    if (!resumable) return
+    setResuming(true)
+    try {
+      const { data: tree } = await api.get(`/api/nodes/story/${id}/tree`)
+      const byId = new Map(tree.nodes.map((n) => [n._id, n]))
+      const target = byId.get(resumable.currentNodeId)
+      if (!target) throw new Error('gone')
+      // Passages deleted since the bookmark was written simply drop out of the trail.
+      const trail = (resumable.path || []).map((nid) => byId.get(nid)).filter(Boolean)
+      setHistory(trail)
+      setNode(target)
+      setResumable(null)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch {
+      // The passage is gone — forget the bookmark and start from the top.
+      api.delete(`/api/stories/${id}/progress`).catch(() => {})
+      setResumable(null)
+    } finally {
+      setResuming(false)
+    }
+  }
+
+  const dismissResume = () => {
+    setResumable(null)
+    api.delete(`/api/stories/${id}/progress`).catch(() => {})
+  }
 
   // Play the author's chosen soundscape while reading; silence it on the way out.
   useEffect(() => {
@@ -68,8 +134,10 @@ export default function StoryReader() {
     setTransitioning(true)
     setDeadEnd('')
     setComposing(null)
+    const trail = [...history, node]
+    saveProgress(next._id, trail)
     setTimeout(() => {
-      setHistory((h) => [...h, node])
+      setHistory(trail)
       setNode(next)
       setTransitioning(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -82,6 +150,7 @@ export default function StoryReader() {
     if (choice.nextNodeId) {
       try {
         const { data: next } = await api.get(`/api/nodes/${choice.nextNodeId}`)
+        recordChoice(node._id, index)
         goToNode(next)
       } catch {
         setError('load-failed')
@@ -113,9 +182,12 @@ export default function StoryReader() {
     setTransitioning(true)
     setDeadEnd('')
     setComposing(null)
+    const target = history[history.length - 1]
+    const trail = history.slice(0, -1)
+    saveProgress(target._id, trail)
     setTimeout(() => {
-      setNode(history[history.length - 1])
-      setHistory((h) => h.slice(0, -1))
+      setNode(target)
+      setHistory(trail)
       setTransitioning(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }, 260)
@@ -124,6 +196,8 @@ export default function StoryReader() {
   const handleRestart = async () => {
     if (!story?.rootNodeId) return
     const { data: root } = await api.get(`/api/nodes/${story.rootNodeId}`)
+    // Starting over discards the bookmark rather than parking it on the opening.
+    if (user) api.delete(`/api/stories/${id}/progress`).catch(() => {})
     setTransitioning(true)
     setDeadEnd('')
     setComposing(null)
@@ -183,6 +257,27 @@ export default function StoryReader() {
             {story.tags?.length > 0 && <TagRow tags={story.tags} style={{ marginTop: '18px' }} />}
 
             <EngagementBar story={story} />
+          </div>
+        )}
+
+        {/* A bookmark from a previous sitting. */}
+        {resumable && !composing && (
+          <div
+            className="animate-fadeUp"
+            style={{ marginBottom: '32px', padding: '18px 20px', border: '1px solid rgba(var(--gold-rgb),0.28)', borderRadius: '4px', background: 'rgba(var(--gold-rgb),0.05)' }}
+          >
+            <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta70))', lineHeight: 1.6, marginBottom: '14px' }}>
+              You left this story {resumable.passagesIn}{' '}
+              {resumable.passagesIn === 1 ? 'passage' : 'passages'} in.
+            </p>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              <button onClick={handleResume} disabled={resuming} style={resumeButton(resuming)}>
+                {resuming ? 'Finding your place…' : 'Continue reading'}
+              </button>
+              <button onClick={dismissResume} style={backLinkStyle}>
+                Start from the beginning
+              </button>
+            </div>
           </div>
         )}
 
@@ -338,6 +433,21 @@ function Screen({ children }) {
     </div>
   )
 }
+
+const resumeButton = (disabled) => ({
+  padding: '10px 22px',
+  background: 'var(--gold)',
+  color: 'var(--on-gold)',
+  border: 'none',
+  borderRadius: '3px',
+  fontSize: '12px',
+  fontWeight: 600,
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase',
+  cursor: disabled ? 'default' : 'pointer',
+  opacity: disabled ? 0.6 : 1,
+  fontFamily: 'inherit',
+})
 
 const backLinkStyle = {
   background: 'none',

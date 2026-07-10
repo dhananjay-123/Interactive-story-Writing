@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/client'
 import StoryCard from '../components/StoryCard'
+import ContinueReading from '../components/ContinueReading'
 
 const OPENING_LINES = [
   "Every choice rewrites the ending.",
@@ -191,6 +192,8 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      <ContinueReading />
 
       {/* Featured — admin-curated stories */}
       {featured.length > 0 && (

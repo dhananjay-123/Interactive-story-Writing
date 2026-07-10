@@ -4,6 +4,8 @@ const Node = require('../models/Node')
 const Engagement = require('../models/Engagement')
 const Comment = require('../models/Comment')
 const Report = require('../models/Report')
+const Progress = require('../models/Progress')
+const ChoiceEvent = require('../models/ChoiceEvent')
 const { requireAuth, optionalAuth } = require('../middleware/auth')
 const { validateContent } = require('../utils/validateContent')
 
@@ -58,6 +60,16 @@ router.get('/featured', optionalAuth, async (req, res) => {
 router.get('/bookmarks', requireAuth, async (req, res) => {
   try {
     res.json(await Story.bookmarkedBy(req.user._id))
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// GET /api/stories/continue — stories the reader is part-way through.
+// Declared before /:id so "continue" isn't swallowed as a story id.
+router.get('/continue', requireAuth, async (req, res) => {
+  try {
+    res.json(await Progress.listForUser(req.user._id, 8))
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -297,6 +309,146 @@ router.delete('/:id/comments/:commentId', requireAuth, async (req, res) => {
     }
     await Comment.remove(req.params.commentId)
     res.json({ message: 'Deleted' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// ── Reading progress ─────────────────────────────────────────────────────────
+
+// GET /api/stories/:id/progress — where this reader left off, or null.
+router.get('/:id/progress', requireAuth, async (req, res) => {
+  try {
+    res.json(await Progress.get(req.user._id, req.params.id) || null)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// PUT /api/stories/:id/progress  { currentNodeId, path: [] }
+// Called on every move through the story, so it must stay cheap and idempotent.
+router.put('/:id/progress', requireAuth, async (req, res) => {
+  const { currentNodeId, path } = req.body || {}
+  if (!currentNodeId) return res.status(400).json({ message: 'currentNodeId is required.' })
+  if (path != null && (!Array.isArray(path) || path.length > 200)) {
+    return res.status(400).json({ message: 'path must be an array of at most 200 ids.' })
+  }
+
+  try {
+    // The node must exist and belong to this story, or a reader could park their
+    // bookmark on someone else's passage.
+    const node = await Node.findById(currentNodeId)
+    if (!node || node.storyId !== req.params.id) {
+      return res.status(400).json({ message: 'That passage is not part of this story.' })
+    }
+    res.json(await Progress.save({
+      userId: req.user._id,
+      storyId: req.params.id,
+      currentNodeId,
+      path: path || [],
+    }))
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// DELETE /api/stories/:id/progress — "start over" forgets the bookmark.
+router.delete('/:id/progress', requireAuth, async (req, res) => {
+  try {
+    await Progress.clear(req.user._id, req.params.id)
+    res.json({ message: 'Cleared' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// ── Choice analytics ─────────────────────────────────────────────────────────
+
+// POST /api/stories/:id/choice  { fromNodeId, choiceIndex }
+// Anonymous readers count too, so this is optionalAuth. The link is verified
+// against the passage itself: you can only report a choice the story actually
+// offers, which stops the endpoint from being a free-form counter.
+router.post('/:id/choice', optionalAuth, async (req, res) => {
+  const { fromNodeId, choiceIndex } = req.body || {}
+  const index = Number(choiceIndex)
+  if (!fromNodeId || !Number.isInteger(index) || index < 0 || index > 5) {
+    return res.status(400).json({ message: 'fromNodeId and a valid choiceIndex are required.' })
+  }
+
+  try {
+    const from = await Node.findById(fromNodeId)
+    if (!from || from.storyId !== req.params.id) {
+      return res.status(400).json({ message: 'That passage is not part of this story.' })
+    }
+    const choice = from.choices?.[index]
+    if (!choice?.nextNodeId) {
+      return res.status(400).json({ message: 'That choice does not lead anywhere yet.' })
+    }
+
+    await ChoiceEvent.record({
+      storyId: req.params.id,
+      fromNodeId,
+      toNodeId: choice.nextNodeId,
+      choiceIndex: index,
+      userId: viewerId(req),
+    })
+    res.status(201).json({ recorded: true })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// GET /api/stories/:id/analytics — which paths readers actually walk.
+// The author's own numbers, or an admin's. Nobody else's business.
+router.get('/:id/analytics', requireAuth, async (req, res) => {
+  try {
+    const story = await Story.findById(req.params.id)
+    if (!story) return res.status(404).json({ message: 'Story not found' })
+    if (story.authorId !== req.user._id && req.user.role !== 'admin') {
+      return res.status(403).json({ message: 'Only the author can see reader paths.' })
+    }
+
+    const [nodes, dist, totals, endingList] = await Promise.all([
+      Node.findByStory(req.params.id),
+      ChoiceEvent.distribution(req.params.id),
+      ChoiceEvent.summary(req.params.id),
+      ChoiceEvent.endings(req.params.id),
+    ])
+
+    // counts[nodeId][choiceIndex] -> times taken
+    const counts = new Map()
+    for (const row of dist) {
+      if (!counts.has(row.from_node_id)) counts.set(row.from_node_id, {})
+      counts.get(row.from_node_id)[row.choice_index] = row.n
+    }
+
+    const passages = nodes
+      .filter((n) => n.choices.length > 0)
+      .map((n) => {
+        const forNode = counts.get(n._id) || {}
+        const taken = n.choices.reduce((sum, _, i) => sum + (forNode[i] || 0), 0)
+        return {
+          nodeId: n._id,
+          isRoot: n._id === story.rootNodeId,
+          snippet: (n.text || '').replace(/\s+/g, ' ').slice(0, 120),
+          totalTaken: taken,
+          choices: n.choices.map((c, i) => {
+            const count = forNode[i] || 0
+            return {
+              index: i,
+              text: c.text,
+              nextNodeId: c.nextNodeId,
+              count,
+              // Share of readers who stood here and picked this. 0 when nobody has.
+              share: taken > 0 ? count / taken : 0,
+            }
+          }),
+        }
+      })
+      // Busiest passages first — that's where an author's attention belongs.
+      .sort((a, b) => b.totalTaken - a.totalTaken)
+
+    res.json({ totals, passages, endings: endingList })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
