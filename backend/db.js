@@ -242,6 +242,70 @@ const initDb = async () => {
     -- "Who can I edit with" and "which stories can I help write" — both directions.
     CREATE INDEX IF NOT EXISTS idx_collab_story ON story_collaborators (story_id);
     CREATE INDEX IF NOT EXISTS idx_collab_user  ON story_collaborators (user_id, added_at DESC);
+
+    -- Social notifications ---------------------------------------------------
+
+    -- One row per (recipient, event). Distinct from achievement_notifications,
+    -- which is badge/tier-only; this covers the social side — comments on your
+    -- story, being added as a co-author, and new stories from authors you follow.
+    -- actor_id (who caused it) is SET NULL on delete so a removed account leaves
+    -- the notice readable; story_id cascades since a deleted story's notices are
+    -- moot. data carries a small denormalized snapshot (e.g. a comment snippet).
+    CREATE TABLE IF NOT EXISTS notifications (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      type       TEXT NOT NULL CHECK (type IN ('comment','collaborator','story')),
+      actor_id   UUID REFERENCES users(id) ON DELETE SET NULL,
+      story_id   UUID REFERENCES stories(id) ON DELETE CASCADE,
+      data       JSONB NOT NULL DEFAULT '{}'::jsonb,
+      seen       BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications (user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_notifications_unseen ON notifications (user_id) WHERE NOT seen;
+
+    -- Writing contests --------------------------------------------------------
+
+    -- Admin-created rounds. Status is derived from the clock (upcoming / open /
+    -- closed), never stored, so nothing needs a scheduler to flip it. genre NULL
+    -- means any genre may enter.
+    CREATE TABLE IF NOT EXISTS contests (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      title      TEXT NOT NULL,
+      theme      TEXT,
+      genre      TEXT CHECK (genre IN ('fantasy','mystery','sci_fi','romance','horror','thriller','literary')),
+      starts_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      ends_at    TIMESTAMPTZ NOT NULL,
+      created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CHECK (ends_at > starts_at)
+    );
+    CREATE INDEX IF NOT EXISTS idx_contests_ends ON contests (ends_at DESC);
+
+    -- One story per author per contest (the UNIQUE), each story at most once (the PK).
+    CREATE TABLE IF NOT EXISTS contest_entries (
+      contest_id UUID NOT NULL REFERENCES contests(id) ON DELETE CASCADE,
+      story_id   UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (contest_id, story_id),
+      UNIQUE (contest_id, user_id)
+    );
+
+    -- One vote per reader per contest (the PK); the composite FK guarantees a
+    -- vote can only land on a real entry, and withdrawing an entry takes its
+    -- votes with it.
+    CREATE TABLE IF NOT EXISTS contest_votes (
+      contest_id UUID NOT NULL,
+      story_id   UUID NOT NULL,
+      voter_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (contest_id, voter_id),
+      FOREIGN KEY (contest_id, story_id)
+        REFERENCES contest_entries(contest_id, story_id) ON DELETE CASCADE
+    );
+    CREATE INDEX IF NOT EXISTS idx_contest_votes_entry ON contest_votes (contest_id, story_id);
   `)
 
   await initAchievements()

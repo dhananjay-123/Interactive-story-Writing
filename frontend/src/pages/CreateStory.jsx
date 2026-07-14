@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import RichTextEditor from '../components/RichTextEditor'
+import SparkPanel from '../components/SparkPanel'
 
 const GENRES = ['fantasy', 'mystery', 'sci_fi', 'romance', 'horror', 'thriller', 'literary']
 
@@ -219,6 +220,8 @@ export default function CreateStory() {
                   Press Enter or comma to add each tag.
                 </p>
               </div>
+
+              <SparkPanel genre={form.genre} />
             </div>
           )}
 

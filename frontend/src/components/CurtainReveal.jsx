@@ -39,7 +39,7 @@ export default function CurtainReveal() {
         onAnimationEnd={() => setShowing(false)}
       />
       <span className="curtain-seam" />
-      <span className="curtain-title">CraftnTales</span>
+      <span className="curtain-title">Craft&Tales</span>
     </div>
   )
 }

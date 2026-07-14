@@ -7,6 +7,7 @@ import BranchComposer from '../components/BranchComposer'
 import ConnectingLoader from '../components/ConnectingLoader'
 import EngagementBar from '../components/EngagementBar'
 import CommentSection from '../components/CommentSection'
+import NarrationPanel from '../components/NarrationPanel'
 import ReportButton from '../components/ReportButton'
 import { TagRow } from '../components/TagRow'
 import { generateHTML } from '@tiptap/core'
@@ -257,6 +258,19 @@ export default function StoryReader() {
 
   const isEnding = node.choices.length === 0
 
+  // What the narrator reads: the passage (plain-text fallback is kept even for
+  // rich passages), then the choices, so eyes-free readers hear their options.
+  const narrationText = [
+    node.text,
+    isEnding
+      ? 'The end.'
+      : node.choices.length
+        ? `Your choices are: ${node.choices.map((c, i) => `${i + 1}. ${c.text}`).join('. ')}.`
+        : '',
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--ink)', paddingTop: '80px' }}>
       <div style={{ maxWidth: '720px', margin: '0 auto', padding: '40px 24px 100px' }}>
@@ -322,6 +336,8 @@ export default function StoryReader() {
 
         {/* Body */}
         <div style={{ opacity: transitioning ? 0 : 1, transform: transitioning ? 'translateY(12px)' : 'translateY(0)', transition: 'opacity 0.26s ease, transform 0.26s ease' }}>
+          <NarrationPanel text={narrationText} nodeId={node._id} />
+
           <Passage node={node} />
 
           <Divider />

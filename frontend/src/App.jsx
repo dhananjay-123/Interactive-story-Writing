@@ -13,12 +13,15 @@ import Profile from './pages/Profile'
 import AdminDashboard from './pages/AdminDashboard'
 import Achievements from './pages/Achievements'
 import Leaderboard from './pages/Leaderboard'
+import Contests from './pages/Contests'
+import ContestDetail from './pages/ContestDetail'
 import RequireAdmin from './components/RequireAdmin'
 import Navbar from './components/Navbar'
 import InkCursor from './components/InkCursor'
 import CurtainReveal from './components/CurtainReveal'
 import RouteMusic from './components/RouteMusic'
 import { AchievementsProvider } from './components/achievements/AchievementsProvider'
+import { NotificationsProvider } from './context/NotificationsContext'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { AudioProvider } from './audio/AudioProvider'
@@ -29,6 +32,7 @@ function App() {
       <AuthProvider>
         <AudioProvider>
           <BrowserRouter>
+            <NotificationsProvider>
             <AchievementsProvider>
               <CurtainReveal />
               <InkCursor />
@@ -44,6 +48,8 @@ function App() {
                 <Route path="/my-stories" element={<MyStories />} />
                 <Route path="/achievements" element={<Achievements />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
+                <Route path="/contests" element={<Contests />} />
+                <Route path="/contests/:id" element={<ContestDetail />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -58,6 +64,7 @@ function App() {
                 />
               </Routes>
             </AchievementsProvider>
+            </NotificationsProvider>
           </BrowserRouter>
         </AudioProvider>
       </AuthProvider>

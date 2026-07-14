@@ -103,7 +103,7 @@ export default function Home() {
               marginBottom: '24px',
             }}
           >
-            CraftnTales
+            Craft&Tales
           </h1>
 
           <div

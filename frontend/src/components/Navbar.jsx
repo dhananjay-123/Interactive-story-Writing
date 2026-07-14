@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAudio } from '../audio/AudioProvider'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
+import NotificationBell from './NotificationBell'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -51,13 +52,14 @@ export default function Navbar() {
           className="font-story text-xl tracking-wide"
           style={{ color: 'var(--gold)', textDecoration: 'none' }}
         >
-          CraftnTales
+          Craft&Tales
         </Link>
 
         {/* Desktop navigation */}
         <div className="hidden md:flex items-center gap-7">
           <NavLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
           <NavLink to="/featured" label="Featured" active={location.pathname === '/featured'} />
+          <NavLink to="/contests" label="Contests" active={location.pathname.startsWith('/contests')} />
           <NavLink to="/leaderboard" label="Ranks" active={location.pathname === '/leaderboard'} />
 
           {user ? (
@@ -88,6 +90,8 @@ export default function Navbar() {
             toggle={toggle}
           />
 
+          {user && <NotificationBell />}
+
           {user && (
             <Avatar
               to={authorPath}
@@ -106,6 +110,8 @@ export default function Navbar() {
             enabled={enabled}
             toggle={toggle}
           />
+
+          {user && <NotificationBell />}
 
           {user && (
             <Avatar
@@ -142,6 +148,7 @@ export default function Navbar() {
         >
           <MobileLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
           <MobileLink to="/featured" label="Featured" active={location.pathname === '/featured'} />
+          <MobileLink to="/contests" label="Contests" active={location.pathname.startsWith('/contests')} />
           <MobileLink to="/leaderboard" label="Ranks" active={location.pathname === '/leaderboard'} />
           {user ? (
             <>

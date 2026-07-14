@@ -100,6 +100,10 @@ function initRealtime(server, app) {
     // Track which stories this socket has joined, for disconnect cleanup.
     socket.joined = new Set()
 
+    // Every socket also joins a private room keyed by its user, so the REST
+    // routes can push social notifications to all of a person's open tabs.
+    socket.join(`user:${socket.user.userId}`)
+
     socket.on('story:join', async ({ storyId } = {}, cb) => {
       try {
         if (!storyId) return cb?.({ ok: false })
@@ -161,6 +165,14 @@ function initRealtime(server, app) {
     releaseNodeLock(storyId, nodeId) {
       const l = locksFor(storyId)
       if (l.delete(nodeId)) io.to(room(storyId)).emit('locks:update', lockList(storyId))
+    },
+  })
+
+  // Live delivery for social notifications (see notify/index.js). Lands in every
+  // open tab of the recipient; if they're offline it was still persisted.
+  app.set('notify', {
+    push(userId, notification) {
+      io.to(`user:${userId}`).emit('notification', notification)
     },
   })
 

@@ -78,6 +78,14 @@ body {
   width: 100%;
 }
 
+/* Native dropdown lists don't inherit the page theme on some platforms — on
+   Windows the popup can come up white while the options keep our parchment
+   text, leaving them unreadable. Give options explicit ink in both themes. */
+select option {
+  background: var(--ink-soft);
+  color: var(--parchment);
+}
+
 /* ── Page fade-in ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }

@@ -8,10 +8,12 @@ const Progress = require('../models/Progress')
 const ChoiceEvent = require('../models/ChoiceEvent')
 const User = require('../models/User')
 const Collaborator = require('../models/Collaborator')
+const Follow = require('../models/Follow')
 const { requireAuth, optionalAuth } = require('../middleware/auth')
 const { validateContent } = require('../utils/validateContent')
 const { canEditStory } = require('../utils/permissions')
 const achievements = require('../achievements')
+const notify = require('../notify')
 
 const REPORT_REASONS = ['spam', 'offensive', 'plagiarism', 'broken', 'other']
 
@@ -145,8 +147,17 @@ router.post('/', requireAuth, async (req, res) => {
     })
 
     const updated = await Story.setRoot(story._id, rootNode._id, 0)
-    // A new story is published by default — credit the author's publishing metrics.
-    if (updated.published) achievements.emit(req.user._id, 'STORY_PUBLISHED', { storyId: story._id })
+    // A new story is published by default — credit the author's publishing metrics
+    // and let their followers know a new tale is out.
+    if (updated.published) {
+      achievements.emit(req.user._id, 'STORY_PUBLISHED', { storyId: story._id })
+      const followers = await Follow.listFollowers(req.user._id)
+      notify.emit(req.app, followers.map((f) => f._id), {
+        type: 'story',
+        actorId: req.user._id,
+        storyId: story._id,
+      })
+    }
     res.status(201).json(updated)
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -230,6 +241,11 @@ router.post('/:id/collaborators', requireAuth, async (req, res) => {
 
     await Collaborator.add(req.params.id, invitee._id)
     achievements.emit(invitee._id, 'COLLABORATOR_ADDED', { storyId: req.params.id })
+    notify.emit(req.app, [invitee._id], {
+      type: 'collaborator',
+      actorId: req.user._id,
+      storyId: req.params.id,
+    })
     res.status(201).json(await Collaborator.listForStory(req.params.id))
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -415,6 +431,16 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
     if (story.authorId && story.authorId !== req.user._id) {
       achievements.emit(story.authorId, 'COMMENT_RECEIVED', { storyId: story._id })
     }
+    // Tell the story's team (owner + co-authors) about the comment — but not the
+    // person who just wrote it.
+    const collaborators = await Collaborator.listForStory(story._id)
+    const team = [story.authorId, ...collaborators.map((c) => c._id)]
+    notify.emit(req.app, team.filter((id) => id && id !== req.user._id), {
+      type: 'comment',
+      actorId: req.user._id,
+      storyId: story._id,
+      data: { snippet: body.slice(0, 140) },
+    })
     res.status(201).json(comment)
   } catch (err) {
     res.status(500).json({ message: err.message })
