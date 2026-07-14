@@ -82,7 +82,7 @@ export default function CommentSection({ storyId, storyAuthorId }) {
               style={{
                 padding: '9px 22px', background: body.trim() ? 'var(--gold)' : 'rgba(var(--gold-rgb),0.2)',
                 color: body.trim() ? 'var(--on-gold)' : 'rgba(var(--text-rgb),var(--ta30))',
-                border: 'none', borderRadius: '3px', fontSize: '12px', fontWeight: 600,
+                border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: 600,
                 letterSpacing: '0.1em', textTransform: 'uppercase',
                 cursor: body.trim() && !posting ? 'pointer' : 'not-allowed', fontFamily: 'inherit',
               }}

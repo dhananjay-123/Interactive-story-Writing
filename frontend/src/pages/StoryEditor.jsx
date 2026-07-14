@@ -182,7 +182,7 @@ export default function StoryEditor() {
         <SoundscapePanel story={story} onChange={(next) => setStory((s) => ({ ...s, ambience: next }))} />
 
         {/* Reader paths — which way people actually went. */}
-        <div style={{ margin: '0 0 36px', padding: '20px 22px', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '6px', background: 'rgba(var(--panel-rgb),var(--pa02))' }}>
+        <div style={{ margin: '0 0 36px', padding: '20px 22px', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '8px', background: 'rgba(var(--panel-rgb),var(--pa02))' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
             <div>
               <h2 className="font-story" style={{ fontSize: '18px', fontWeight: 400, color: 'var(--parchment)' }}>
@@ -194,7 +194,7 @@ export default function StoryEditor() {
             </div>
             <button
               onClick={() => setShowPaths((v) => !v)}
-              style={{ background: 'none', border: '1px solid rgba(var(--panel-rgb),var(--pa12))', color: 'rgba(var(--text-rgb),var(--ta60))', borderRadius: '3px', padding: '6px 14px', fontSize: '12px', letterSpacing: '0.05em', cursor: 'pointer', fontFamily: 'inherit' }}
+              style={{ background: 'none', border: '1px solid rgba(var(--panel-rgb),var(--pa12))', color: 'rgba(var(--text-rgb),var(--ta60))', borderRadius: '4px', padding: '6px 14px', fontSize: '12px', letterSpacing: '0.05em', cursor: 'pointer', fontFamily: 'inherit' }}
             >
               {showPaths ? 'Hide' : 'Show'}
             </button>
@@ -232,7 +232,7 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
         style={{
           background: isRoot ? 'rgba(var(--gold-rgb),0.06)' : 'rgba(var(--panel-rgb),var(--pa03))',
           border: `1px solid ${isRoot ? 'rgba(var(--gold-rgb),0.3)' : 'rgba(var(--panel-rgb),var(--pa10))'}`,
-          borderRadius: '6px',
+          borderRadius: '8px',
           padding: '16px 18px',
         }}
       >
@@ -295,7 +295,7 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
                 {choice.nextNodeId ? (
                   <TreeNode nodeId={choice.nextNodeId} parentNodeId={nodeId} choiceIndex={i} depth={depth + 1} ctx={ctx} />
                 ) : composing ? (
-                  <div style={{ background: 'rgba(var(--panel-rgb),var(--pa03))', border: '1px solid rgba(var(--gold-rgb),0.2)', borderRadius: '6px', padding: '16px 18px' }}>
+                  <div style={{ background: 'rgba(var(--panel-rgb),var(--pa03))', border: '1px solid rgba(var(--gold-rgb),0.2)', borderRadius: '8px', padding: '16px 18px' }}>
                     <BranchComposer
                       storyId={ctx.storyId}
                       parentNodeId={nodeId}
@@ -416,7 +416,7 @@ function NodeEditor({ node, ctx }) {
         </div>
         {choices.length < 4 && (
           <button onClick={addChoice}
-            style={{ marginTop: '10px', background: 'none', border: '1px dashed rgba(var(--panel-rgb),var(--pa15))', color: 'rgba(var(--text-rgb),var(--ta40))', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', padding: '8px 16px', borderRadius: '3px' }}
+            style={{ marginTop: '10px', background: 'none', border: '1px dashed rgba(var(--panel-rgb),var(--pa15))', color: 'rgba(var(--text-rgb),var(--ta40))', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', padding: '8px 16px', borderRadius: '4px' }}
           >+ Add choice</button>
         )}
         <p style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),var(--ta30))', marginTop: '8px' }}>
@@ -428,7 +428,7 @@ function NodeEditor({ node, ctx }) {
 
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '20px' }}>
         <button onClick={save} disabled={!canSave}
-          style={{ padding: '10px 24px', background: 'var(--gold)', color: 'var(--on-gold)', border: 'none', fontSize: '12px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: '3px', cursor: canSave ? 'pointer' : 'not-allowed', opacity: canSave ? 1 : 0.5 }}
+          style={{ padding: '10px 24px', background: 'var(--gold-solid)', color: 'var(--on-gold)', border: 'none', fontSize: '12px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: '4px', cursor: canSave ? 'pointer' : 'not-allowed', opacity: canSave ? 1 : 0.5 }}
         >
           {saving ? 'Saving…' : 'Save passage'}
         </button>
@@ -525,7 +525,7 @@ function PresenceBar({ presence, myId, connected }) {
 // Shown in place of the edit control when a co-author holds the passage.
 function LockPill({ name }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(var(--gold-rgb),0.85)', border: '1px solid rgba(var(--gold-rgb),0.3)', borderRadius: '3px', padding: '3px 8px' }}>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(var(--gold-rgb),0.85)', border: '1px solid rgba(var(--gold-rgb),0.3)', borderRadius: '4px', padding: '3px 8px' }}>
       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <rect x="4" y="11" width="16" height="9" rx="1.5" />
         <path d="M8 11V8a4 4 0 0 1 8 0v3" />
@@ -544,7 +544,7 @@ function Badge({ children, tone }) {
   }
   const t = tones[tone] || tones.muted
   return (
-    <span style={{ fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase', color: t.color, border: `1px solid ${t.border}`, borderRadius: '3px', padding: '3px 8px' }}>
+    <span style={{ fontSize: '9px', letterSpacing: '0.14em', textTransform: 'uppercase', color: t.color, border: `1px solid ${t.border}`, borderRadius: '4px', padding: '3px 8px' }}>
       {children}
     </span>
   )

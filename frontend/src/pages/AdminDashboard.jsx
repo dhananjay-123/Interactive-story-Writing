@@ -155,8 +155,8 @@ function Overview() {
                   <span style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta60))' }}>{genreLabel(g.genre)}</span>
                   <span style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta40))' }}>{g.count}</span>
                 </div>
-                <div style={{ height: '6px', background: 'rgba(var(--panel-rgb),var(--pa08))', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ width: `${(g.count / maxGenre) * 100}%`, height: '100%', background: 'var(--gold)', opacity: 0.7, borderRadius: '3px' }} />
+                <div style={{ height: '6px', background: 'rgba(var(--panel-rgb),var(--pa08))', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ width: `${(g.count / maxGenre) * 100}%`, height: '100%', background: 'var(--gold)', opacity: 0.7, borderRadius: '4px' }} />
                 </div>
               </div>
             ))}
@@ -520,7 +520,7 @@ function SetPasswordForm({ user, requestId, onDone }) {
         <p style={{ fontSize: '13px', color: 'var(--gold)', marginBottom: '8px' }}>
           Password set for @{user.username}. Copy it now — it isn't stored anywhere.
         </p>
-        <code style={{ display: 'inline-block', padding: '8px 12px', background: 'rgba(var(--panel-rgb),var(--pa06))', border: '1px solid rgba(var(--panel-rgb),var(--pa12))', borderRadius: '3px', fontSize: '14px', color: 'var(--parchment)', letterSpacing: '0.05em' }}>
+        <code style={{ display: 'inline-block', padding: '8px 12px', background: 'rgba(var(--panel-rgb),var(--pa06))', border: '1px solid rgba(var(--panel-rgb),var(--pa12))', borderRadius: '4px', fontSize: '14px', color: 'var(--parchment)', letterSpacing: '0.05em' }}>
           {issued}
         </code>
         <div style={{ marginTop: '12px' }}>
@@ -819,14 +819,14 @@ function UserDetail({ userId, onStoriesChanged }) {
 const panel = {
   background: 'rgba(var(--panel-rgb),var(--pa02))',
   border: '1px solid rgba(var(--panel-rgb),var(--pa08))',
-  borderRadius: '6px',
+  borderRadius: '8px',
 }
 
 const inputStyle = {
   flex: '1 1 220px',
   background: 'rgba(var(--panel-rgb),var(--pa04))',
   border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
-  borderRadius: '3px',
+  borderRadius: '4px',
   padding: '8px 14px',
   color: 'var(--parchment)',
   fontSize: '14px',
@@ -866,7 +866,7 @@ const dangerButton = (disabled) => ({
   border: '1px solid rgba(139,26,46,0.5)',
   background: 'rgba(139,26,46,0.15)',
   color: '#c45a6e',
-  borderRadius: '3px',
+  borderRadius: '4px',
   cursor: disabled ? 'default' : 'pointer',
   opacity: disabled ? 0.5 : 1,
   fontFamily: 'inherit',
@@ -879,9 +879,9 @@ const primaryButton = (disabled) => ({
   letterSpacing: '0.08em',
   textTransform: 'uppercase',
   border: 'none',
-  background: 'var(--gold)',
+  background: 'var(--gold-solid)',
   color: 'var(--on-gold)',
-  borderRadius: '3px',
+  borderRadius: '4px',
   cursor: disabled ? 'default' : 'pointer',
   opacity: disabled ? 0.5 : 1,
   fontFamily: 'inherit',
@@ -896,7 +896,7 @@ const chip = (on) => ({
   background: on ? 'rgba(var(--gold-rgb),0.1)' : 'transparent',
   color: on ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))',
   cursor: 'pointer',
-  borderRadius: '3px',
+  borderRadius: '4px',
   fontFamily: 'inherit',
   transition: 'all 0.2s ease',
 })
@@ -918,7 +918,7 @@ function ActionButton({ children, onClick, disabled, active, danger, type = 'but
         border: `1px solid ${border}`,
         background: 'transparent',
         color,
-        borderRadius: '3px',
+        borderRadius: '4px',
         cursor: disabled ? 'default' : 'pointer',
         opacity: disabled ? 0.5 : 1,
         fontFamily: 'inherit',
@@ -938,7 +938,7 @@ function Badge({ children, tone = 'muted' }) {
   }
   const t = tones[tone] || tones.muted
   return (
-    <span style={{ fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: '3px', background: t.bg, color: t.color, border: `1px solid ${t.border}`, whiteSpace: 'nowrap' }}>
+    <span style={{ fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: '4px', background: t.bg, color: t.color, border: `1px solid ${t.border}`, whiteSpace: 'nowrap' }}>
       {children}
     </span>
   )

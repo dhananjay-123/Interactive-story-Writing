@@ -3,6 +3,15 @@ import { useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
+function FlagIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+      <line x1="4" y1="22" x2="4" y2="15" />
+    </svg>
+  )
+}
+
 const REASONS = [
   { id: 'spam', label: 'Spam or advertising' },
   { id: 'offensive', label: 'Offensive or harmful' },
@@ -51,19 +60,32 @@ export default function ReportButton({ storyId, isAuthor }) {
         onClick={() => setOpen(true)}
         style={{
           marginTop: '16px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '7px',
           background: 'none',
-          border: 'none',
-          padding: 0,
+          border: '1px solid rgba(var(--panel-rgb),var(--pa12))',
+          borderRadius: '4px',
+          padding: '7px 15px',
           cursor: 'pointer',
           fontFamily: 'inherit',
           fontSize: '12px',
           letterSpacing: '0.06em',
-          color: 'rgba(var(--text-rgb),var(--ta35))',
-          transition: 'color 0.2s ease',
+          color: 'rgba(var(--text-rgb),var(--ta50))',
+          transition: 'color 0.2s ease, border-color 0.2s ease, background 0.2s ease',
         }}
-        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--crimson)')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = 'var(--crimson)'
+          e.currentTarget.style.borderColor = 'rgba(139,26,46,0.5)'
+          e.currentTarget.style.background = 'rgba(139,26,46,0.06)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta50))'
+          e.currentTarget.style.borderColor = 'rgba(var(--panel-rgb),var(--pa12))'
+          e.currentTarget.style.background = 'none'
+        }}
       >
+        <FlagIcon />
         Report this story
       </button>
     )
@@ -76,7 +98,7 @@ export default function ReportButton({ storyId, isAuthor }) {
         marginTop: '18px',
         padding: '18px',
         border: '1px solid rgba(var(--panel-rgb),var(--pa12))',
-        borderRadius: '5px',
+        borderRadius: '8px',
         background: 'rgba(var(--panel-rgb),var(--pa02))',
         maxWidth: '440px',
       }}
@@ -111,7 +133,7 @@ export default function ReportButton({ storyId, isAuthor }) {
           width: '100%',
           background: 'rgba(var(--panel-rgb),var(--pa04))',
           border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
-          borderRadius: '3px',
+          borderRadius: '4px',
           padding: '8px 12px',
           color: 'var(--parchment)',
           fontSize: '13.5px',
@@ -134,7 +156,7 @@ export default function ReportButton({ storyId, isAuthor }) {
             background: 'var(--crimson)',
             color: '#fff',
             border: 'none',
-            borderRadius: '3px',
+            borderRadius: '4px',
             cursor: state === 'sending' ? 'default' : 'pointer',
             opacity: state === 'sending' ? 0.6 : 1,
             fontFamily: 'inherit',

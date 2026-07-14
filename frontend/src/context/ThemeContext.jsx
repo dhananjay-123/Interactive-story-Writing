@@ -21,6 +21,15 @@ export function ThemeProvider({ children }) {
   }, [theme])
 
   const toggleTheme = useCallback(() => {
+    // Cross-fade the colour change: flag the root so the temporary global
+    // transition kicks in, flip the theme, then drop the flag once it settles.
+    const root = document.documentElement
+    const calm = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (!calm) {
+      root.classList.add('theme-animating')
+      window.clearTimeout(toggleTheme._t)
+      toggleTheme._t = window.setTimeout(() => root.classList.remove('theme-animating'), 500)
+    }
     setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
   }, [])
 

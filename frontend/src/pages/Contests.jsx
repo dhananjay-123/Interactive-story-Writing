@@ -77,7 +77,7 @@ export default function Contests() {
           ) : (
             <button
               onClick={() => setCreating(true)}
-              style={{ background: 'none', border: '1px solid rgba(var(--gold-rgb),0.4)', color: 'var(--gold)', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', padding: '10px 22px', borderRadius: '3px', fontFamily: 'inherit' }}
+              style={{ background: 'none', border: '1px solid rgba(var(--gold-rgb),0.4)', color: 'var(--gold)', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', padding: '10px 22px', borderRadius: '4px', fontFamily: 'inherit' }}
             >
               + New contest
             </button>
@@ -218,7 +218,7 @@ function NewContestForm({ onDone, onCancel }) {
         <button
           onClick={submit}
           disabled={saving || !form.title.trim() || !form.endsAt}
-          style={{ padding: '10px 24px', background: 'var(--gold)', color: 'var(--on-gold)', border: 'none', borderRadius: '3px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit', opacity: saving || !form.title.trim() || !form.endsAt ? 0.5 : 1 }}
+          style={{ padding: '10px 24px', background: 'var(--gold-solid)', color: 'var(--on-gold)', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit', opacity: saving || !form.title.trim() || !form.endsAt ? 0.5 : 1 }}
         >
           {saving ? 'Opening…' : 'Open the round'}
         </button>
@@ -244,7 +244,7 @@ function PageShell({ children }) {
 const fieldStyle = {
   background: 'rgba(var(--panel-rgb),var(--pa04))',
   border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
-  borderRadius: '3px',
+  borderRadius: '4px',
   padding: '11px 14px',
   color: 'var(--parchment)',
   fontSize: '14px',

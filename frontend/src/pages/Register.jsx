@@ -109,7 +109,7 @@ export default function Register() {
             disabled={submitting || !valid}
             style={{
               padding: '13px 32px',
-              background: 'var(--gold)',
+              background: 'var(--gold-solid)',
               color: 'var(--on-gold)',
               border: 'none',
               fontSize: '12px',
@@ -117,7 +117,7 @@ export default function Register() {
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
               cursor: submitting || !valid ? 'default' : 'pointer',
-              borderRadius: '3px',
+              borderRadius: '4px',
               transition: 'background 0.2s ease',
               opacity: submitting || !valid ? 0.5 : 1,
               marginTop: '4px',

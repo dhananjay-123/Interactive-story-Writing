@@ -177,7 +177,7 @@ function ToolButton({ onClick, active, title, children }) {
       style={{
         background: active ? 'rgba(var(--gold-rgb),0.12)' : 'none',
         border: 'none',
-        borderRadius: '3px',
+        borderRadius: '4px',
         cursor: 'pointer',
         padding: '4px 9px',
         fontSize: '12px',

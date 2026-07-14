@@ -150,7 +150,7 @@ const settingLabel = {
 const selectStyle = {
   background: 'rgba(var(--panel-rgb),var(--pa04))',
   border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
-  borderRadius: '3px',
+  borderRadius: '4px',
   padding: '9px 10px',
   color: 'var(--parchment)',
   fontSize: '13px',

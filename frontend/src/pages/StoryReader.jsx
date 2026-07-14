@@ -355,7 +355,7 @@ export default function StoryReader() {
             <EndingBlock isAuthor={isAuthor} onRestart={handleRestart} />
           ) : (
             <div>
-              <p style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(var(--gold-rgb),0.5)', marginBottom: '20px' }}>
+              <p style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '20px' }}>
                 What do you do?
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -416,7 +416,7 @@ function EndingBlock({ isAuthor, onRestart }) {
       )}
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: isAuthor ? 0 : '24px' }}>
         <button onClick={onRestart}
-          style={{ padding: '12px 28px', background: 'transparent', border: '1px solid rgba(var(--gold-rgb),0.4)', color: 'var(--gold)', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: '3px', transition: 'background 0.2s ease' }}
+          style={{ padding: '12px 28px', background: 'transparent', border: '1px solid rgba(var(--gold-rgb),0.4)', color: 'var(--gold)', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: '4px', transition: 'background 0.2s ease' }}
           onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(var(--gold-rgb),0.08)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
         >
@@ -448,7 +448,7 @@ function Passage({ node }) {
         const body = isItalic ? para.slice(1, -1) : para
         const parts = body.split(/(\*[^*]+\*)/g)
         return (
-          <p key={i} className="animate-fadeUp" style={{ animationDelay: `${i * 0.05}s`, fontSize: '17px', lineHeight: 1.85, color: 'rgba(var(--text-rgb),var(--ta82))', marginBottom: '20px', fontStyle: isItalic ? 'italic' : 'normal' }}>
+          <p key={i} className="animate-fadeUp" style={{ animationDelay: `${Math.min(i, 5) * 0.05}s`, fontSize: '17px', lineHeight: 1.85, color: 'rgba(var(--text-rgb),var(--ta82))', marginBottom: '20px', fontStyle: isItalic ? 'italic' : 'normal' }}>
             {parts.map((part, j) =>
               part.startsWith('*') && part.endsWith('*')
                 ? <em key={j} style={{ color: 'var(--parchment)', fontStyle: 'italic' }}>{part.slice(1, -1)}</em>
@@ -481,10 +481,10 @@ function Screen({ children }) {
 
 const resumeButton = (disabled) => ({
   padding: '10px 22px',
-  background: 'var(--gold)',
+  background: 'var(--gold-solid)',
   color: 'var(--on-gold)',
   border: 'none',
-  borderRadius: '3px',
+  borderRadius: '4px',
   fontSize: '12px',
   fontWeight: 600,
   letterSpacing: '0.12em',

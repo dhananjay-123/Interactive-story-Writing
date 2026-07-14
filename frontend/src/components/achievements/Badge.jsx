@@ -87,7 +87,7 @@ export default function Badge({ badge, size = 92, onClick, showLabel = true, ear
         <span
           title={rarity.label}
           style={{
-            position: 'absolute', bottom: '2%', right: '2%', width: '14px', height: '14px', borderRadius: '3px',
+            position: 'absolute', bottom: '2%', right: '2%', width: '14px', height: '14px', borderRadius: '4px',
             transform: 'rotate(45deg)',
             background: unlocked ? `linear-gradient(135deg, ${rarity.hi}, ${rarity.lo})` : 'rgba(var(--panel-rgb),var(--pa15))',
             border: '1.5px solid var(--ink)',

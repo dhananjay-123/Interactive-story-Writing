@@ -105,7 +105,7 @@ export default function NotificationBell() {
               height: '15px',
               padding: '0 4px',
               borderRadius: '8px',
-              background: 'var(--gold)',
+              background: 'var(--gold-solid)',
               color: 'var(--on-gold)',
               fontSize: '9px',
               fontWeight: 700,

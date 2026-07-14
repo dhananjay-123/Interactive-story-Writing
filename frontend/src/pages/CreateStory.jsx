@@ -92,7 +92,7 @@ export default function CreateStory() {
     width: '100%',
     background: 'rgba(var(--panel-rgb),var(--pa04))',
     border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
-    borderRadius: '3px',
+    borderRadius: '4px',
     padding: '12px 16px',
     color: 'var(--parchment)',
     fontSize: '15px',
@@ -182,7 +182,7 @@ export default function CreateStory() {
                         background: form.genre === g ? 'rgba(var(--gold-rgb),0.12)' : 'transparent',
                         color: form.genre === g ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))',
                         cursor: 'pointer',
-                        borderRadius: '3px',
+                        borderRadius: '4px',
                         transition: 'all 0.2s ease',
                         textTransform: 'capitalize',
                       }}
@@ -200,7 +200,7 @@ export default function CreateStory() {
                   onClick={(e) => e.currentTarget.querySelector('input')?.focus()}
                 >
                   {form.tags.map((t) => (
-                    <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', fontSize: '12px', borderRadius: '3px', background: 'rgba(var(--gold-rgb),0.12)', color: 'var(--gold)', border: '1px solid rgba(var(--gold-rgb),0.3)' }}>
+                    <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', fontSize: '12px', borderRadius: '4px', background: 'rgba(var(--gold-rgb),0.12)', color: 'var(--gold)', border: '1px solid rgba(var(--gold-rgb),0.3)' }}>
                       #{t}
                       <button type="button" onClick={() => removeTag(t)} style={{ background: 'none', border: 'none', color: 'var(--gold)', cursor: 'pointer', padding: 0, fontSize: '14px', lineHeight: 1 }}>×</button>
                     </span>
@@ -316,7 +316,7 @@ export default function CreateStory() {
                     textTransform: 'uppercase',
                     cursor: 'pointer',
                     padding: '10px 20px',
-                    borderRadius: '3px',
+                    borderRadius: '4px',
                     transition: 'all 0.2s ease',
                     width: '100%',
                   }}
@@ -367,7 +367,7 @@ export default function CreateStory() {
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 cursor: canProceed() ? 'pointer' : 'not-allowed',
-                borderRadius: '3px',
+                borderRadius: '4px',
                 transition: 'all 0.2s ease',
               }}
               onMouseEnter={e => canProceed() && (e.currentTarget.style.background = 'var(--gold-dark)')}
@@ -389,7 +389,7 @@ export default function CreateStory() {
                 letterSpacing: '0.12em',
                 textTransform: 'uppercase',
                 cursor: canProceed() && !submitting ? 'pointer' : 'not-allowed',
-                borderRadius: '3px',
+                borderRadius: '4px',
                 transition: 'all 0.2s ease',
               }}
             >

@@ -206,7 +206,7 @@ function EntryBox({ contest, myEntry, busy, onEnter, onWithdraw }) {
           <select
             value={pick}
             onChange={(e) => setPick(e.target.value)}
-            style={{ flex: '1 1 240px', background: 'rgba(var(--panel-rgb),var(--pa04))', border: '1px solid rgba(var(--panel-rgb),var(--pa10))', borderRadius: '3px', padding: '10px 12px', color: 'var(--parchment)', fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
+            style={{ flex: '1 1 240px', background: 'rgba(var(--panel-rgb),var(--pa04))', border: '1px solid rgba(var(--panel-rgb),var(--pa10))', borderRadius: '4px', padding: '10px 12px', color: 'var(--parchment)', fontSize: '14px', fontFamily: 'inherit', outline: 'none' }}
           >
             <option value="">Choose a story…</option>
             {eligible.map((s) => (
@@ -218,7 +218,7 @@ function EntryBox({ contest, myEntry, busy, onEnter, onWithdraw }) {
           <button
             onClick={() => pick && onEnter(pick)}
             disabled={busy || !pick}
-            style={{ padding: '10px 24px', background: 'var(--gold)', color: 'var(--on-gold)', border: 'none', borderRadius: '3px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit', opacity: busy || !pick ? 0.5 : 1 }}
+            style={{ padding: '10px 24px', background: 'var(--gold-solid)', color: 'var(--on-gold)', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit', opacity: busy || !pick ? 0.5 : 1 }}
           >
             Enter
           </button>
@@ -276,7 +276,7 @@ function EntryRow({ entry, rank, canVote, busy, onVote }) {
               background: entry.myVote ? 'var(--gold)' : 'transparent',
               color: entry.myVote ? 'var(--on-gold)' : 'var(--gold)',
               border: '1px solid rgba(var(--gold-rgb),0.5)',
-              borderRadius: '3px',
+              borderRadius: '4px',
               fontSize: '11px',
               fontWeight: 600,
               letterSpacing: '0.1em',

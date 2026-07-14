@@ -123,7 +123,7 @@ export default function ChangePasswordPanel() {
 const panel = {
   background: 'rgba(var(--panel-rgb),var(--pa02))',
   border: '1px solid rgba(var(--panel-rgb),var(--pa08))',
-  borderRadius: '6px',
+  borderRadius: '8px',
   padding: '22px',
   maxWidth: '420px',
 }
@@ -142,7 +142,7 @@ const linkButton = {
 
 const submitStyle = (disabled) => ({
   padding: '12px 28px',
-  background: 'var(--gold)',
+  background: 'var(--gold-solid)',
   color: 'var(--on-gold)',
   border: 'none',
   fontSize: '12px',
@@ -150,7 +150,7 @@ const submitStyle = (disabled) => ({
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
   cursor: disabled ? 'default' : 'pointer',
-  borderRadius: '3px',
+  borderRadius: '4px',
   opacity: disabled ? 0.5 : 1,
   fontFamily: 'inherit',
   alignSelf: 'flex-start',

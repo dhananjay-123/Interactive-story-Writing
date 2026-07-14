@@ -94,7 +94,7 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
         </div>
         {choices.length < 4 && (
           <button onClick={addChoice}
-            style={{ marginTop: '10px', background: 'none', border: '1px dashed rgba(var(--panel-rgb),var(--pa15))', color: 'rgba(var(--text-rgb),var(--ta40))', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', padding: '9px 18px', borderRadius: '3px' }}
+            style={{ marginTop: '10px', background: 'none', border: '1px dashed rgba(var(--panel-rgb),var(--pa15))', color: 'rgba(var(--text-rgb),var(--ta40))', fontSize: '12px', letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', padding: '9px 18px', borderRadius: '4px' }}
           >+ Add choice</button>
         )}
       </div>
@@ -103,7 +103,7 @@ export default function BranchComposer({ storyId, parentNodeId, choiceIndex, cho
 
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '24px' }}>
         <button onClick={submit} disabled={!canSubmit}
-          style={{ padding: '11px 26px', background: 'var(--gold)', color: 'var(--on-gold)', border: 'none', fontSize: '12px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: '3px', cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.5 }}
+          style={{ padding: '11px 26px', background: 'var(--gold-solid)', color: 'var(--on-gold)', border: 'none', fontSize: '12px', fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', borderRadius: '4px', cursor: canSubmit ? 'pointer' : 'not-allowed', opacity: canSubmit ? 1 : 0.5 }}
         >
           {submitting ? 'Saving…' : filledChoices.length ? 'Add passage' : 'Add ending'}
         </button>

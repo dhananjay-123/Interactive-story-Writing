@@ -55,7 +55,7 @@ export default function CollaboratorsPanel({ storyId, isOwner }) {
   const count = list?.length ?? 0
 
   return (
-    <div style={{ margin: '0 0 36px', padding: '20px 22px', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '6px', background: 'rgba(var(--panel-rgb),var(--pa02))' }}>
+    <div style={{ margin: '0 0 36px', padding: '20px 22px', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '8px', background: 'rgba(var(--panel-rgb),var(--pa02))' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '12px', flexWrap: 'wrap' }}>
         <div>
           <h2 className="font-story" style={{ fontSize: '18px', fontWeight: 400, color: 'var(--parchment)' }}>
@@ -67,7 +67,7 @@ export default function CollaboratorsPanel({ storyId, isOwner }) {
         </div>
         <button
           onClick={() => setOpen((v) => !v)}
-          style={{ background: 'none', border: '1px solid rgba(var(--panel-rgb),var(--pa12))', color: 'rgba(var(--text-rgb),var(--ta60))', borderRadius: '3px', padding: '6px 14px', fontSize: '12px', letterSpacing: '0.05em', cursor: 'pointer', fontFamily: 'inherit' }}
+          style={{ background: 'none', border: '1px solid rgba(var(--panel-rgb),var(--pa12))', color: 'rgba(var(--text-rgb),var(--ta60))', borderRadius: '4px', padding: '6px 14px', fontSize: '12px', letterSpacing: '0.05em', cursor: 'pointer', fontFamily: 'inherit' }}
         >
           {open ? 'Hide' : 'Manage'}
         </button>
@@ -82,12 +82,12 @@ export default function CollaboratorsPanel({ storyId, isOwner }) {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Invite by username…"
                 autoComplete="off"
-                style={{ flex: '1 1 220px', background: 'rgba(var(--panel-rgb),var(--pa04))', border: '1px solid rgba(var(--panel-rgb),var(--pa10))', borderRadius: '3px', padding: '9px 14px', color: 'var(--parchment)', fontSize: '14px', outline: 'none', fontFamily: 'inherit' }}
+                style={{ flex: '1 1 220px', background: 'rgba(var(--panel-rgb),var(--pa04))', border: '1px solid rgba(var(--panel-rgb),var(--pa10))', borderRadius: '4px', padding: '9px 14px', color: 'var(--parchment)', fontSize: '14px', outline: 'none', fontFamily: 'inherit' }}
               />
               <button
                 type="submit"
                 disabled={busy || !username.trim()}
-                style={{ padding: '9px 20px', background: 'var(--gold)', color: 'var(--on-gold)', border: 'none', fontSize: '12px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: '3px', cursor: busy || !username.trim() ? 'default' : 'pointer', opacity: busy || !username.trim() ? 0.5 : 1, fontFamily: 'inherit' }}
+                style={{ padding: '9px 20px', background: 'var(--gold-solid)', color: 'var(--on-gold)', border: 'none', fontSize: '12px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', borderRadius: '4px', cursor: busy || !username.trim() ? 'default' : 'pointer', opacity: busy || !username.trim() ? 0.5 : 1, fontFamily: 'inherit' }}
               >
                 {busy ? 'Adding…' : 'Invite'}
               </button>
@@ -125,7 +125,7 @@ export default function CollaboratorsPanel({ storyId, isOwner }) {
                       <button
                         onClick={() => remove(u)}
                         disabled={busy}
-                        style={{ background: 'none', border: '1px solid rgba(139,26,46,0.4)', color: 'var(--crimson)', borderRadius: '3px', padding: '5px 12px', fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase', cursor: busy ? 'default' : 'pointer', fontFamily: 'inherit', opacity: busy ? 0.5 : 1 }}
+                        style={{ background: 'none', border: '1px solid rgba(139,26,46,0.4)', color: 'var(--crimson)', borderRadius: '4px', padding: '5px 12px', fontSize: '11px', letterSpacing: '0.05em', textTransform: 'uppercase', cursor: busy ? 'default' : 'pointer', fontFamily: 'inherit', opacity: busy ? 0.5 : 1 }}
                       >
                         {isMe && !isOwner ? 'Leave' : 'Remove'}
                       </button>

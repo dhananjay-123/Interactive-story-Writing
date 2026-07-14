@@ -56,8 +56,8 @@ export default function BadgeDetail({ badge, onClose, pinControl }) {
                 <span>{p.current} / {p.target}</span>
                 <span>{p.percent}%</span>
               </div>
-              <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(var(--panel-rgb),var(--pa10))', overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${p.percent}%`, background: rarity.ring, borderRadius: '3px', transition: 'width 0.6s ease' }} />
+              <div style={{ height: '5px', borderRadius: '4px', background: 'rgba(var(--panel-rgb),var(--pa10))', overflow: 'hidden' }}>
+                <div style={{ height: '100%', width: `${p.percent}%`, background: rarity.ring, borderRadius: '4px', transition: 'width 0.6s ease' }} />
               </div>
             </div>
           )}
@@ -76,7 +76,7 @@ export default function BadgeDetail({ badge, onClose, pinControl }) {
               onClick={pinControl.onToggle}
               disabled={pinControl.busy}
               style={{
-                marginTop: '18px', padding: '9px 20px', borderRadius: '3px', fontSize: '12px', fontWeight: 600,
+                marginTop: '18px', padding: '9px 20px', borderRadius: '4px', fontSize: '12px', fontWeight: 600,
                 letterSpacing: '0.1em', textTransform: 'uppercase', cursor: 'pointer', fontFamily: 'inherit',
                 background: pinControl.pinned ? 'transparent' : 'var(--gold)',
                 color: pinControl.pinned ? 'rgba(var(--text-rgb),var(--ta60))' : 'var(--on-gold)',

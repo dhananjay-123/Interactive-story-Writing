@@ -26,7 +26,7 @@ export default function Leaderboard() {
     <div style={{ minHeight: '100vh', background: 'var(--ink)', paddingTop: '100px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px 90px' }}>
         <div className="animate-fadeUp" style={{ marginBottom: '40px' }}>
-          <p style={{ fontSize: '10px', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '10px', opacity: 0.7 }}>The standings</p>
+          <p className="eyebrow">The standings</p>
           <h1 className="font-story" style={{ fontSize: 'clamp(30px, 4.5vw, 46px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em' }}>Leaderboards</h1>
         </div>
 
@@ -42,7 +42,7 @@ export default function Leaderboard() {
 
 function Board({ title, unit, rows, index }) {
   return (
-    <div className="animate-fadeUp" style={{ animationDelay: `${index * 0.06}s`, padding: '22px', background: 'rgba(var(--panel-rgb),var(--pa03))', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '8px' }}>
+    <div className="animate-fadeUp" style={{ animationDelay: `${index * 0.06}s`, padding: '22px', background: 'var(--surface)', border: '1px solid rgba(var(--panel-rgb),var(--pa06))', borderRadius: '8px', boxShadow: 'var(--card-shadow)' }}>
       <h2 className="font-story" style={{ fontSize: '18px', fontWeight: 400, color: 'var(--parchment)', marginBottom: '16px' }}>{title}</h2>
       {rows.length === 0 ? (
         <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta40))', padding: '10px 0' }}>No entries yet.</p>

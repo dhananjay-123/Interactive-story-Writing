@@ -182,7 +182,7 @@ export default function Profile() {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    background: 'var(--gold)',
+                    background: 'var(--gold-solid)',
                     color: 'var(--on-gold)',
                     border: '2px solid var(--ink)',
                     cursor: uploadingAvatar ? 'default' : 'pointer',
@@ -268,14 +268,14 @@ export default function Profile() {
                 style={{
                   display: 'inline-block',
                   padding: '12px 28px',
-                  background: 'var(--gold)',
+                  background: 'var(--gold-solid)',
                   color: 'var(--on-gold)',
                   textDecoration: 'none',
                   fontSize: '12px',
                   fontWeight: 600,
                   letterSpacing: '0.1em',
                   textTransform: 'uppercase',
-                  borderRadius: '3px',
+                  borderRadius: '4px',
                 }}
               >
                 Write your first story
@@ -343,10 +343,10 @@ export default function Profile() {
 const followBtnStyle = {
   marginLeft: 'auto',
   padding: '9px 22px',
-  background: 'var(--gold)',
+  background: 'var(--gold-solid)',
   color: 'var(--on-gold)',
   border: '1px solid var(--gold)',
-  borderRadius: '3px',
+  borderRadius: '4px',
   fontSize: '12px',
   fontWeight: 600,
   letterSpacing: '0.1em',
@@ -361,7 +361,7 @@ const followingBtnStyle = {
   background: 'transparent',
   color: 'rgba(var(--text-rgb),var(--ta60))',
   border: '1px solid rgba(var(--gold-rgb),0.4)',
-  borderRadius: '3px',
+  borderRadius: '4px',
   fontSize: '12px',
   fontWeight: 600,
   letterSpacing: '0.1em',
@@ -390,7 +390,7 @@ function FollowList({ title, loading, items, emptyLabel, onClose }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ width: '100%', maxWidth: '420px', maxHeight: '70vh', display: 'flex', flexDirection: 'column', background: 'var(--ink-soft)', border: '1px solid rgba(var(--gold-rgb),0.25)', borderRadius: '6px', overflow: 'hidden' }}
+        style={{ width: '100%', maxWidth: '420px', maxHeight: '70vh', display: 'flex', flexDirection: 'column', background: 'var(--ink-soft)', border: '1px solid rgba(var(--gold-rgb),0.25)', borderRadius: '8px', overflow: 'hidden' }}
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: '1px solid rgba(var(--panel-rgb),var(--pa10))' }}>
           <h3 className="font-story" style={{ fontSize: '18px', fontWeight: 400, color: 'var(--parchment)' }}>{title}</h3>

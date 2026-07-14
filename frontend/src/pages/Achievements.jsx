@@ -206,7 +206,7 @@ function Section({ title, subtitle, children }) {
 
 function Stat({ label, value }) {
   return (
-    <div style={{ padding: '18px', background: 'rgba(var(--panel-rgb),var(--pa03))', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '6px' }}>
+    <div style={{ padding: '18px', background: 'rgba(var(--panel-rgb),var(--pa03))', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '8px' }}>
       <p className="font-story" style={{ fontSize: '26px', color: 'var(--gold)', lineHeight: 1 }}>{value}</p>
       <p style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '8px' }}>{label}</p>
     </div>
@@ -215,7 +215,7 @@ function Stat({ label, value }) {
 
 function StatCard({ title, rows }) {
   return (
-    <div style={{ padding: '22px', background: 'rgba(var(--panel-rgb),var(--pa03))', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '6px' }}>
+    <div style={{ padding: '22px', background: 'rgba(var(--panel-rgb),var(--pa03))', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '8px' }}>
       <p style={{ fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '14px', opacity: 0.8 }}>{title}</p>
       {rows.map(([k, v]) => (
         <div key={k} style={{ display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: '1px solid rgba(var(--panel-rgb),var(--pa04))' }}>
@@ -252,7 +252,7 @@ function Centered({ children }) {
 const rareCount = (byRarity) => ['rare', 'epic', 'legendary', 'mythic', 'administrator'].reduce((s, r) => s + (byRarity[r] || 0), 0)
 
 const chip = (active) => ({
-  padding: '7px 14px', borderRadius: '3px', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase',
+  padding: '7px 14px', borderRadius: '4px', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase',
   cursor: 'pointer', fontFamily: 'inherit',
   background: active ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa04))',
   color: active ? 'var(--on-gold)' : 'rgba(var(--text-rgb),var(--ta55))',

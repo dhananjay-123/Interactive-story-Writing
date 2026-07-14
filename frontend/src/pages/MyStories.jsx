@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import ConnectingLoader from '../components/ConnectingLoader'
+import EmptyState from '../components/EmptyState'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 const genreLabel = (g) =>
   g === 'sci_fi' ? 'Sci-Fi' : (g || '').charAt(0).toUpperCase() + (g || '').slice(1)
@@ -13,6 +15,8 @@ export default function MyStories() {
   const [stories, setStories] = useState(null)
   const [collabs, setCollabs] = useState([])
   const [busy, setBusy] = useState(null)
+  const [error, setError] = useState('')
+  const [pendingDelete, setPendingDelete] = useState(null) // story queued for confirmation
 
   const load = useCallback(() => {
     api.get('/api/stories/mine')
@@ -40,24 +44,30 @@ export default function MyStories() {
 
   const togglePublished = async (s) => {
     setBusy(s._id)
+    setError('')
     try {
       const r = await api.put(`/api/stories/${s._id}/published`, { published: !s.published })
       patch(s._id, { published: r.data.published })
     } catch (e) {
-      window.alert(e?.response?.data?.message || 'Could not update the story.')
+      setError(e?.response?.data?.message || 'Could not update the story.')
     } finally {
       setBusy(null)
     }
   }
 
-  const remove = async (s) => {
-    if (!window.confirm(`Delete “${s.title}”? This removes the story and every branch permanently.`)) return
+  // Deletion routes through a themed confirm dialog rather than window.confirm.
+  const confirmDelete = async () => {
+    const s = pendingDelete
+    if (!s) return
     setBusy(s._id)
+    setError('')
     try {
       await api.delete(`/api/stories/${s._id}`)
       setStories((list) => list.filter((x) => x._id !== s._id))
+      setPendingDelete(null)
     } catch (e) {
-      window.alert(e?.response?.data?.message || 'Could not delete the story.')
+      setError(e?.response?.data?.message || 'Could not delete the story.')
+      setPendingDelete(null)
     } finally {
       setBusy(null)
     }
@@ -75,9 +85,7 @@ export default function MyStories() {
         {/* Header */}
         <div className="animate-fadeUp" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '20px', flexWrap: 'wrap', marginBottom: '36px' }}>
           <div>
-            <p style={{ fontSize: '10px', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '12px', opacity: 0.7 }}>
-              Your desk
-            </p>
+            <p className="eyebrow">Your desk</p>
             <h1 className="font-story" style={{ fontSize: 'clamp(30px, 5vw, 46px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em' }}>
               My stories
             </h1>
@@ -92,15 +100,19 @@ export default function MyStories() {
           </Link>
         </div>
 
-        {stories.length === 0 ? (
-          <div className="animate-fadeUp" style={{ padding: '64px 0', textAlign: 'center' }}>
-            <p className="font-story" style={{ fontSize: '20px', color: 'rgba(var(--text-rgb),var(--ta55))', fontStyle: 'italic', marginBottom: '24px' }}>
-              A blank page, waiting.
-            </p>
-            <Link to="/create" style={newButtonStyle}>
-              Write your first story
-            </Link>
+        {error && (
+          <div className="animate-fadeIn" style={{ marginBottom: '20px', padding: '12px 16px', borderRadius: 'var(--r-sm)', border: '1px solid rgba(139,26,46,0.4)', background: 'rgba(139,26,46,0.12)', color: '#c45a6e', fontSize: '13.5px' }}>
+            {error}
           </div>
+        )}
+
+        {stories.length === 0 ? (
+          <EmptyState
+            title="A blank page, waiting."
+            hint="Every story starts with a single passage. Yours is next."
+            actionLabel="Write your first story"
+            actionTo="/create"
+          />
         ) : (
           <div className="animate-fadeUp delay-100" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             {stories.map((s) => (
@@ -119,9 +131,9 @@ export default function MyStories() {
                         {s.description}
                       </p>
                     )}
-                    <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta35))', marginTop: '8px' }}>
-                      {genreLabel(s.genre)} · {s.branchCount} {s.branchCount === 1 ? 'branch' : 'branches'} · ♥ {s.likeCount} · 💬 {s.commentCount}
-                      {s.ratingCount > 0 && <> · ✦ {s.ratingAvg} ({s.ratingCount})</>}
+                    <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '8px' }}>
+                      {genreLabel(s.genre)} · {s.branchCount} {s.branchCount === 1 ? 'branch' : 'branches'} · {s.likeCount} {s.likeCount === 1 ? 'like' : 'likes'} · {s.commentCount} {s.commentCount === 1 ? 'comment' : 'comments'}
+                      {s.ratingCount > 0 && <> · rated {s.ratingAvg} ({s.ratingCount})</>}
                       {' · '}{new Date(s.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                     </p>
                   </div>
@@ -132,7 +144,7 @@ export default function MyStories() {
                     <ActionButton onClick={() => togglePublished(s)} disabled={busy === s._id}>
                       {s.published ? 'Hide' : 'Publish'}
                     </ActionButton>
-                    <ActionButton onClick={() => remove(s)} disabled={busy === s._id} danger>
+                    <ActionButton onClick={() => setPendingDelete(s)} disabled={busy === s._id} danger>
                       Delete
                     </ActionButton>
                   </div>
@@ -178,6 +190,18 @@ export default function MyStories() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        title={pendingDelete ? `Delete “${pendingDelete.title}”?` : ''}
+        message="This removes the story and every branch permanently. It can't be undone."
+        confirmLabel="Delete story"
+        cancelLabel="Keep it"
+        danger
+        busy={Boolean(pendingDelete) && busy === pendingDelete._id}
+        onConfirm={confirmDelete}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   )
 }
@@ -185,21 +209,22 @@ export default function MyStories() {
 // ── Shared bits ──────────────────────────────────────────────────────────────
 
 const panel = {
-  background: 'rgba(var(--panel-rgb),var(--pa02))',
-  border: '1px solid rgba(var(--panel-rgb),var(--pa08))',
-  borderRadius: '6px',
+  background: 'var(--surface)',
+  border: '1px solid rgba(var(--panel-rgb),var(--pa06))',
+  borderRadius: '8px',
+  boxShadow: 'var(--card-shadow)',
 }
 
 const newButtonStyle = {
   padding: '11px 24px',
-  background: 'var(--gold)',
+  background: 'var(--gold-solid)',
   color: 'var(--on-gold)',
   textDecoration: 'none',
   fontSize: '12px',
   fontWeight: 600,
   letterSpacing: '0.1em',
   textTransform: 'uppercase',
-  borderRadius: '3px',
+  borderRadius: '4px',
   whiteSpace: 'nowrap',
 }
 
@@ -210,7 +235,7 @@ const buttonBase = (active, danger) => ({
   border: `1px solid ${danger ? 'rgba(139,26,46,0.4)' : active ? 'rgba(var(--gold-rgb),0.4)' : 'rgba(var(--panel-rgb),var(--pa12))'}`,
   background: 'transparent',
   color: danger ? 'var(--crimson)' : active ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta60))',
-  borderRadius: '3px',
+  borderRadius: '4px',
   fontFamily: 'inherit',
   textDecoration: 'none',
   display: 'inline-block',
@@ -246,7 +271,7 @@ function Badge({ children, tone = 'muted' }) {
   }
   const t = tones[tone] || tones.muted
   return (
-    <span style={{ fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: '3px', background: t.bg, color: t.color, border: `1px solid ${t.border}`, whiteSpace: 'nowrap' }}>
+    <span style={{ fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: '4px', background: t.bg, color: t.color, border: `1px solid ${t.border}`, whiteSpace: 'nowrap' }}>
       {children}
     </span>
   )

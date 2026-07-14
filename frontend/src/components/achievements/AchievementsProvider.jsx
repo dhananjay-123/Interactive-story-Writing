@@ -164,7 +164,7 @@ function UnlockToast({ view, onDone }) {
 }
 
 const btn = (primary) => ({
-  padding: '9px 20px', borderRadius: '3px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase',
+  padding: '9px 20px', borderRadius: '4px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase',
   cursor: 'pointer', fontFamily: 'inherit', textDecoration: 'none',
   background: primary ? 'var(--gold)' : 'transparent',
   color: primary ? 'var(--on-gold)' : 'rgba(var(--text-rgb),var(--ta60))',

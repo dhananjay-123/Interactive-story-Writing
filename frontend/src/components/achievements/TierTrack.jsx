@@ -14,7 +14,7 @@ export default function TierTrack({ tier, compact = false }) {
   const { label, current, next, value, toNext, percent, metric } = tier
 
   return (
-    <div style={{ padding: compact ? 0 : '20px', background: compact ? 'none' : 'rgba(var(--panel-rgb),var(--pa03))', border: compact ? 'none' : '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '6px' }}>
+    <div style={{ padding: compact ? 0 : '20px', background: compact ? 'none' : 'rgba(var(--panel-rgb),var(--pa03))', border: compact ? 'none' : '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '8px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
         <div style={{
           width: '52px', height: '52px', flexShrink: 0, borderRadius: '50%',
@@ -37,8 +37,8 @@ export default function TierTrack({ tier, compact = false }) {
             <span>{value} {METRIC_LABEL[metric] || ''}</span>
             <span>{toNext} to {next.label}</span>
           </div>
-          <div style={{ height: '5px', borderRadius: '3px', background: 'rgba(var(--panel-rgb),var(--pa10))', overflow: 'hidden' }}>
-            <div style={{ height: '100%', width: `${percent}%`, background: 'var(--gold)', borderRadius: '3px', transition: 'width 0.6s ease' }} />
+          <div style={{ height: '5px', borderRadius: '4px', background: 'rgba(var(--panel-rgb),var(--pa10))', overflow: 'hidden' }}>
+            <div style={{ height: '100%', width: `${percent}%`, background: 'var(--gold)', borderRadius: '4px', transition: 'width 0.6s ease' }} />
           </div>
         </div>
       ) : (

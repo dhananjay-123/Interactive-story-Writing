@@ -159,7 +159,7 @@ function PresetList({ presets, selected, previewing, saving, onPreview, onChoose
               alignItems: 'center',
               gap: '14px',
               padding: '12px 14px',
-              borderRadius: '6px',
+              borderRadius: '8px',
               border: `1px solid ${isSelected ? 'rgba(var(--gold-rgb),0.5)' : 'rgba(var(--panel-rgb),var(--pa10))'}`,
               background: isSelected ? 'rgba(var(--gold-rgb),0.06)' : 'transparent',
             }}

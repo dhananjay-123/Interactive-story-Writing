@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import api from '../api/client'
 import StoryCard from '../components/StoryCard'
 import ConnectingLoader from '../components/ConnectingLoader'
+import EmptyState from '../components/EmptyState'
 import { useAuth } from '../context/AuthContext'
 
 const GENRES = ['all', 'fantasy', 'mystery', 'sci_fi', 'romance', 'horror', 'thriller', 'literary']
@@ -25,6 +26,8 @@ export default function StoryList() {
 
   const [stories, setStories] = useState([])
   const [loading, setLoading] = useState(true)
+  const [failed, setFailed] = useState(false)
+  const [reloadKey, setReloadKey] = useState(0)
   const [trending, setTrending] = useState([])
   const [recs, setRecs] = useState([])
   const [searchInput, setSearchInput] = useState(q)
@@ -58,6 +61,7 @@ export default function StoryList() {
   useEffect(() => {
     let active = true
     setLoading(true)
+    setFailed(false)
     const query = new URLSearchParams()
     if (genre !== 'all') query.set('genre', genre)
     if (tag) query.set('tag', tag)
@@ -65,10 +69,10 @@ export default function StoryList() {
     if (sort) query.set('sort', sort)
     api.get(`/api/stories?${query.toString()}`)
       .then((r) => active && setStories(r.data))
-      .catch(() => active && setStories(SAMPLE_STORIES))
+      .catch(() => { if (active) { setStories([]); setFailed(true) } })
       .finally(() => active && setLoading(false))
     return () => { active = false }
-  }, [genre, tag, q, sort])
+  }, [genre, tag, q, sort, reloadKey])
 
   const heading = useMemo(
     () => (user ? 'Recommended for you' : 'Trending now'),
@@ -80,9 +84,7 @@ export default function StoryList() {
       <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px 80px' }}>
 
         <div className="animate-fadeUp mb-10">
-          <p style={{ fontSize: '10px', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '12px', opacity: 0.7 }}>
-            Library
-          </p>
+          <p className="eyebrow">Library</p>
           <h1 className="font-story" style={{ fontSize: 'clamp(32px, 5vw, 52px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em' }}>
             Choose your story
           </h1>
@@ -119,7 +121,7 @@ export default function StoryList() {
                     key={t}
                     onClick={() => setFilter('tag', on ? '' : t)}
                     style={{
-                      padding: '4px 11px', fontSize: '12px', borderRadius: '3px', cursor: 'pointer', fontFamily: 'inherit',
+                      padding: '4px 11px', fontSize: '12px', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit',
                       border: `1px solid ${on ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa10))'}`,
                       background: on ? 'rgba(var(--gold-rgb),0.12)' : 'rgba(var(--panel-rgb),var(--pa04))',
                       color: on ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta55))',
@@ -146,7 +148,7 @@ export default function StoryList() {
                   border: `1px solid ${genre === g ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa12))'}`,
                   background: genre === g ? 'rgba(var(--gold-rgb),0.1)' : 'transparent',
                   color: genre === g ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))',
-                  cursor: 'pointer', borderRadius: '3px', transition: 'all 0.2s ease',
+                  cursor: 'pointer', borderRadius: '4px', transition: 'all 0.2s ease',
                 }}
               >
                 {label(g)}
@@ -160,7 +162,7 @@ export default function StoryList() {
               onChange={(e) => setFilter('sort', e.target.value)}
               style={{
                 background: 'rgba(var(--panel-rgb),var(--pa04))', border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
-                borderRadius: '3px', padding: '8px 12px', color: 'var(--parchment)', fontSize: '13px', outline: 'none',
+                borderRadius: '4px', padding: '8px 12px', color: 'var(--parchment)', fontSize: '13px', outline: 'none',
                 cursor: 'pointer', fontFamily: 'inherit',
               }}
             >
@@ -176,7 +178,7 @@ export default function StoryList() {
               onChange={(e) => onSearch(e.target.value)}
               style={{
                 background: 'rgba(var(--panel-rgb),var(--pa04))', border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
-                borderRadius: '3px', padding: '8px 16px', color: 'var(--parchment)', fontSize: '14px', outline: 'none',
+                borderRadius: '4px', padding: '8px 16px', color: 'var(--parchment)', fontSize: '14px', outline: 'none',
                 width: '200px', transition: 'border-color 0.2s ease',
               }}
               onFocus={(e) => (e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)')}
@@ -191,7 +193,7 @@ export default function StoryList() {
             <span style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta45))' }}>Filtered by</span>
             <button
               onClick={() => setFilter('tag', '')}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 11px', fontSize: '12px', borderRadius: '3px', border: '1px solid var(--gold)', background: 'rgba(var(--gold-rgb),0.12)', color: 'var(--gold)', cursor: 'pointer', fontFamily: 'inherit' }}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 11px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--gold)', background: 'rgba(var(--gold-rgb),0.12)', color: 'var(--gold)', cursor: 'pointer', fontFamily: 'inherit' }}
             >
               #{tag} <span style={{ fontSize: '14px', lineHeight: 1 }}>×</span>
             </button>
@@ -200,10 +202,20 @@ export default function StoryList() {
 
         {loading ? (
           <ConnectingLoader fullScreen={false} message="Gathering the library" />
+        ) : failed ? (
+          <EmptyState
+            title="We couldn't reach the library."
+            hint="The connection dropped on the way to the shelves. Give it a moment and try again."
+            actionLabel="Retry"
+            onAction={() => setReloadKey((k) => k + 1)}
+          />
         ) : stories.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <p style={{ color: 'rgba(var(--text-rgb),var(--ta35))', fontSize: '15px' }}>No stories match your filters.</p>
-          </div>
+          <EmptyState
+            title="Nothing on this shelf yet."
+            hint={unfiltered ? 'Be the first to add a tale to the library.' : 'No stories match these filters — try widening your search.'}
+            actionLabel={unfiltered ? 'Write a story' : undefined}
+            actionTo={unfiltered ? '/create' : undefined}
+          />
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
             {stories.map((story, i) => (
@@ -215,12 +227,3 @@ export default function StoryList() {
     </div>
   )
 }
-
-const SAMPLE_STORIES = [
-  { _id: 'sample-1', title: 'The Hollow King', description: 'A deposed monarch wanders a kingdom that has forgotten his name. With allies few and enemies many, every alley hides a decision.', genre: 'fantasy', author: 'E. Hartwell', branchCount: 14 },
-  { _id: 'sample-2', title: 'Signal Lost', description: 'The last transmission from Station Kepler arrives eighteen months late. What it contains will unravel everything you thought you knew.', genre: 'sci_fi', author: 'M. Chen', branchCount: 9 },
-  { _id: 'sample-3', title: 'Room 204', description: 'A detective checks into a hotel to investigate a cold case. The guests seem to know more than they let on—and so does the hotel itself.', genre: 'mystery', author: 'A. Voss', branchCount: 11 },
-  { _id: 'sample-4', title: "The Cartographer's Daughter", description: "Mara inherits her father's incomplete maps of an island that does not appear on any atlas. Following them has consequences.", genre: 'fantasy', author: 'P. Nakamura', branchCount: 16 },
-  { _id: 'sample-5', title: 'What the River Carries', description: 'Two strangers meet on the last ferry of the season. One is running toward something. The other is running away.', genre: 'romance', author: 'S. Okafor', branchCount: 7 },
-  { _id: 'sample-6', title: 'Tenant', description: 'The apartment above yours has been empty for years. Tonight, you hear footsteps. What you do next determines who survives the morning.', genre: 'horror', author: 'D. Reyes', branchCount: 12 },
-]

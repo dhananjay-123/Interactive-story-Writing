@@ -28,18 +28,19 @@ export default function StoryCard({ story, index }) {
     <Link
       to={`/story/${story._id}`}
       className="animate-fadeUp"
-      style={{ textDecoration: 'none', animationDelay: `${index * 0.08}s` }}
+      style={{ textDecoration: 'none', animationDelay: `${Math.min(index, 6) * 0.08}s` }}
     >
       <div
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         style={{
-          background: hovered ? 'rgba(var(--panel-rgb),var(--pa05))' : 'rgba(var(--panel-rgb),var(--pa02))',
-          border: `1px solid ${hovered ? 'rgba(var(--gold-rgb),0.3)' : 'rgba(var(--panel-rgb),var(--pa08))'}`,
-          borderRadius: '6px',
+          background: 'var(--surface)',
+          border: `1px solid ${hovered ? 'rgba(var(--gold-rgb),0.45)' : 'rgba(var(--panel-rgb),var(--pa06))'}`,
+          borderRadius: '8px',
           padding: '28px',
           cursor: 'pointer',
-          transition: 'all 0.3s ease',
+          boxShadow: hovered ? 'var(--card-shadow-hover)' : 'var(--card-shadow)',
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
           transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
           height: '100%',
         }}
@@ -108,7 +109,7 @@ export default function StoryCard({ story, index }) {
             </span>
           )}
           <span
-            className="text-xs"
+            className="text-xs card-read-cue"
             style={{ color: 'var(--gold)', opacity: hovered ? 1 : 0, transition: 'opacity 0.25s ease' }}
           >
             Read →

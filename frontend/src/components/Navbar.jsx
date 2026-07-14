@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAudio } from '../audio/AudioProvider'
 import { useAuth } from '../context/AuthContext'
@@ -8,6 +8,8 @@ import NotificationBell from './NotificationBell'
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const moreRef = useRef(null)
   const location = useLocation()
   const navigate = useNavigate()
   const { enabled, toggle } = useAudio()
@@ -20,10 +22,21 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handler)
   }, [])
 
-  // Collapse the mobile menu whenever the route changes.
+  // Collapse the menus whenever the route changes.
   useEffect(() => {
     setMenuOpen(false)
+    setMoreOpen(false)
   }, [location.pathname])
+
+  // Dismiss the "More" dropdown on an outside click or Escape.
+  useEffect(() => {
+    if (!moreOpen) return
+    const onClick = (e) => { if (moreRef.current && !moreRef.current.contains(e.target)) setMoreOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') setMoreOpen(false) }
+    window.addEventListener('mousedown', onClick)
+    window.addEventListener('keydown', onKey)
+    return () => { window.removeEventListener('mousedown', onClick); window.removeEventListener('keydown', onKey) }
+  }, [moreOpen])
 
   const handleLogout = () => {
     logout()
@@ -55,27 +68,52 @@ export default function Navbar() {
           Craft&Tales
         </Link>
 
-        {/* Desktop navigation */}
-        <div className="hidden md:flex items-center gap-7">
+        {/* Desktop navigation — a short primary row; everything secondary lives
+            under "More" so the bar keeps a clear hierarchy instead of a flat
+            wall of equal-weight links. */}
+        <div className="hidden md:flex items-center gap-6">
           <NavLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
           <NavLink to="/featured" label="Featured" active={location.pathname === '/featured'} />
           <NavLink to="/contests" label="Contests" active={location.pathname.startsWith('/contests')} />
-          <NavLink to="/leaderboard" label="Ranks" active={location.pathname === '/leaderboard'} />
 
           {user ? (
             <>
-              <NavLink to="/create" label="Write" active={location.pathname === '/create'} />
-              <NavLink to="/my-stories" label="My stories" active={location.pathname === '/my-stories'} />
-              <NavLink to="/achievements" label="Badges" active={location.pathname === '/achievements'} />
-              {user.role === 'admin' && (
-                <NavLink to="/admin" label="Admin" active={location.pathname === '/admin'} />
-              )}
-              <button onClick={handleLogout} style={textLinkStyle('rgba(var(--text-rgb),var(--ta45))')}>
-                Sign out
-              </button>
+              {/* The primary action, given its own weight. */}
+              <Link
+                to="/create"
+                style={writeButtonStyle(location.pathname === '/create')}
+              >
+                Write
+              </Link>
+
+              <div ref={moreRef} style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setMoreOpen((v) => !v)}
+                  aria-haspopup="true"
+                  aria-expanded={moreOpen}
+                  style={{ ...textLinkStyle('rgba(var(--text-rgb),var(--ta65))'), display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                >
+                  More <Caret open={moreOpen} />
+                </button>
+                {moreOpen && (
+                  <div className="animate-fadeIn" style={dropdownStyle}>
+                    <DropdownLink to="/my-stories" label="My stories" active={location.pathname === '/my-stories'} />
+                    <DropdownLink to="/achievements" label="Badges" active={location.pathname === '/achievements'} />
+                    <DropdownLink to="/leaderboard" label="Ranks" active={location.pathname === '/leaderboard'} />
+                    {user.role === 'admin' && (
+                      <DropdownLink to="/admin" label="Admin" active={location.pathname === '/admin'} />
+                    )}
+                    <div style={{ height: '1px', background: 'rgba(var(--panel-rgb),var(--pa10))', margin: '6px 0' }} />
+                    <button onClick={handleLogout} style={{ ...dropdownItemStyle(false), textAlign: 'left', width: '100%', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <>
+              <NavLink to="/leaderboard" label="Ranks" active={location.pathname === '/leaderboard'} />
               <NavLink to="/login" label="Sign in" active={location.pathname === '/login'} />
               <Link to="/register" style={joinButtonStyle}>
                 Join
@@ -123,6 +161,7 @@ export default function Navbar() {
           )}
 
           <button
+            className="tap-target"
             onClick={() => setMenuOpen((v) => !v)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
@@ -186,6 +225,7 @@ function IconButtons({ theme, toggleTheme, enabled, toggle }) {
   return (
     <>
       <button
+        className="tap-target"
         onClick={toggleTheme}
         aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
         title={theme === 'dark' ? 'Light theme' : 'Dark theme'}
@@ -197,6 +237,7 @@ function IconButtons({ theme, toggleTheme, enabled, toggle }) {
       </button>
 
       <button
+        className="tap-target"
         onClick={toggle}
         aria-pressed={enabled}
         aria-label={enabled ? 'Mute sound' : 'Enable sound'}
@@ -216,7 +257,7 @@ function Avatar({ to, name, src, active }) {
       to={to}
       title={name}
       aria-label={`${name} — profile`}
-      className="font-story"
+      className="font-story tap-target"
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -256,11 +297,76 @@ const joinButtonStyle = {
   letterSpacing: '0.12em',
   textTransform: 'uppercase',
   color: 'var(--on-gold)',
-  background: 'var(--gold)',
+  background: 'var(--gold-solid)',
   padding: '8px 18px',
-  borderRadius: '3px',
+  borderRadius: '4px',
   textDecoration: 'none',
   fontWeight: 600,
+}
+
+// The primary write action: a gold-outlined chip that fills on hover, so it
+// reads as the one thing to do without shouting like a filled CTA.
+const writeButtonStyle = (active) => ({
+  fontSize: '12px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase',
+  fontWeight: 600,
+  color: active ? 'var(--on-gold)' : 'var(--gold)',
+  background: active ? 'var(--gold-solid)' : 'transparent',
+  border: '1px solid rgba(var(--gold-rgb),0.55)',
+  padding: '7px 16px',
+  borderRadius: '4px',
+  textDecoration: 'none',
+  transition: 'background 0.2s ease, color 0.2s ease',
+})
+
+const dropdownStyle = {
+  position: 'absolute',
+  top: 'calc(100% + 12px)',
+  right: 0,
+  minWidth: '170px',
+  padding: '8px',
+  background: 'var(--ink-soft)',
+  border: '1px solid rgba(var(--gold-rgb),0.18)',
+  borderRadius: '8px',
+  boxShadow: 'var(--card-shadow)',
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '2px',
+  zIndex: 60,
+}
+
+const dropdownItemStyle = (active) => ({
+  display: 'block',
+  fontSize: '12px',
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+  color: active ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta70))',
+  textDecoration: 'none',
+  padding: '9px 12px',
+  borderRadius: '4px',
+  transition: 'background 0.15s ease, color 0.15s ease',
+})
+
+function DropdownLink({ to, label, active }) {
+  return (
+    <Link
+      to={to}
+      style={dropdownItemStyle(active)}
+      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(var(--gold-rgb),0.1)'; e.currentTarget.style.color = 'var(--gold)' }}
+      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = active ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta70))' }}
+    >
+      {label}
+    </Link>
+  )
+}
+
+function Caret({ open }) {
+  return (
+    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }}>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  )
 }
 
 const textLinkStyle = (color) => ({

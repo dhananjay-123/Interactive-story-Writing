@@ -32,9 +32,7 @@ export default function Login() {
     <div style={{ minHeight: '100vh', background: 'var(--ink)', paddingTop: '120px' }}>
       <div style={{ maxWidth: '400px', margin: '0 auto', padding: '0 24px 100px' }}>
         <div className="animate-fadeUp mb-10">
-          <p style={{ fontSize: '10px', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '12px', opacity: 0.7 }}>
-            Welcome back
-          </p>
+          <p className="eyebrow">Welcome back</p>
           <h1 className="font-story" style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em' }}>
             Sign in
           </h1>
@@ -82,7 +80,7 @@ export default function Login() {
             disabled={submitting || !form.email || !form.password}
             style={{
               padding: '13px 32px',
-              background: 'var(--gold)',
+              background: 'var(--gold-solid)',
               color: 'var(--on-gold)',
               border: 'none',
               fontSize: '12px',
@@ -90,7 +88,7 @@ export default function Login() {
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
               cursor: submitting ? 'default' : 'pointer',
-              borderRadius: '3px',
+              borderRadius: '4px',
               transition: 'background 0.2s ease',
               opacity: submitting || !form.email || !form.password ? 0.5 : 1,
               marginTop: '4px',

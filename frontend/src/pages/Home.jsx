@@ -16,15 +16,19 @@ export default function Home() {
   const [visible, setVisible] = useState(true)
   const [featured, setFeatured] = useState([])
   const intervalRef = useRef(null)
+  const pausedRef = useRef(false)
 
+  // Rotate the opening lines slowly, and hold whenever the reader is hovering
+  // the quote — motion shouldn't pull the eye off the page on a fast loop.
   useEffect(() => {
     intervalRef.current = setInterval(() => {
+      if (pausedRef.current) return
       setVisible(false)
       setTimeout(() => {
         setLineIndex(i => (i + 1) % OPENING_LINES.length)
         setVisible(true)
       }, 400)
-    }, 3000)
+    }, 5200)
     return () => clearInterval(intervalRef.current)
   }, [])
 
@@ -133,6 +137,8 @@ export default function Home() {
           </p>
 
           <p
+            onMouseEnter={() => { pausedRef.current = true }}
+            onMouseLeave={() => { pausedRef.current = false }}
             style={{
               fontSize: '15px',
               color: 'var(--gold)',
@@ -153,18 +159,19 @@ export default function Home() {
               style={{
                 display: 'inline-block',
                 padding: '14px 36px',
-                background: 'var(--gold)',
+                background: 'var(--gold-solid)',
                 color: 'var(--on-gold)',
                 textDecoration: 'none',
                 fontSize: '14px',
                 fontWeight: 600,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                borderRadius: '3px',
-                transition: 'background 0.2s ease, transform 0.2s ease',
+                borderRadius: '4px',
+                boxShadow: 'var(--card-shadow)',
+                transition: 'background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease',
               }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--gold-dark)'; e.currentTarget.style.transform = 'translateY(-2px)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--gold)'; e.currentTarget.style.transform = 'translateY(0)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--gold-dark)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--card-shadow-hover)' }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'var(--gold-solid)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--card-shadow)' }}
             >
               Explore Stories
             </Link>
@@ -180,7 +187,7 @@ export default function Home() {
                 fontWeight: 500,
                 letterSpacing: '0.08em',
                 textTransform: 'uppercase',
-                borderRadius: '3px',
+                borderRadius: '4px',
                 border: '1px solid rgba(var(--text-rgb),var(--ta25))',
                 transition: 'border-color 0.2s ease, color 0.2s ease',
               }}
@@ -200,9 +207,7 @@ export default function Home() {
         <section style={{ padding: '40px 24px 20px', maxWidth: '1100px', margin: '0 auto' }}>
           <div className="animate-fadeUp" style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '28px' }}>
             <div>
-              <p style={{ fontSize: '10px', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '12px', opacity: 0.7 }}>
-                Editor's picks
-              </p>
+              <p className="eyebrow">Editor's picks</p>
               <h2 className="font-story" style={{ fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em' }}>
                 Featured stories
               </h2>
@@ -224,49 +229,40 @@ export default function Home() {
         </section>
       )}
 
-      {/* How it works */}
-      <section style={{ padding: '120px 24px', maxWidth: '1000px', margin: '0 auto' }}>
-        <div className="text-center mb-20">
-          <p style={{ fontSize: '10px', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '16px', opacity: 0.7 }}>
-            How it works
-          </p>
+      {/* How it works — an editorial numbered list threaded on a single hairline,
+          not the usual three equal feature columns. */}
+      <section style={{ padding: '120px 24px', maxWidth: '820px', margin: '0 auto' }}>
+        <div className="mb-16">
+          <p className="eyebrow">How it works</p>
           <h2 className="font-story" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em' }}>
             Stories that breathe
           </h2>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '40px' }}>
+        <div style={{ position: 'relative' }}>
+          {/* The thread the steps hang from. */}
+          <div style={{ position: 'absolute', left: '31px', top: '12px', bottom: '12px', width: '1px', background: 'linear-gradient(to bottom, transparent, rgba(var(--gold-rgb),0.3) 12%, rgba(var(--gold-rgb),0.3) 88%, transparent)' }} />
           {[
-            {
-              num: '01',
-              title: 'Pick your story',
-              desc: 'Browse tales across fantasy, mystery, sci-fi, and more. Each one hides dozens of endings.',
-            },
-            {
-              num: '02',
-              title: 'Read and decide',
-              desc: 'At each turning point, you choose what happens next. No one path is the right one.',
-            },
-            {
-              num: '03',
-              title: 'Shape the ending',
-              desc: 'Your choices accumulate. The world you leave behind is entirely your own.',
-            },
+            { num: '01', title: 'Pick your story', desc: 'Browse tales across fantasy, mystery, sci-fi, and more. Each one hides dozens of endings.' },
+            { num: '02', title: 'Read and decide', desc: 'At each turning point, you choose what happens next. No one path is the right one.' },
+            { num: '03', title: 'Shape the ending', desc: 'Your choices accumulate. The world you leave behind is entirely your own.' },
           ].map(({ num, title, desc }, i) => (
             <div
               key={num}
               className="animate-fadeUp"
-              style={{ animationDelay: `${i * 0.15}s` }}
+              style={{ animationDelay: `${i * 0.12}s`, display: 'flex', gap: '28px', alignItems: 'flex-start', padding: i === 0 ? '0 0 44px' : '44px 0', borderTop: i === 0 ? 'none' : '1px solid rgba(var(--panel-rgb),var(--pa04))' }}
             >
-              <p className="font-story" style={{ fontSize: '42px', color: 'rgba(var(--gold-rgb),0.15)', fontWeight: 400, marginBottom: '12px', lineHeight: 1 }}>
-                {num}
-              </p>
-              <h3 style={{ fontSize: '18px', color: 'var(--parchment)', fontWeight: 500, marginBottom: '12px' }}>
-                {title}
-              </h3>
-              <p style={{ fontSize: '15px', color: 'rgba(var(--text-rgb),var(--ta50))', lineHeight: 1.7 }}>
-                {desc}
-              </p>
+              <div style={{ position: 'relative', flexShrink: 0, width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', background: 'var(--ink)', border: '1px solid rgba(var(--gold-rgb),0.25)' }}>
+                <span className="font-story" style={{ fontSize: '22px', color: 'var(--gold)' }}>{num}</span>
+              </div>
+              <div style={{ paddingTop: '6px' }}>
+                <h3 className="font-story" style={{ fontSize: '22px', color: 'var(--parchment)', fontWeight: 400, marginBottom: '8px', letterSpacing: '-0.01em' }}>
+                  {title}
+                </h3>
+                <p style={{ fontSize: '15.5px', color: 'rgba(var(--text-rgb),var(--ta55))', lineHeight: 1.7, maxWidth: '460px' }}>
+                  {desc}
+                </p>
+              </div>
             </div>
           ))}
         </div>

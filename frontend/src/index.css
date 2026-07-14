@@ -26,31 +26,68 @@
   --on-gold: #1a1a2e;          /* text that sits on the gold accent — stays dark in both themes */
   --gold-rgb: 201, 168, 76;
 
+  /* Solid raised-card surface + a warmer gold reserved for filled buttons.
+     In dark these track the existing look; the light theme redefines them so
+     cards read as paper lifted off the page rather than sunk into it. */
+  --surface: #201e2d;          /* card fill        */
+  --surface-2: #262436;        /* nested / hover   */
+  --gold-solid: #c9a84c;       /* gold-leaf fill for primary buttons */
+
+  /* Elevation. Dark leans on luminance so its shadows are quiet; the light
+     theme carries real weight because paper needs a shadow to lift. */
+  --shadow-rgb: 0, 0, 0;
+  --card-shadow: 0 10px 30px rgba(var(--shadow-rgb), 0.28);
+  --card-shadow-hover: 0 18px 44px rgba(var(--shadow-rgb), 0.42);
+
   /* Alpha steps for muted text (--ta*) and panel surfaces/borders (--pa*).
      Dark-on-cream reads much fainter than white-on-ink at the same alpha,
-     so the light theme overrides these with stronger values. */
-  --ta25: 0.25; --ta30: 0.3;  --ta35: 0.35; --ta40: 0.4;  --ta45: 0.45; --ta50: 0.5;
-  --ta55: 0.55; --ta60: 0.6;  --ta65: 0.65; --ta70: 0.7;  --ta80: 0.8;  --ta82: 0.82;
+     so the light theme overrides these with stronger values. The low steps
+     are floored high enough that metadata (bylines, counts, dates) clears
+     WCAG AA on the card surface rather than sitting at decorative alpha. */
+  --ta25: 0.4;  --ta30: 0.46; --ta35: 0.52; --ta40: 0.58; --ta45: 0.62; --ta50: 0.66;
+  --ta55: 0.7;  --ta60: 0.74; --ta65: 0.78; --ta70: 0.82; --ta80: 0.88; --ta82: 0.9;
   --pa02: 0.02; --pa03: 0.03; --pa04: 0.04; --pa05: 0.05; --pa06: 0.06; --pa08: 0.08;
   --pa10: 0.1;  --pa12: 0.12; --pa15: 0.15; --pa18: 0.18; --pa25: 0.25; --pa30: 0.3;
+
+  /* One radius scale. Chips/inputs/buttons use sm, cards/panels use md,
+     modals use lg — no more 3/4/5/6/8px drift across components. */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 14px;
   color-scheme: dark;
 }
 
-/* Warm parchment light theme — a manuscript feel, not stark white. */
+/* Warm parchment light theme — a manuscript feel, not stark white.
+   The page is a mid-toned aged paper; cards and panels sit on top as fresh,
+   near-white leaves lifted by a warm shadow. That layering — page darker than
+   surface — is what the old flat invert was missing. */
 :root[data-theme="light"] {
-  --ink: #efe7d3;              /* aged-paper page background */
-  --ink-soft: #e5d9bf;
+  --ink: #e6dcc4;              /* aged-paper page — deep enough for cards to lift off it */
+  --ink-soft: #f4ecdb;         /* raised surface (modals, dropdowns) — lighter than page */
   --parchment: #2a2740;        /* deep ink for body text     */
   --parchment-dark: #3a3653;
-  --gold: #9a7a2b;             /* deeper gold reads on cream */
-  --gold-dark: #7c6222;
+  --gold: #96741f;             /* deep antique gold — reads as a link/accent on cream */
+  --gold-dark: #7a5d17;
   --slate: #b7aa8d;
   --slate-light: #8a7e64;
 
-  --bg-rgb: 239, 231, 211;
+  --bg-rgb: 230, 220, 196;
   --text-rgb: 42, 39, 64;
-  --panel-rgb: 42, 39, 64;
-  --gold-rgb: 154, 122, 43;
+  --panel-rgb: 42, 39, 64;     /* stays dark: keeps borders & dividers visible on cream */
+  --gold-rgb: 150, 116, 31;
+
+  /* Cards are a warm cream leaf — lighter than the page so they lift, but close
+     enough in tone that they settle into it rather than shout. The gold-leaf
+     button fill stays bright. */
+  --surface: #f4ecda;
+  --surface-2: #efe5d0;
+  --gold-solid: #c6a03f;
+
+  /* Warm brown shadow — soft and low, the way ink-on-paper casts light. Kept
+     light so cards read as resting on the page, not floating above it. */
+  --shadow-rgb: 74, 56, 22;
+  --card-shadow: 0 1px 2px rgba(var(--shadow-rgb), 0.04), 0 5px 14px rgba(var(--shadow-rgb), 0.06);
+  --card-shadow-hover: 0 3px 8px rgba(var(--shadow-rgb), 0.06), 0 14px 30px rgba(var(--shadow-rgb), 0.12);
 
   --ta25: 0.42; --ta30: 0.48; --ta35: 0.54; --ta40: 0.6;  --ta45: 0.63; --ta50: 0.67;
   --ta55: 0.7;  --ta60: 0.74; --ta65: 0.78; --ta70: 0.8;  --ta80: 0.87; --ta82: 0.88;
@@ -65,12 +102,42 @@ html {
 
 body {
   margin: 0;
-  background: var(--ink);
+  background-color: var(--ink);
   color: var(--parchment);
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+}
+
+/* Light mode gets a faint hand-held-manuscript wash: a warm pool of light up
+   top and two soft corner shadows, so the page never reads as flat printer
+   cream. Dark mode keeps its plain ink — it earns depth from luminance. */
+:root[data-theme="light"] body {
+  background-image:
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(var(--gold-rgb), 0.16), transparent 60%),
+    radial-gradient(circle at 12% 18%, rgba(120, 88, 38, 0.05), transparent 42%),
+    radial-gradient(circle at 88% 82%, rgba(120, 88, 38, 0.05), transparent 42%);
+  background-attachment: fixed;
+}
+
+/* Smooth the theme flip. ThemeContext adds this class to <html> for the length
+   of one toggle, so colours cross-fade instead of snapping, then removes it —
+   we never leave a blanket transition on every element. */
+.theme-animating,
+.theme-animating *,
+.theme-animating *::before,
+.theme-animating *::after {
+  transition:
+    background-color 0.45s ease,
+    color 0.45s ease,
+    border-color 0.45s ease,
+    fill 0.45s ease,
+    box-shadow 0.45s ease !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-animating, .theme-animating *,
+  .theme-animating *::before, .theme-animating *::after { transition: none !important; }
 }
 
 #root {
@@ -265,7 +332,7 @@ select option {
   transition: transform 0.18s ease, opacity 0.15s ease;
 }
 .ink-nib-body {
-  fill: rgba(var(--gold-rgb), 0.9);
+  fill: rgba(var(--gold-rgb), 0.92);
   stroke: var(--ink);
   stroke-width: 1;
   stroke-linejoin: round;
@@ -274,6 +341,9 @@ select option {
   stroke: var(--ink);
   stroke-width: 1;
   stroke-linecap: round;
+}
+.ink-nib-vent {
+  fill: var(--ink);
 }
 .ink-cursor-hot .ink-nib svg { transform: rotate(-12deg) scale(1.08); }
 .ink-cursor-down .ink-nib svg { transform: rotate(-4deg) scale(0.9); }
@@ -333,14 +403,48 @@ select option {
   100% { opacity: 0;   scale: 2.2; }
 }
 
+/* The wet-ink trail. The container never intercepts a pointer; each dot is
+   spawned by InkCursor.jsx and drawn entirely by the keyframes below, then
+   removes itself on animationend. */
+.ink-trail {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;         /* under the nib (9999), over everything else */
+  pointer-events: none;
+  overflow: hidden;
+}
+.ink-cursor-away .ink-trail { opacity: 0; transition: opacity 0.2s ease; }
+
+.ink-trail-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 50% 48% 52% 50%;   /* a touch irregular, like a real blot */
+  background: rgba(var(--gold-rgb), 0.5);
+  will-change: transform, opacity;
+  animation: inkDry 0.75s ease-out forwards;
+}
+/* Click-flick droplets travel a hair further and dry a little slower. */
+.ink-trail-dot.is-spatter {
+  background: rgba(var(--gold-rgb), 0.6);
+  animation: inkDry 0.95s ease-out forwards;
+}
+
+/* The bead sits, spreads a touch as it soaks in, then fades as it dries. */
+@keyframes inkDry {
+  0%   { opacity: 0.55; scale: 0.7; }
+  25%  { opacity: 0.5;  scale: 1.1; }
+  100% { opacity: 0;    scale: 0.55; }
+}
+
 /* Belt and braces: if the media query ever flips at runtime, stand down. */
 @media (prefers-reduced-motion: reduce) {
   .ink-cursor, .ink-cursor * { cursor: auto !important; }
-  .ink-nib, .ink-ring, .ink-splash { display: none; }
+  .ink-nib, .ink-ring, .ink-splash, .ink-trail { display: none; }
 }
 @media (hover: none), (pointer: coarse) {
   .ink-cursor, .ink-cursor * { cursor: auto !important; }
-  .ink-nib, .ink-ring, .ink-splash { display: none; }
+  .ink-nib, .ink-ring, .ink-splash, .ink-trail { display: none; }
 }
 
 /* Ink travelling along the wire while a free-tier service wakes up. */
@@ -370,6 +474,57 @@ select option {
 .delay-300 { animation-delay: 0.3s; }
 .delay-400 { animation-delay: 0.4s; }
 .delay-500 { animation-delay: 0.5s; }
+
+/* ── Keyboard focus ──
+   The app styles hover imperatively in JS, which never fires on Tab. This gives
+   every interactive element one consistent, visible focus ring for keyboard
+   users, while leaving mouse/touch users untouched (:focus-visible only). */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[role="link"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid rgba(var(--gold-rgb), 0.85);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* ── Touch targets ──
+   Visual size stays as designed; on a coarse pointer we pad the hit area out to
+   the 44px minimum without growing the glyph. */
+@media (pointer: coarse) {
+  .tap-target {
+    position: relative;
+  }
+  .tap-target::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* Hover-revealed affordances (e.g. a card's "Read →") never appear on touch,
+   where there is no hover. On a coarse pointer, keep them visible. */
+@media (pointer: coarse) {
+  .card-read-cue { opacity: 1 !important; }
+}
+
+/* ── Eyebrow label ── one canonical size/spacing for the gold kicker above
+   every page heading, so it stops drifting between 10/11/12px. */
+.eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.72;
+  margin: 0 0 12px;
+}
 
 /* ── Typography ── */
 .font-story { font-family: var(--serif); }
@@ -443,7 +598,7 @@ textarea::placeholder {
 .rich-input {
   background: rgba(var(--panel-rgb), var(--pa04));
   border: 1px solid rgba(var(--panel-rgb), var(--pa10));
-  border-radius: 3px;
+  border-radius: var(--r-sm);
   padding: 12px 16px;
   transition: border-color 0.2s ease;
 }

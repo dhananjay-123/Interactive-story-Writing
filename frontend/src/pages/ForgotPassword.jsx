@@ -92,7 +92,7 @@ export default function ForgotPassword() {
                 disabled={submitting || !email}
                 style={{
                   padding: '13px 32px',
-                  background: 'var(--gold)',
+                  background: 'var(--gold-solid)',
                   color: 'var(--on-gold)',
                   border: 'none',
                   fontSize: '12px',
@@ -100,7 +100,7 @@ export default function ForgotPassword() {
                   letterSpacing: '0.12em',
                   textTransform: 'uppercase',
                   cursor: submitting ? 'default' : 'pointer',
-                  borderRadius: '3px',
+                  borderRadius: '4px',
                   opacity: submitting || !email ? 0.5 : 1,
                   marginTop: '4px',
                   fontFamily: 'inherit',

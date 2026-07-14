@@ -29,7 +29,7 @@ export function TagRow({ tags, onSelect, size = 'sm', style }) {
             border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
             background: 'rgba(var(--panel-rgb),var(--pa04))',
             color: 'rgba(var(--text-rgb),var(--ta55))',
-            borderRadius: '3px',
+            borderRadius: '4px',
             cursor: 'pointer',
             fontFamily: 'inherit',
             transition: 'all 0.2s ease',
