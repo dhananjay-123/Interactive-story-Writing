@@ -458,3 +458,61 @@ textarea::placeholder {
 .rich-input .tiptap div[data-youtube-video].ProseMirror-selectednode iframe {
   outline: 2px solid rgba(var(--gold-rgb), 0.6);
 }
+
+/* ── Achievements ──────────────────────────────────────────────────────────
+   All motion here is CSS-only and light. A slow gilt sheen sweeps across
+   Legendary+ medallions; unlocks pop in and, on celebration, drop a handful of
+   confetti. Everything stands down under prefers-reduced-motion. */
+
+@keyframes badgeSheen {
+  0%   { transform: translateX(-120%) rotate(8deg); }
+  100% { transform: translateX(220%) rotate(8deg); }
+}
+.badge-radiant::after {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+  animation: badgeSheen 3.4s ease-in-out infinite;
+  animation-delay: 0.6s;
+  pointer-events: none;
+}
+
+@keyframes unlockPop {
+  0%   { opacity: 0; transform: scale(0.6); }
+  60%  { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-unlockPop { animation: unlockPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0); }
+  to   { opacity: 0; transform: translateX(24px); }
+}
+.achv-toast-in  { animation: toastIn 0.35s ease both; }
+.achv-toast-out { animation: toastOut 0.3s ease both; }
+
+@keyframes confettiFall {
+  0%   { opacity: 1; transform: translateY(-10px) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(180px) rotate(320deg); }
+}
+.confetti-piece {
+  position: absolute;
+  top: 0;
+  width: 7px;
+  height: 10px;
+  border-radius: 1px;
+  animation: confettiFall 1.5s ease-in forwards;
+}
+
+/* Progress rings and count-ups shouldn't animate for a reader who asked for calm. */
+@media (prefers-reduced-motion: reduce) {
+  .badge-radiant::after { animation: none; }
+  .animate-unlockPop, .achv-toast-in, .achv-toast-out { animation: none; }
+  .confetti-piece { display: none; }
+}

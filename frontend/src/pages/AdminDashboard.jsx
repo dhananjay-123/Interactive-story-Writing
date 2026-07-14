@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../api/client'
 import ConnectingLoader from '../components/ConnectingLoader'
 import { useAuth } from '../context/AuthContext'
+import AdminAchievementsPanel from '../components/achievements/AdminAchievementsPanel'
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -10,6 +11,7 @@ const TABS = [
   { id: 'reports', label: 'Reports' },
   { id: 'requests', label: 'Requests' },
   { id: 'users', label: 'Users' },
+  { id: 'achievements', label: 'Achievements' },
 ]
 
 const genreLabel = (g) =>
@@ -94,6 +96,7 @@ export default function AdminDashboard() {
         {tab === 'reports' && <ReportsPanel onChange={refreshBadge} />}
         {tab === 'requests' && <PasswordRequestsPanel onChange={refreshRequestBadge} />}
         {tab === 'users' && <UsersPanel />}
+        {tab === 'achievements' && <AdminAchievementsPanel />}
       </div>
     </div>
   )

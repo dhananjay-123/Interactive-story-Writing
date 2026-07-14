@@ -12,12 +12,14 @@ import { TagRow } from '../components/TagRow'
 import { generateHTML } from '@tiptap/core'
 import { editorExtensions } from '../components/RichTextEditor'
 import { useAudio } from '../audio/AudioProvider'
+import { useAchievements } from '../components/achievements/AchievementsProvider'
 
 export default function StoryReader() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuth()
   const { playAmbience, stopAmbience } = useAudio()
+  const { refresh: refreshAchievements } = useAchievements()
 
   const [story, setStory] = useState(null)
   const [node, setNode] = useState(null)
@@ -43,32 +45,57 @@ export default function StoryReader() {
     setError('')
     setResumable(null)
     ;(async () => {
+      let rootId = null
       try {
+        // The story and its opening passage are the only things reading truly
+        // depends on. Fetch them first; anything else is a nicety layered on top.
         const { data: s } = await api.get(`/api/stories/${id}`)
-        if (!s.rootNodeId) throw new Error('empty')
-        const { data: root } = await api.get(`/api/nodes/${s.rootNodeId}`)
         if (!active) return
         setStory(s)
+        if (!s.rootNodeId) {
+          // The story exists but has no opening passage yet (an abandoned draft).
+          setError('empty')
+          return
+        }
+        rootId = s.rootNodeId
+        const { data: root } = await api.get(`/api/nodes/${s.rootNodeId}`)
+        if (!active) return
         setNode(root)
         setHistory([])
-
-        // A bookmark only matters if it points somewhere past the opening.
-        if (user) {
-          const { data: p } = await api.get(`/api/stories/${id}/progress`)
-          if (active && p && p.currentNodeId && p.currentNodeId !== s.rootNodeId) {
-            setResumable({ ...p, passagesIn: (p.path?.length || 0) + 1 })
-          }
-        }
       } catch {
         if (active) setError('not-found')
+        return
       } finally {
         if (active) setLoading(false)
+      }
+
+      // A saved bookmark is optional — a failed lookup (stale token, a sleepy
+      // backend dropping its first query) must never turn a readable story into
+      // "could not be found". So it lives outside the load above, in its own guard.
+      if (user && rootId) {
+        try {
+          const { data: p } = await api.get(`/api/stories/${id}/progress`)
+          if (active && p && p.currentNodeId && p.currentNodeId !== rootId) {
+            setResumable({ ...p, passagesIn: (p.path?.length || 0) + 1 })
+          }
+        } catch {
+          /* no bookmark, or it couldn't be fetched — start from the top */
+        }
       }
     })()
     return () => {
       active = false
     }
   }, [id, user])
+
+  // Reaching an ending may unlock reading/completion badges server-side. Give the
+  // fire-and-forget award a moment to land, then pull any new unlocks so the
+  // celebration shows without the reader having to navigate away.
+  useEffect(() => {
+    if (!user || !node || node.choices.length > 0) return
+    const t = setTimeout(() => refreshAchievements(), 1500)
+    return () => clearTimeout(t)
+  }, [user, node, refreshAchievements])
 
   // Fire-and-forget: a failed bookmark save must never interrupt the reading.
   const saveProgress = useCallback(
@@ -217,7 +244,9 @@ export default function StoryReader() {
     return (
       <Screen>
         <p className="font-story" style={{ fontSize: '22px', color: 'rgba(var(--text-rgb),var(--ta60))', fontStyle: 'italic', marginBottom: '20px' }}>
-          This story could not be found.
+          {error === 'empty'
+            ? 'This story doesn’t have an opening passage yet.'
+            : 'This story could not be found.'}
         </p>
         <Link to="/stories" style={{ color: 'var(--gold)', textDecoration: 'none', fontSize: '13px', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
           Back to the library →

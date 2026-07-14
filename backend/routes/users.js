@@ -3,6 +3,7 @@ const User = require('../models/User')
 const Story = require('../models/Story')
 const Follow = require('../models/Follow')
 const { requireAuth, optionalAuth } = require('../middleware/auth')
+const achievements = require('../achievements')
 
 // GET /api/users/:username — public author profile with their published works.
 // optionalAuth so a signed-in viewer also learns whether they follow this author.
@@ -67,6 +68,8 @@ router.post('/:username/follow', requireAuth, async (req, res) => {
       return res.status(400).json({ message: "You can't follow yourself." })
     }
     await Follow.follow(req.user._id, target._id)
+    achievements.emit(target._id, 'FOLLOWER_ADDED')
+    achievements.emit(req.user._id, 'FOLLOWING_ADDED')
     const counts = await Follow.counts(target._id)
     res.json({ isFollowing: true, followers: counts.followers })
   } catch (err) {

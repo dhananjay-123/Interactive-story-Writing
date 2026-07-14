@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { uploadImage, deleteImages, publicIdFromUrl } from '../api/uploads'
 import ConnectingLoader from '../components/ConnectingLoader'
 import ChangePasswordPanel from '../components/ChangePasswordPanel'
+import ProfileAchievements from '../components/achievements/ProfileAchievements'
 
 export default function Profile() {
   const { username } = useParams()
@@ -288,6 +289,9 @@ export default function Profile() {
             ))}
           </div>
         )}
+
+        {/* Achievements — public showcase of tiers and earned badges. */}
+        <ProfileAchievements username={author.username} isOwn={isOwnProfile} />
 
         {/* Saved stories — private to the owner. */}
         {isOwnProfile && saved && saved.length > 0 && (

@@ -6,6 +6,7 @@ const Report = require('../models/Report')
 const PasswordRequest = require('../models/PasswordRequest')
 const { validatePassword } = require('../utils/password')
 const { requireAuth, requireAdmin } = require('../middleware/auth')
+const achievements = require('../achievements')
 
 // Every route here is admin-only.
 router.use(requireAuth, requireAdmin)
@@ -44,6 +45,8 @@ router.put('/stories/:id/featured', async (req, res) => {
     const story = await Story.findById(req.params.id)
     if (!story) return res.status(404).json({ message: 'Story not found' })
     const updated = await Story.setFeatured(req.params.id, !!req.body.featured)
+    // Being featured is an editorial honour — credit the author's popularity metric.
+    if (updated.featured && story.authorId) achievements.emit(story.authorId, 'STORY_FEATURED', { storyId: story._id })
     res.json(updated)
   } catch (err) {
     res.status(500).json({ message: err.message })

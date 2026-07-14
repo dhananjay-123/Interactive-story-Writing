@@ -90,6 +90,18 @@ const findByAuthorId = async (authorId, viewerId = null) => {
   return rows.map(mapStory)
 }
 
+// The signed-in author's own catalogue — every story they own, INCLUDING
+// unpublished/hidden ones, so the "My stories" dashboard is complete. Viewer is
+// the author themselves, so their like/bookmark/rating flags come back too.
+const findMineForAuthor = async (authorId) => {
+  const { rows } = await db.query(
+    `SELECT * FROM (${enriched('$1')} WHERE s.author_id = $1) sub
+     ORDER BY created_at DESC`,
+    [authorId]
+  )
+  return rows.map(mapStory)
+}
+
 // Admin-curated rail: published stories flagged as featured, newest pick first.
 const findFeatured = async (viewerId = null, limit = 6) => {
   const { rows } = await db.query(
@@ -334,7 +346,7 @@ const remove = async (id) => {
 }
 
 module.exports = {
-  findMany, findPublished, findById, findByAuthorId, bookmarkedBy,
+  findMany, findPublished, findById, findByAuthorId, findMineForAuthor, bookmarkedBy,
   trendingTags, recommend, normalizeTags,
   findFeatured, findAllForAdmin, adminStats, genreBreakdown, topStories,
   create, setRoot, setBranchCount, setAmbience, setTags,

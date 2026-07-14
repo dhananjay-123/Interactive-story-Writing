@@ -2,8 +2,10 @@
 require('dotenv').config()
 
 const express = require('express')
+const http = require('http')
 const cors = require('cors')
 const { initDb } = require('./db')
+const { initRealtime } = require('./realtime')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -17,7 +19,14 @@ app.use('/api/users', require('./routes/users'))
 app.use('/api/stories', require('./routes/stories'))
 app.use('/api/nodes', require('./routes/nodes'))
 app.use('/api/uploads', require('./routes/uploads'))
+app.use('/api/achievements', require('./routes/achievements'))
+// Mounted before /api/admin so the more specific achievements path wins the match.
+app.use('/api/admin/achievements', require('./routes/adminAchievements'))
 app.use('/api/admin', require('./routes/admin'))
+
+// One HTTP server shared by Express and socket.io (live collaboration).
+const server = http.createServer(app)
+initRealtime(server, app)
 
 const start = async () => {
   try {
@@ -27,7 +36,7 @@ const start = async () => {
     console.error('DB connection error:', err.message)
   }
 
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+  server.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 }
 
 start()

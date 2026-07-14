@@ -58,10 +58,13 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-7">
           <NavLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
           <NavLink to="/featured" label="Featured" active={location.pathname === '/featured'} />
+          <NavLink to="/leaderboard" label="Ranks" active={location.pathname === '/leaderboard'} />
 
           {user ? (
             <>
               <NavLink to="/create" label="Write" active={location.pathname === '/create'} />
+              <NavLink to="/my-stories" label="My stories" active={location.pathname === '/my-stories'} />
+              <NavLink to="/achievements" label="Badges" active={location.pathname === '/achievements'} />
               {user.role === 'admin' && (
                 <NavLink to="/admin" label="Admin" active={location.pathname === '/admin'} />
               )}
@@ -139,9 +142,12 @@ export default function Navbar() {
         >
           <MobileLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
           <MobileLink to="/featured" label="Featured" active={location.pathname === '/featured'} />
+          <MobileLink to="/leaderboard" label="Ranks" active={location.pathname === '/leaderboard'} />
           {user ? (
             <>
               <MobileLink to="/create" label="Write" active={location.pathname === '/create'} />
+              <MobileLink to="/my-stories" label="My stories" active={location.pathname === '/my-stories'} />
+              <MobileLink to="/achievements" label="Badges" active={location.pathname === '/achievements'} />
               {user.role === 'admin' && (
                 <MobileLink to="/admin" label="Admin" active={location.pathname === '/admin'} />
               )}

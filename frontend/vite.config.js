@@ -9,11 +9,17 @@ export default defineConfig({
   ],
   server: {
     proxy: {
+      // Live backend; switch to http://localhost:5000 when testing backend changes locally.
       '/api': {
-        // Live backend; switch to http://localhost:5000 when testing backend changes locally.
         target: 'https://interactive-story-writing.onrender.com',
         changeOrigin: true,
-      }
+      },
+      // WebSocket path for live collaboration — proxied to the same backend.
+      '/socket.io': {
+        target: 'https://interactive-story-writing.onrender.com',
+        changeOrigin: true,
+        ws: true,
+      },
     }
   }
 })

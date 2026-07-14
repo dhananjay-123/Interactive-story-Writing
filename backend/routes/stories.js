@@ -6,8 +6,12 @@ const Comment = require('../models/Comment')
 const Report = require('../models/Report')
 const Progress = require('../models/Progress')
 const ChoiceEvent = require('../models/ChoiceEvent')
+const User = require('../models/User')
+const Collaborator = require('../models/Collaborator')
 const { requireAuth, optionalAuth } = require('../middleware/auth')
 const { validateContent } = require('../utils/validateContent')
+const { canEditStory } = require('../utils/permissions')
+const achievements = require('../achievements')
 
 const REPORT_REASONS = ['spam', 'offensive', 'plagiarism', 'broken', 'other']
 
@@ -75,6 +79,30 @@ router.get('/continue', requireAuth, async (req, res) => {
   }
 })
 
+// GET /api/stories/mine — the signed-in author's own catalogue, drafts included.
+// Declared before /:id so "mine" isn't swallowed as a story id.
+router.get('/mine', requireAuth, async (req, res) => {
+  try {
+    res.json(await Story.findMineForAuthor(req.user._id))
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// GET /api/stories/collaborations — stories this user co-writes (doesn't own).
+// Before /:id so "collaborations" isn't swallowed as a story id.
+router.get('/collaborations', requireAuth, async (req, res) => {
+  try {
+    const ids = await Collaborator.storiesForUser(req.user._id)
+    const stories = (await Promise.all(ids.map((sid) => Story.findById(sid, req.user._id))))
+      .filter(Boolean)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    res.json(stories)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
 // GET single story — viewer-aware so the reader's like/bookmark/rating come along.
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
@@ -117,6 +145,8 @@ router.post('/', requireAuth, async (req, res) => {
     })
 
     const updated = await Story.setRoot(story._id, rootNode._id, 0)
+    // A new story is published by default — credit the author's publishing metrics.
+    if (updated.published) achievements.emit(req.user._id, 'STORY_PUBLISHED', { storyId: story._id })
     res.status(201).json(updated)
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -139,6 +169,86 @@ router.put('/:id/ambience', requireAuth, async (req, res) => {
     }
     const updated = await Story.setAmbience(req.params.id, ambience)
     res.json(updated)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// PUT the story's published state — owner only. Lets an author hide a story
+// from the library (and their public profile) or bring it back, from "My stories".
+router.put('/:id/published', requireAuth, async (req, res) => {
+  try {
+    const story = await Story.findById(req.params.id)
+    if (!story) return res.status(404).json({ message: 'Story not found' })
+    if (story.authorId !== req.user._id) {
+      return res.status(403).json({ message: 'You can only edit your own stories.' })
+    }
+    if (typeof req.body.published !== 'boolean') {
+      return res.status(400).json({ message: 'published must be true or false.' })
+    }
+    const updated = await Story.setPublished(req.params.id, req.body.published)
+    achievements.emit(story.authorId, req.body.published ? 'STORY_PUBLISHED' : 'STORY_UNPUBLISHED', { storyId: story._id })
+    res.json(updated)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// ── Collaborators ─────────────────────────────────────────────────────────────
+
+// GET /:id/collaborators — the co-authors on a story. Visible to the owner and
+// to the collaborators themselves (they need to see who else is on it).
+router.get('/:id/collaborators', requireAuth, async (req, res) => {
+  try {
+    const story = await Story.findById(req.params.id)
+    if (!story) return res.status(404).json({ message: 'Story not found' })
+    if (!(await canEditStory(story, req.user._id))) {
+      return res.status(403).json({ message: 'Only the story team can see this.' })
+    }
+    res.json(await Collaborator.listForStory(req.params.id))
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// POST /:id/collaborators { username } — invite a co-author. Owner only.
+router.post('/:id/collaborators', requireAuth, async (req, res) => {
+  try {
+    const story = await Story.findById(req.params.id)
+    if (!story) return res.status(404).json({ message: 'Story not found' })
+    if (story.authorId !== req.user._id) {
+      return res.status(403).json({ message: 'Only the story owner can add collaborators.' })
+    }
+    const username = (req.body.username || '').trim()
+    if (!username) return res.status(400).json({ message: 'Enter a username.' })
+
+    const invitee = await User.findByUsername(username)
+    if (!invitee) return res.status(404).json({ message: 'No author by that username.' })
+    if (invitee._id === story.authorId) {
+      return res.status(400).json({ message: 'You already own this story.' })
+    }
+
+    await Collaborator.add(req.params.id, invitee._id)
+    achievements.emit(invitee._id, 'COLLABORATOR_ADDED', { storyId: req.params.id })
+    res.status(201).json(await Collaborator.listForStory(req.params.id))
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// DELETE /:id/collaborators/:userId — remove a co-author. The owner can remove
+// anyone; a collaborator can remove themselves (leave the story).
+router.delete('/:id/collaborators/:userId', requireAuth, async (req, res) => {
+  try {
+    const story = await Story.findById(req.params.id)
+    if (!story) return res.status(404).json({ message: 'Story not found' })
+    const isOwner = story.authorId === req.user._id
+    const isSelf = req.params.userId === req.user._id
+    if (!isOwner && !isSelf) {
+      return res.status(403).json({ message: 'You can only remove yourself.' })
+    }
+    await Collaborator.remove(req.params.id, req.params.userId)
+    res.json(await Collaborator.listForStory(req.params.id))
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -188,8 +298,14 @@ const ensureStory = async (req, res) => {
 
 router.post('/:id/like', requireAuth, async (req, res) => {
   try {
-    if (!(await ensureStory(req, res))) return
+    const story = await ensureStory(req, res)
+    if (!story) return
     await Engagement.like(req.user._id, req.params.id)
+    achievements.emit(req.user._id, 'LIKE_GIVEN', { storyId: story._id })
+    // Don't credit an author for liking their own story.
+    if (story.authorId && story.authorId !== req.user._id) {
+      achievements.emit(story.authorId, 'LIKE_RECEIVED', { storyId: story._id })
+    }
     res.json({ liked: true, likeCount: await Engagement.likeCount(req.params.id) })
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -210,6 +326,7 @@ router.post('/:id/bookmark', requireAuth, async (req, res) => {
   try {
     if (!(await ensureStory(req, res))) return
     await Engagement.bookmark(req.user._id, req.params.id)
+    achievements.emit(req.user._id, 'BOOKMARK_ADDED', { storyId: req.params.id })
     res.json({ bookmarked: true })
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -232,8 +349,13 @@ router.put('/:id/rating', requireAuth, async (req, res) => {
     if (!Number.isInteger(value) || value < 1 || value > 5) {
       return res.status(400).json({ message: 'Rating must be a whole number from 1 to 5.' })
     }
-    if (!(await ensureStory(req, res))) return
+    const story = await ensureStory(req, res)
+    if (!story) return
     await Engagement.rate(req.user._id, req.params.id, value)
+    achievements.emit(req.user._id, 'RATING_GIVEN', { storyId: story._id })
+    if (story.authorId && story.authorId !== req.user._id) {
+      achievements.emit(story.authorId, 'RATING_RECEIVED', { storyId: story._id })
+    }
     res.json({ myRating: value, ...(await Engagement.ratingSummary(req.params.id)) })
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -286,8 +408,13 @@ router.post('/:id/comments', requireAuth, async (req, res) => {
     const body = (req.body.body || '').trim()
     if (!body) return res.status(400).json({ message: 'Write something first.' })
     if (body.length > 2000) return res.status(400).json({ message: 'Comment is too long (2000 characters max).' })
-    if (!(await ensureStory(req, res))) return
+    const story = await ensureStory(req, res)
+    if (!story) return
     const comment = await Comment.create({ storyId: req.params.id, userId: req.user._id, body })
+    achievements.emit(req.user._id, 'COMMENT_POSTED', { storyId: story._id })
+    if (story.authorId && story.authorId !== req.user._id) {
+      achievements.emit(story.authorId, 'COMMENT_RECEIVED', { storyId: story._id })
+    }
     res.status(201).json(comment)
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -341,12 +468,24 @@ router.put('/:id/progress', requireAuth, async (req, res) => {
     if (!node || node.storyId !== req.params.id) {
       return res.status(400).json({ message: 'That passage is not part of this story.' })
     }
-    res.json(await Progress.save({
+    const saved = await Progress.save({
       userId: req.user._id,
       storyId: req.params.id,
       currentNodeId,
       path: path || [],
-    }))
+    })
+
+    // Every save is a sign of reader activity; reaching an ending is a completion.
+    achievements.emit(req.user._id, 'READING_PROGRESS', { storyId: req.params.id })
+    if (node.isEnding) {
+      const story = await Story.findById(req.params.id)
+      achievements.emit(req.user._id, 'STORY_COMPLETED', {
+        storyId: req.params.id,
+        nodeId: node._id,
+        genre: story?.genre || null,
+      })
+    }
+    res.json(saved)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -392,6 +531,8 @@ router.post('/:id/choice', optionalAuth, async (req, res) => {
       choiceIndex: index,
       userId: viewerId(req),
     })
+    // Signed-in choices feed exploration achievements; anonymous ones don't count.
+    if (req.user) achievements.emit(req.user._id, 'CHOICE_MADE', { storyId: req.params.id })
     res.status(201).json({ recorded: true })
   } catch (err) {
     res.status(500).json({ message: err.message })

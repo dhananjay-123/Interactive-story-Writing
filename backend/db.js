@@ -226,6 +226,158 @@ const initDb = async () => {
       ON password_reset_requests (user_id) WHERE status = 'pending';
     CREATE INDEX IF NOT EXISTS idx_prr_status
       ON password_reset_requests (status, created_at DESC);
+
+    -- Collaborative writing --------------------------------------------------
+
+    -- Co-authors a story owner has invited to edit the branching tree with them.
+    -- The owner is NOT listed here (they own the row in the stories table); this
+    -- table is only the people they have granted edit access to.
+    CREATE TABLE IF NOT EXISTS story_collaborators (
+      story_id  UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      user_id   UUID NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
+      added_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (story_id, user_id)
+    );
+
+    -- "Who can I edit with" and "which stories can I help write" — both directions.
+    CREATE INDEX IF NOT EXISTS idx_collab_story ON story_collaborators (story_id);
+    CREATE INDEX IF NOT EXISTS idx_collab_user  ON story_collaborators (user_id, added_at DESC);
+  `)
+
+  await initAchievements()
+}
+
+// ── Achievements, badges & progression ──────────────────────────────────────
+// A self-contained schema block so the whole feature can be read (and reasoned
+// about) in one place. Badge/tier *definitions* live in code (achievements/
+// catalog) and are cached; only per-user state is stored here. All additive and
+// idempotent — safe to run on every boot against an existing database.
+const initAchievements = async () => {
+  await pool.query(`
+    -- Per-user metric snapshot. metrics is a { metricId: number } map, refreshed
+    -- from source tables by the engine as events land, so it never drifts. The
+    -- streak columns are the one genuinely stateful bit (they can't be recomputed
+    -- from a single query), maintained on each day of activity.
+    CREATE TABLE IF NOT EXISTS user_stats (
+      user_id        UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      metrics        JSONB NOT NULL DEFAULT '{}'::jsonb,
+      last_active_on DATE,
+      streak_days    INTEGER NOT NULL DEFAULT 0,
+      longest_streak INTEGER NOT NULL DEFAULT 0,
+      updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    -- Normalized source of truth for "stories finished". One row per reader+story,
+    -- so finishing the same story twice can never inflate the count. genre is
+    -- denormalized so genres_completed is a cheap DISTINCT.
+    CREATE TABLE IF NOT EXISTS reader_completions (
+      user_id    UUID NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
+      story_id   UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      node_id    UUID REFERENCES nodes(id) ON DELETE SET NULL,
+      genre      TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, story_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_completions_user ON reader_completions (user_id, created_at DESC);
+
+    -- One row per unlocked badge. The composite primary key is the duplicate-unlock
+    -- guard: a second insert for the same (user, badge) is a no-op via ON CONFLICT.
+    CREATE TABLE IF NOT EXISTS user_achievements (
+      user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      badge_id    TEXT NOT NULL,
+      source      TEXT NOT NULL DEFAULT 'auto' CHECK (source IN ('auto','manual')),
+      unlocked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      granted_by  UUID REFERENCES users(id) ON DELETE SET NULL,
+      frozen      BOOLEAN NOT NULL DEFAULT FALSE,
+      featured    BOOLEAN NOT NULL DEFAULT FALSE,
+      pin_order   INTEGER,
+      context     JSONB NOT NULL DEFAULT '{}'::jsonb,
+      PRIMARY KEY (user_id, badge_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_userach_user ON user_achievements (user_id, unlocked_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_userach_badge ON user_achievements (badge_id);
+    -- Fast "who to feature" lookups for a user's showcase.
+    CREATE INDEX IF NOT EXISTS idx_userach_featured ON user_achievements (user_id, pin_order) WHERE featured;
+
+    -- Live progress toward in-flight auto badges, so the profile can show bars
+    -- without recomputing. Cleared to 100%/absent once the badge unlocks.
+    CREATE TABLE IF NOT EXISTS achievement_progress (
+      user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      badge_id   TEXT NOT NULL,
+      current    INTEGER NOT NULL DEFAULT 0,
+      target     INTEGER NOT NULL DEFAULT 0,
+      percent    INTEGER NOT NULL DEFAULT 0,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, badge_id)
+    );
+
+    -- Current tier per user per track (author / reader).
+    CREATE TABLE IF NOT EXISTS tier_state (
+      user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      track_id   TEXT NOT NULL,
+      tier_id    TEXT NOT NULL,
+      level      INTEGER NOT NULL DEFAULT 0,
+      reached_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, track_id)
+    );
+
+    -- Every promotion, for the timeline.
+    CREATE TABLE IF NOT EXISTS tier_history (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      track_id   TEXT NOT NULL,
+      from_tier  TEXT,
+      to_tier    TEXT NOT NULL,
+      level      INTEGER NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_tierhist_user ON tier_history (user_id, created_at DESC);
+
+    -- Append-only unlock timeline (badges + promotions), with the triggering event
+    -- and story where known.
+    CREATE TABLE IF NOT EXISTS unlock_history (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      kind       TEXT NOT NULL CHECK (kind IN ('badge','tier')),
+      badge_id   TEXT,
+      track_id   TEXT,
+      tier_id    TEXT,
+      source     TEXT,
+      event      TEXT,
+      story_id   UUID REFERENCES stories(id) ON DELETE SET NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_unlockhist_user ON unlock_history (user_id, created_at DESC);
+
+    -- Notification center. seen flips when the user opens the tray.
+    CREATE TABLE IF NOT EXISTS achievement_notifications (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      kind       TEXT NOT NULL CHECK (kind IN ('badge','tier')),
+      badge_id   TEXT,
+      track_id   TEXT,
+      tier_id    TEXT,
+      title      TEXT NOT NULL,
+      body       TEXT,
+      seen       BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_notif_user ON achievement_notifications (user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_notif_unseen ON achievement_notifications (user_id) WHERE NOT seen;
+
+    -- Audit log for every manual admin action against the achievement system.
+    CREATE TABLE IF NOT EXISTS achievement_audit (
+      id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      actor_id       UUID REFERENCES users(id) ON DELETE SET NULL,
+      target_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+      action         TEXT NOT NULL,
+      badge_id       TEXT,
+      track_id       TEXT,
+      detail         JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_ach_audit_target ON achievement_audit (target_user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_ach_audit_actor  ON achievement_audit (actor_id, created_at DESC);
   `)
 
   // Bootstrap the first admin from env, so a fresh deploy has someone who can

@@ -8,6 +8,8 @@ import { inputStyle, labelStyle, focusBorder, blurBorder } from '../components/a
 import SoundscapePanel from '../components/SoundscapePanel'
 import ReaderPaths from '../components/ReaderPaths'
 import ConnectingLoader from '../components/ConnectingLoader'
+import CollaboratorsPanel from '../components/CollaboratorsPanel'
+import { useStoryCollab } from '../realtime/useStoryCollab'
 
 export default function StoryEditor() {
   const { id } = useParams()
@@ -42,15 +44,20 @@ export default function StoryEditor() {
     load()
   }, [load])
 
-  // Owner gate — only the author edits the map.
+  // Edit gate — the owner, or a collaborator the owner invited. `canEdit` comes
+  // from the tree endpoint; fall back to the owner check if an older backend
+  // didn't send it, so the owner is never locked out of their own map.
+  const canEdit = story ? (story.canEdit ?? (user && story.authorId === user._id)) : false
+  const isOwner = Boolean(story && user && story.authorId === user._id)
+
   useEffect(() => {
     if (authLoading || loading) return
     if (!user) {
       navigate('/login', { replace: true, state: { from: `/story/${id}/edit` } })
-    } else if (story && story.authorId !== user._id) {
+    } else if (story && !canEdit) {
       navigate(`/story/${id}`, { replace: true })
     }
-  }, [authLoading, loading, user, story, id, navigate])
+  }, [authLoading, loading, user, story, canEdit, id, navigate])
 
   const toggleCollapse = (nodeId) =>
     setCollapsed((prev) => {
@@ -63,6 +70,36 @@ export default function StoryEditor() {
     setActiveEdit(null)
     setActiveCompose(null)
     await load()
+  }
+
+  // Live collaboration: reload the tree when a co-author changes it (skipping
+  // our own writes, which already refreshed), and track presence + soft locks.
+  const onRemoteChange = useCallback(
+    (meta) => {
+      if (meta?.by && user && meta.by === user._id) return
+      load()
+    },
+    [user, load]
+  )
+  const { presence, locks, connected, lockPassage, unlockPassage } = useStoryCollab(
+    id,
+    canEdit,
+    onRemoteChange
+  )
+
+  // Claim a passage before opening its editor; refuse if a co-author holds it.
+  const beginEdit = async (nodeId) => {
+    const res = await lockPassage(nodeId)
+    if (!res.ok) {
+      window.alert(`${res.by || 'A co-author'} is editing this passage right now.`)
+      return
+    }
+    setActiveCompose(null)
+    setActiveEdit(nodeId)
+  }
+  const endEdit = (nodeId) => {
+    if (nodeId) unlockPassage(nodeId)
+    setActiveEdit(null)
   }
 
   if (loading || authLoading) {
@@ -99,6 +136,12 @@ export default function StoryEditor() {
     storyId: story._id,
     rootId: story.rootNodeId,
     onReload: afterMutation,
+    reloadTree: load,
+    // Collaboration
+    locks,
+    myId: user?._id,
+    beginEdit,
+    endEdit,
   }
 
   return (
@@ -127,7 +170,13 @@ export default function StoryEditor() {
             Every choice can branch into its own passage, as deep as you like. Expand a branch to keep writing,
             edit any passage, or prune a path you don’t want.
           </p>
+
+          {/* Who else is writing this right now. */}
+          <PresenceBar presence={presence} myId={user?._id} connected={connected} />
         </div>
+
+        {/* Co-authors — owner invites, everyone sees the team. */}
+        <CollaboratorsPanel storyId={story._id} isOwner={isOwner} />
 
         {/* Soundscape picker */}
         <SoundscapePanel story={story} onChange={(next) => setStory((s) => ({ ...s, ambience: next }))} />
@@ -174,6 +223,8 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
   const isCollapsed = ctx.collapsed.has(nodeId)
   const editing = ctx.activeEdit === nodeId
   const hasChildren = node.choices.some((c) => c.nextNodeId)
+  const lock = ctx.locks?.[nodeId]
+  const lockedByOther = lock && lock.userId !== ctx.myId
 
   return (
     <div style={{ marginBottom: '10px' }}>
@@ -197,14 +248,20 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
               </button>
             )}
           </div>
-          <div style={{ display: 'flex', gap: '14px' }}>
-            {!editing && (
-              <button onClick={() => { ctx.setActiveCompose(null); ctx.setActiveEdit(nodeId) }} style={miniBtn}>
-                ✎ edit
-              </button>
-            )}
-            {!isRoot && !editing && (
-              <DeleteBranchButton nodeId={nodeId} parentNodeId={parentNodeId} choiceIndex={choiceIndex} ctx={ctx} />
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+            {lockedByOther ? (
+              <LockPill name={lock.displayName} />
+            ) : (
+              <>
+                {!editing && (
+                  <button onClick={() => ctx.beginEdit(nodeId)} style={miniBtn}>
+                    ✎ edit
+                  </button>
+                )}
+                {!isRoot && !editing && (
+                  <DeleteBranchButton nodeId={nodeId} parentNodeId={parentNodeId} choiceIndex={choiceIndex} ctx={ctx} />
+                )}
+              </>
             )}
           </div>
         </div>
@@ -287,7 +344,7 @@ function NodeEditor({ node, ctx }) {
 
   const cancel = () => {
     editorControls.current?.discard()
-    ctx.setActiveEdit(null)
+    ctx.endEdit(node._id)
   }
 
   const setChoiceText = (i, v) =>
@@ -308,7 +365,8 @@ function NodeEditor({ node, ctx }) {
         content: editor.getJSON(),
         choices: choices.map((c) => ({ text: c.text.trim(), nextNodeId: c.nextNodeId ?? null })),
       })
-      await ctx.onReload()
+      ctx.endEdit(node._id) // release the soft lock, then refresh the tree
+      await ctx.reloadTree()
     } catch (err) {
       setError(err.response?.data?.message || 'Could not save.')
       setSaving(false)
@@ -416,6 +474,64 @@ function DeleteBranchButton({ nodeId, parentNodeId, choiceIndex, ctx }) {
     >
       ⌫ delete branch
     </button>
+  )
+}
+
+/* ── collaboration pieces ── */
+
+// The co-authors currently in the editor. Silent when it's just you.
+function PresenceBar({ presence, myId, connected }) {
+  const others = (presence || []).filter((p) => p.userId !== myId)
+  if (!connected && others.length === 0) return null
+
+  const initials = (name) => (name || '?').charAt(0).toUpperCase()
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '20px' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: connected ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta35))' }}>
+        <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: connected ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta30))', boxShadow: connected ? '0 0 0 3px rgba(var(--gold-rgb),0.15)' : 'none' }} />
+        Live
+      </span>
+      {others.length > 0 ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ display: 'flex' }}>
+            {others.slice(0, 5).map((p, i) => (
+              <span
+                key={p.userId}
+                title={p.displayName}
+                className="font-story"
+                style={{ width: '26px', height: '26px', marginLeft: i === 0 ? 0 : '-8px', borderRadius: '50%', overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: 'var(--gold)', background: 'var(--ink)', border: '1px solid rgba(var(--gold-rgb),0.45)' }}
+              >
+                {p.avatarUrl ? (
+                  <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  initials(p.displayName)
+                )}
+              </span>
+            ))}
+          </div>
+          <span style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta45))' }}>
+            {others.length === 1 ? `${others[0].displayName} is here` : `${others.length} co-authors here`}
+          </span>
+        </div>
+      ) : (
+        <span style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta35))' }}>
+          Only you right now
+        </span>
+      )}
+    </div>
+  )
+}
+
+// Shown in place of the edit control when a co-author holds the passage.
+function LockPill({ name }) {
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(var(--gold-rgb),0.85)', border: '1px solid rgba(var(--gold-rgb),0.3)', borderRadius: '3px', padding: '3px 8px' }}>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="4" y="11" width="16" height="9" rx="1.5" />
+        <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+      </svg>
+      {name} editing
+    </span>
   )
 }
 

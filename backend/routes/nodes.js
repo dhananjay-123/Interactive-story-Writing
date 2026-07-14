@@ -1,8 +1,10 @@
 const router = require('express').Router()
 const Node = require('../models/Node')
 const Story = require('../models/Story')
-const { requireAuth } = require('../middleware/auth')
+const { requireAuth, optionalAuth } = require('../middleware/auth')
 const { validateContent } = require('../utils/validateContent')
+const { canEditStory } = require('../utils/permissions')
+const achievements = require('../achievements')
 
 // GET node by id (with populated choices)
 router.get('/:id', async (req, res) => {
@@ -28,12 +30,15 @@ router.get('/story/:storyId/root', async (req, res) => {
 })
 
 // GET the whole tree of a story — every passage, for the map/editor view.
-router.get('/story/:storyId/tree', async (req, res) => {
+// optionalAuth so the response can tell the caller whether they may edit it
+// (the owner, or a collaborator the owner invited).
+router.get('/story/:storyId/tree', optionalAuth, async (req, res) => {
   try {
     const story = await Story.findById(req.params.storyId)
     if (!story) return res.status(404).json({ message: 'Story not found' })
     const nodes = await Node.findByStory(story._id)
-    res.json({ story, nodes })
+    const canEdit = req.user ? await canEditStory(story, req.user._id) : false
+    res.json({ story: { ...story, canEdit }, nodes })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -56,8 +61,8 @@ router.post('/', requireAuth, async (req, res) => {
   try {
     const story = await Story.findById(storyId)
     if (!story) return res.status(404).json({ message: 'Story not found' })
-    if (story.authorId !== req.user._id) {
-      return res.status(403).json({ message: 'You can only extend your own stories.' })
+    if (!(await canEditStory(story, req.user._id))) {
+      return res.status(403).json({ message: 'You can only extend stories you own or collaborate on.' })
     }
 
     const parent = await Node.findById(parentNodeId)
@@ -75,6 +80,11 @@ router.post('/', requireAuth, async (req, res) => {
 
     // Keep the story's branch count in sync (passages beyond the opening).
     await Story.setBranchCount(storyId, (await Node.countByStory(storyId)) - 1)
+    // A larger tree moves the owner's story-design metrics (branches/passages/endings).
+    achievements.emit(story.authorId, 'STORY_UPDATED', { storyId })
+
+    // Tell anyone co-writing this story to pull in the new passage.
+    req.app.get('collab')?.notifyChanged(storyId, { by: req.user._id, action: 'create' })
 
     res.status(201).json(node)
   } catch (err) {
@@ -82,16 +92,17 @@ router.post('/', requireAuth, async (req, res) => {
   }
 })
 
-// Load a node together with its owning story, or send an error response.
-const loadOwned = async (req, res) => {
+// Load a node together with its story, gating on edit rights (owner or an
+// invited collaborator), or send an error response.
+const loadEditable = async (req, res) => {
   const node = await Node.findById(req.params.id)
   if (!node) {
     res.status(404).json({ message: 'Passage not found' })
     return null
   }
   const story = await Story.findById(node.storyId)
-  if (!story || story.authorId !== req.user._id) {
-    res.status(403).json({ message: 'You can only edit your own stories.' })
+  if (!story || !(await canEditStory(story, req.user._id))) {
+    res.status(403).json({ message: 'You can only edit stories you own or collaborate on.' })
     return null
   }
   return { node, story }
@@ -106,7 +117,7 @@ router.put('/:id', requireAuth, async (req, res) => {
   }
 
   try {
-    const owned = await loadOwned(req, res)
+    const owned = await loadEditable(req, res)
     if (!owned) return
     const { node, story } = owned
 
@@ -124,6 +135,10 @@ router.put('/:id', requireAuth, async (req, res) => {
 
     const updated = await Node.update(node._id, { text: (text || '').trim(), content, choices })
     await Story.setBranchCount(story._id, (await Node.countByStory(story._id)) - 1)
+    achievements.emit(story.authorId, 'STORY_UPDATED', { storyId: story._id })
+
+    req.app.get('collab')?.notifyChanged(story._id, { by: req.user._id, action: 'edit', nodeId: node._id })
+
     res.json(updated)
   } catch (err) {
     res.status(500).json({ message: err.message })
@@ -134,7 +149,7 @@ router.put('/:id', requireAuth, async (req, res) => {
 router.delete('/:id', requireAuth, async (req, res) => {
   const { parentNodeId, choiceIndex } = req.body || {}
   try {
-    const owned = await loadOwned(req, res)
+    const owned = await loadEditable(req, res)
     if (!owned) return
     const { node, story } = owned
 
@@ -146,6 +161,13 @@ router.delete('/:id', requireAuth, async (req, res) => {
     }
     await Node.deleteSubtree(node._id)
     await Story.setBranchCount(story._id, (await Node.countByStory(story._id)) - 1)
+    achievements.emit(story.authorId, 'STORY_UPDATED', { storyId: story._id })
+
+    // Free the deleted passage's soft lock and tell collaborators to reload.
+    const collab = req.app.get('collab')
+    collab?.releaseNodeLock(story._id, node._id)
+    collab?.notifyChanged(story._id, { by: req.user._id, action: 'delete', nodeId: node._id })
+
     res.json({ message: 'Deleted' })
   } catch (err) {
     res.status(500).json({ message: err.message })

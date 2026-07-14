@@ -4,6 +4,7 @@ const User = require('../models/User')
 const PasswordRequest = require('../models/PasswordRequest')
 const { validatePassword } = require('../utils/password')
 const { sign, requireAuth } = require('../middleware/auth')
+const achievements = require('../achievements')
 
 const USERNAME_RE = /^[a-zA-Z0-9_]{3,20}$/
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -57,6 +58,8 @@ router.post('/login', async (req, res) => {
     }
 
     const { passwordHash, ...user } = record
+    // A login counts as a day of activity, keeping reading streaks alive.
+    achievements.emit(user._id, 'DAILY_ACTIVE')
     res.json({ token: sign(user), user })
   } catch (err) {
     res.status(500).json({ message: err.message })
