@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useNotifications } from '../context/NotificationsContext'
+import { avatarSrc } from '../avatars/catalog'
 
 // Turn a stored notification into the line the tray shows and the place it links.
 function present(n) {
@@ -262,7 +263,7 @@ function ActorDot({ actor }) {
       }}
     >
       {actor?.avatarUrl ? (
-        <img src={actor.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={avatarSrc(actor.avatarUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       ) : (
         initial
       )}

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { avatarSrc } from '../avatars/catalog'
 
 // Manage (owner) or view (collaborator) the co-authors on a story. Adding and
 // removing collaborators are owner-only server-side; a collaborator can remove
@@ -110,7 +111,7 @@ export default function CollaboratorsPanel({ storyId, isOwner }) {
                   <div key={u._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 0' }}>
                     <span className="font-story" style={{ width: '34px', height: '34px', flexShrink: 0, borderRadius: '50%', overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', color: 'var(--gold)', border: '1px solid rgba(var(--gold-rgb),0.4)' }}>
                       {u.avatarUrl ? (
-                        <img src={u.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={avatarSrc(u.avatarUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         (u.displayName || '?').charAt(0).toUpperCase()
                       )}

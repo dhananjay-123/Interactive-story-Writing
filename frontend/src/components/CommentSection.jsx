@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
+import { avatarSrc } from '../avatars/catalog'
 
 export default function CommentSection({ storyId, storyAuthorId }) {
   const { user } = useAuth()
@@ -116,7 +117,7 @@ export default function CommentSection({ storyId, storyAuthorId }) {
               <Link to={`/author/${c.author.username}`} style={{ flexShrink: 0 }}>
                 <div className="font-story" style={{ width: '36px', height: '36px', borderRadius: '50%', overflow: 'hidden', border: '1px solid rgba(var(--gold-rgb),0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', color: 'var(--gold)' }}>
                   {c.author.avatarUrl ? (
-                    <img src={c.author.avatarUrl} alt={c.author.displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={avatarSrc(c.author.avatarUrl)} alt={c.author.displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     c.author.displayName.charAt(0).toUpperCase()
                   )}

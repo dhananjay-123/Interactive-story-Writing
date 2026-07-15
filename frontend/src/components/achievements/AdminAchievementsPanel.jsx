@@ -5,6 +5,8 @@ import ConnectingLoader from '../ConnectingLoader'
 import Badge from './Badge'
 import BadgeDetail from './BadgeDetail'
 import { rarityOf, rarityRank } from './rarity'
+import { avatarSrc } from '../../avatars/catalog'
+import { focusBorder, blurBorder } from '../authStyles'
 
 // Admin management for the achievement system. Three views: platform analytics,
 // per-user management (grant/revoke/tier/reset/recalculate with live preview), and
@@ -132,9 +134,12 @@ function ManageUser() {
   const [pickBadge, setPickBadge] = useState('')
   const [busy, setBusy] = useState(false)
   const [detail, setDetail] = useState(null)
+  const [roster, setRoster] = useState([])
+  const [focused, setFocused] = useState(false)
 
   useEffect(() => {
     api.get('/api/admin/achievements/catalog').then((r) => setCatalog(r.data)).catch(() => {})
+    api.get('/api/admin/users').then((r) => setRoster(r.data)).catch(() => {})
   }, [])
 
   const load = useCallback(async (username) => {
@@ -147,6 +152,26 @@ function ManageUser() {
       setError(e?.response?.data?.message || 'User not found.'); setData(null)
     } finally { setLoading(false) }
   }, [])
+
+  // Live matches as the admin types — filtered from the roster we already hold.
+  const matches = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    return roster
+      .filter((u) =>
+        u.username.toLowerCase().includes(q) ||
+        (u.displayName || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q)
+      )
+      .slice(0, 8)
+  }, [query, roster])
+
+  const pick = (u) => {
+    setQuery(u.username)
+    setFocused(false)
+    setError('')
+    load(u.username)
+  }
 
   const reload = () => data && load(data.user.username)
 
@@ -166,9 +191,51 @@ function ManageUser() {
 
   return (
     <div>
-      <form onSubmit={(e) => { e.preventDefault(); load(query) }} style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Username or user id…" style={{ ...inputStyle, flex: '1 1 260px' }} />
-        <button type="submit" style={primaryButton(false)}>Look up</button>
+      <form
+        onSubmit={(e) => { e.preventDefault(); if (matches[0]) pick(matches[0]) }}
+        style={{ position: 'relative', maxWidth: '420px', marginBottom: '20px' }}
+      >
+        <input
+          value={query}
+          onChange={(e) => { setQuery(e.target.value); setFocused(true) }}
+          onFocus={(e) => { setFocused(true); focusBorder(e) }}
+          onBlur={(e) => { setTimeout(() => setFocused(false), 120); blurBorder(e) }}
+          placeholder="Search by name, username, or email…"
+          autoComplete="off"
+          style={{ ...inputStyle, width: '100%' }}
+        />
+        {focused && query.trim() && (
+          <div style={dropdown}>
+            {matches.length === 0 ? (
+              <p style={{ padding: '12px 14px', fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta40))' }}>No one matches “{query.trim()}”.</p>
+            ) : (
+              matches.map((u) => (
+                <button
+                  key={u._id}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => pick(u)}
+                  style={matchRow}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(var(--gold-rgb),0.08)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                >
+                  <span style={matchAvatar}>
+                    {u.avatarUrl
+                      ? <img src={avatarSrc(u.avatarUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : (u.displayName || '?').charAt(0).toUpperCase()}
+                  </span>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: '14px', color: 'var(--parchment)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {u.displayName}
+                      {u.role === 'admin' && <span style={{ marginLeft: '6px', fontSize: '10px', letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--gold)' }}>admin</span>}
+                    </span>
+                    <span style={{ display: 'block', fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))' }}>@{u.username}</span>
+                  </span>
+                </button>
+              ))
+            )}
+          </div>
+        )}
       </form>
       {error && <p style={{ fontSize: '13px', color: 'var(--crimson)', marginBottom: '16px' }}>{error}</p>}
 
@@ -315,6 +382,9 @@ const inputStyle = { background: 'rgba(var(--panel-rgb),var(--pa04))', border: '
 const chip = (on) => ({ padding: '7px 14px', fontSize: '12px', letterSpacing: '0.06em', textTransform: 'uppercase', border: `1px solid ${on ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa12))'}`, background: on ? 'rgba(var(--gold-rgb),0.1)' : 'transparent', color: on ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))', cursor: 'pointer', borderRadius: '4px', fontFamily: 'inherit' })
 const miniBtn = (on) => ({ padding: '5px 10px', fontSize: '11px', border: `1px solid ${on ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa12))'}`, background: on ? 'rgba(var(--gold-rgb),0.12)' : 'transparent', color: on ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta55))', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit' })
 const primaryButton = (disabled) => ({ padding: '8px 18px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', border: 'none', background: 'var(--gold-solid)', color: 'var(--on-gold)', borderRadius: '4px', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, fontFamily: 'inherit' })
+const dropdown = { position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0, background: 'var(--surface)', border: '1px solid rgba(var(--gold-rgb),0.25)', borderRadius: '6px', boxShadow: '0 14px 34px rgba(10,10,20,0.4)', overflow: 'hidden', zIndex: 30 }
+const matchRow = { display: 'flex', alignItems: 'center', gap: '11px', width: '100%', padding: '9px 12px', background: 'transparent', border: 'none', borderBottom: '1px solid rgba(var(--panel-rgb),var(--pa04))', cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit', transition: 'background 0.15s ease' }
+const matchAvatar = { flexShrink: 0, width: '30px', height: '30px', borderRadius: '50%', overflow: 'hidden', border: '1px solid rgba(var(--gold-rgb),0.35)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: 'var(--gold)' }
 const dangerButton = (disabled) => ({ padding: '8px 18px', fontSize: '12px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', border: '1px solid rgba(139,26,46,0.5)', background: 'rgba(139,26,46,0.15)', color: '#c45a6e', borderRadius: '4px', cursor: disabled ? 'default' : 'pointer', opacity: disabled ? 0.5 : 1, fontFamily: 'inherit' })
 
 function SectionTitle({ children }) { return <h3 className="font-story" style={{ fontSize: '16px', fontWeight: 400, color: 'var(--parchment)' }}>{children}</h3> }

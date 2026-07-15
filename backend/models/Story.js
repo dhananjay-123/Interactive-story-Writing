@@ -27,6 +27,8 @@ const mapStory = (row) =>
     liked: row.liked ?? false,
     bookmarked: row.bookmarked ?? false,
     myRating: row.my_rating ?? null,
+    // Co-authors (owner excluded) — present on enriched reads, [] otherwise.
+    collaborators: row.collaborators || [],
   }
 
 // Enriched projection. `v` is the SQL placeholder holding the viewer's id
@@ -39,7 +41,12 @@ const enriched = (v) => `
     COALESCE((SELECT ROUND(AVG(value)::numeric, 1) FROM ratings r WHERE r.story_id = s.id), 0)::float AS rating_avg,
     EXISTS(SELECT 1 FROM likes l     WHERE l.story_id = s.id AND l.user_id = ${v}) AS liked,
     EXISTS(SELECT 1 FROM bookmarks b WHERE b.story_id = s.id AND b.user_id = ${v}) AS bookmarked,
-    (SELECT value FROM ratings r     WHERE r.story_id = s.id AND r.user_id = ${v}) AS my_rating
+    (SELECT value FROM ratings r     WHERE r.story_id = s.id AND r.user_id = ${v}) AS my_rating,
+    COALESCE((
+      SELECT json_agg(json_build_object('username', cu.username, 'displayName', cu.display_name) ORDER BY sc.added_at)
+      FROM story_collaborators sc JOIN users cu ON cu.id = sc.user_id
+      WHERE sc.story_id = s.id
+    ), '[]'::json) AS collaborators
   FROM stories s
   LEFT JOIN users u ON u.id = s.author_id
 `

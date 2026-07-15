@@ -7,6 +7,7 @@ import { uploadImage, deleteImages, publicIdFromUrl } from '../api/uploads'
 import ConnectingLoader from '../components/ConnectingLoader'
 import ChangePasswordPanel from '../components/ChangePasswordPanel'
 import ProfileAchievements from '../components/achievements/ProfileAchievements'
+import { avatarSrc, PICKABLE_AVATARS } from '../avatars/catalog'
 
 export default function Profile() {
   const { username } = useParams()
@@ -18,6 +19,7 @@ export default function Profile() {
   const fileRef = useRef(null)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [avatarError, setAvatarError] = useState('')
+  const [pickerOpen, setPickerOpen] = useState(false)
   const [followBusy, setFollowBusy] = useState(false)
   const [followHover, setFollowHover] = useState(false)
   const [listModal, setListModal] = useState(null) // { type, items, loading }
@@ -109,6 +111,21 @@ export default function Profile() {
     }
   }
 
+  const chooseAvatar = async (token) => {
+    setAvatarError('')
+    const old = author.avatarUrl
+    if (old === token) { setPickerOpen(false); return }
+    try {
+      await api.put('/api/auth/me/avatar', { avatarUrl: token })
+      applyAvatar(token)
+      setPickerOpen(false)
+      const oldId = publicIdFromUrl(old) // drop a Cloudinary upload we've replaced
+      if (oldId) deleteImages([oldId])
+    } catch (err) {
+      setAvatarError(err.response?.data?.message || 'Could not save that avatar.')
+    }
+  }
+
   const toggleFollow = async () => {
     if (!user) {
       navigate('/login', { state: { from: `/author/${username}` } })
@@ -165,7 +182,7 @@ export default function Profile() {
                 }}
               >
                 {author.avatarUrl ? (
-                  <img src={author.avatarUrl} alt={author.displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={avatarSrc(author.avatarUrl)} alt={author.displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   author.displayName.charAt(0).toUpperCase()
                 )}
@@ -204,15 +221,11 @@ export default function Profile() {
               <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta35))', marginTop: '4px' }}>
                 @{author.username} · Joined {joined}
               </p>
-              {isOwnProfile && author.avatarUrl && (
-                <button
-                  onClick={removeAvatar}
-                  style={{ marginTop: '6px', background: 'none', border: 'none', color: 'rgba(var(--text-rgb),var(--ta35))', fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--crimson)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
-                >
-                  Remove photo
-                </button>
+              {isOwnProfile && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: '8px' }}>
+                  <TextAction onClick={() => setPickerOpen(true)}>Choose avatar</TextAction>
+                  {author.avatarUrl && <TextAction danger onClick={removeAvatar}>Remove photo</TextAction>}
+                </div>
               )}
             </div>
 
@@ -336,6 +349,90 @@ export default function Profile() {
           onClose={() => setListModal(null)}
         />
       )}
+
+      {pickerOpen && (
+        <AvatarPicker
+          current={author.avatarUrl}
+          onPick={chooseAvatar}
+          onClose={() => setPickerOpen(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function TextAction({ children, onClick, danger }) {
+  const rest = 'rgba(var(--text-rgb),var(--ta35))'
+  const hover = danger ? 'var(--crimson)' : 'var(--gold)'
+  return (
+    <button
+      onClick={onClick}
+      style={{ background: 'none', border: 'none', color: rest, fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+      onMouseEnter={(e) => (e.currentTarget.style.color = hover)}
+      onMouseLeave={(e) => (e.currentTarget.style.color = rest)}
+    >
+      {children}
+    </button>
+  )
+}
+
+function AvatarPicker({ current, onPick, onClose }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(10,10,20,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', zIndex: 50, animation: 'fadeIn 0.2s ease both' }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ width: '100%', maxWidth: '440px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', background: 'var(--ink-soft)', border: '1px solid rgba(var(--gold-rgb),0.25)', borderRadius: '8px', overflow: 'hidden' }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 22px', borderBottom: '1px solid rgba(var(--panel-rgb),var(--pa10))' }}>
+          <h3 className="font-story" style={{ fontSize: '18px', fontWeight: 400, color: 'var(--parchment)' }}>Choose an avatar</h3>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{ background: 'none', border: 'none', color: 'rgba(var(--text-rgb),var(--ta40))', fontSize: '20px', lineHeight: 1, cursor: 'pointer', padding: 0 }}
+          >
+            ×
+          </button>
+        </div>
+
+        <div style={{ overflowY: 'auto', padding: '18px 22px' }}>
+          <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta45))', marginBottom: '16px' }}>
+            Pick a hand-drawn mark. You can switch any time, or upload a photo instead.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(60px, 1fr))', gap: '12px' }}>
+            {PICKABLE_AVATARS.map((a) => {
+              const selected = current === a.token
+              return (
+                <button
+                  key={a.id}
+                  onClick={() => onPick(a.token)}
+                  title={a.label}
+                  aria-label={a.label}
+                  aria-pressed={selected}
+                  style={{
+                    width: '100%',
+                    aspectRatio: '1 / 1',
+                    padding: 0,
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    background: 'none',
+                    border: selected ? '2px solid var(--gold)' : '2px solid transparent',
+                    boxShadow: selected ? '0 0 0 2px var(--ink-soft), 0 0 0 3px rgba(var(--gold-rgb),0.4)' : 'none',
+                    transition: 'transform 0.15s ease, border-color 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.06)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+                >
+                  <img src={a.src} alt="" style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover' }} />
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -420,7 +517,7 @@ function FollowList({ title, loading, items, emptyLabel, onClose }) {
               >
                 <div className="font-story" style={{ width: '40px', height: '40px', flexShrink: 0, borderRadius: '50%', overflow: 'hidden', border: '1px solid rgba(var(--gold-rgb),0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '17px', color: 'var(--gold)' }}>
                   {u.avatarUrl ? (
-                    <img src={u.avatarUrl} alt={u.displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={avatarSrc(u.avatarUrl)} alt={u.displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     u.displayName.charAt(0).toUpperCase()
                   )}

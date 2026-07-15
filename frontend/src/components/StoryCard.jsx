@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import StarRating from './StarRating'
 import TagRow from './TagRow'
+import { authorNames, hasCoAuthors } from '../utils/authors'
 
-const GENRE_COLORS = {
+export const GENRE_COLORS = {
   fantasy:  { bg: 'rgba(139,26,46,0.15)',  border: 'rgba(139,26,46,0.4)',  text: '#c45a6e' },
   mystery:  { bg: 'rgba(74,69,96,0.2)',    border: 'rgba(74,69,96,0.5)',   text: '#9d97b8' },
   sci_fi:   { bg: 'rgba(26,61,43,0.2)',    border: 'rgba(26,61,43,0.5)',   text: '#5fa87a' },
@@ -90,7 +91,7 @@ export default function StoryCard({ story, index }) {
         )}
 
         <div className="flex items-center justify-between">
-          {story.authorUsername ? (
+          {story.authorUsername && !hasCoAuthors(story) ? (
             <span
               role="link"
               tabIndex={0}
@@ -105,7 +106,7 @@ export default function StoryCard({ story, index }) {
             </span>
           ) : (
             <span className="text-xs" style={{ color: 'rgba(var(--text-rgb),var(--ta35))' }}>
-              by {story.author || 'Anonymous'}
+              by {authorNames(story)}
             </span>
           )}
           <span

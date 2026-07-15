@@ -4,6 +4,7 @@ import { useAudio } from '../audio/AudioProvider'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import NotificationBell from './NotificationBell'
+import { avatarSrc } from '../avatars/catalog'
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
@@ -284,7 +285,7 @@ function Avatar({ to, name, src, active }) {
       }
     >
       {src ? (
-        <img src={src} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <img src={avatarSrc(src)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
       ) : (
         initial
       )}

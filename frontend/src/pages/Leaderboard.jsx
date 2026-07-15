@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/client'
 import ConnectingLoader from '../components/ConnectingLoader'
+import { avatarSrc } from '../avatars/catalog'
 
 const BOARDS = [
   { key: 'mostAchievements', title: 'Most Achievements', unit: 'badges' },
@@ -55,7 +56,7 @@ function Board({ title, unit, rows, index }) {
           >
             <span style={{ width: '22px', fontSize: '13px', fontWeight: 700, color: i < 3 ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta35))', flexShrink: 0 }}>{i + 1}</span>
             <div className="font-story" style={{ width: '32px', height: '32px', flexShrink: 0, borderRadius: '50%', overflow: 'hidden', border: '1px solid rgba(var(--gold-rgb),0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: 'var(--gold)' }}>
-              {row.user.avatarUrl ? <img src={row.user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (row.user.displayName || '?').charAt(0).toUpperCase()}
+              {row.user.avatarUrl ? <img src={avatarSrc(row.user.avatarUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : (row.user.displayName || '?').charAt(0).toUpperCase()}
             </div>
             <span style={{ flex: 1, minWidth: 0, fontSize: '14px', color: 'var(--parchment)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{row.user.displayName}</span>
             <span className="font-story" style={{ fontSize: '15px', color: 'var(--gold)' }}>{row.value}</span>

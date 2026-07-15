@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/client'
 import ConnectingLoader from '../components/ConnectingLoader'
@@ -559,11 +559,23 @@ function UsersPanel() {
   const [users, setUsers] = useState(null)
   const [busy, setBusy] = useState(null)
   const [open, setOpen] = useState({}) // userId -> 'detail' | 'reset' | 'ban'
+  const [q, setQ] = useState('')
 
   const load = useCallback(() => {
     api.get('/api/admin/users').then((r) => setUsers(r.data)).catch(() => setUsers([]))
   }, [])
   useEffect(() => { load() }, [load])
+
+  const shown = useMemo(() => {
+    if (!users) return null
+    const term = q.trim().toLowerCase()
+    if (!term) return users
+    return users.filter((u) =>
+      u.username.toLowerCase().includes(term) ||
+      (u.displayName || '').toLowerCase().includes(term) ||
+      (u.email || '').toLowerCase().includes(term)
+    )
+  }, [users, q])
 
   const toggle = (id, pane) =>
     setOpen((o) => ({ ...o, [id]: o[id] === pane ? null : pane }))
@@ -597,7 +609,21 @@ function UsersPanel() {
 
   return (
     <div className="animate-fadeUp" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      {users.map((u) => (
+      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '10px' }}>
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search by name, username, or email…"
+          style={inputStyle}
+        />
+        <span style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta35))', whiteSpace: 'nowrap' }}>
+          {shown.length} of {users.length}
+        </span>
+      </div>
+
+      {shown.length === 0 ? (
+        <Empty>No one matches “{q.trim()}”.</Empty>
+      ) : shown.map((u) => (
         <div key={u._id} style={{ ...panel, padding: '14px 18px', opacity: u.banned ? 0.72 : 1 }}>
           <div style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 220px', minWidth: 0 }}>

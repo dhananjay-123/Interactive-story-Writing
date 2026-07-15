@@ -8,6 +8,7 @@ import { inputStyle, labelStyle, focusBorder, blurBorder } from '../components/a
 import SoundscapePanel from '../components/SoundscapePanel'
 import ReaderPaths from '../components/ReaderPaths'
 import ConnectingLoader from '../components/ConnectingLoader'
+import { avatarSrc } from '../avatars/catalog'
 import CollaboratorsPanel from '../components/CollaboratorsPanel'
 import { useStoryCollab } from '../realtime/useStoryCollab'
 
@@ -502,7 +503,7 @@ function PresenceBar({ presence, myId, connected }) {
                 style={{ width: '26px', height: '26px', marginLeft: i === 0 ? 0 : '-8px', borderRadius: '50%', overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', color: 'var(--gold)', background: 'var(--ink)', border: '1px solid rgba(var(--gold-rgb),0.45)' }}
               >
                 {p.avatarUrl ? (
-                  <img src={p.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={avatarSrc(p.avatarUrl)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   initials(p.displayName)
                 )}

@@ -13,6 +13,7 @@ import { TagRow } from '../components/TagRow'
 import { generateHTML } from '@tiptap/core'
 import { editorExtensions } from '../components/RichTextEditor'
 import { useAudio } from '../audio/AudioProvider'
+import { authorNames } from '../utils/authors'
 import { useAchievements } from '../components/achievements/AchievementsProvider'
 
 export default function StoryReader() {
@@ -288,7 +289,7 @@ export default function StoryReader() {
               {story.title}
             </h1>
             <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta35))' }}>
-              {story.author} — {history.length + 1} {history.length === 0 ? 'passage' : 'passages'} in
+              {authorNames(story)} — {history.length + 1} {history.length === 0 ? 'passage' : 'passages'} in
               {isAuthor && <span style={{ color: 'var(--gold)' }}>  ·  your story</span>}
             </p>
             {isAuthor && (

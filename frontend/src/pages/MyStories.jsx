@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import ConnectingLoader from '../components/ConnectingLoader'
 import EmptyState from '../components/EmptyState'
 import ConfirmDialog from '../components/ConfirmDialog'
+import { authorNames } from '../utils/authors'
 
 const genreLabel = (g) =>
   g === 'sci_fi' ? 'Sci-Fi' : (g || '').charAt(0).toUpperCase() + (g || '').slice(1)
@@ -176,7 +177,7 @@ export default function MyStories() {
                         {!s.published && <Badge tone="crimson">Hidden</Badge>}
                       </div>
                       <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta35))', marginTop: '8px' }}>
-                        {genreLabel(s.genre)} · by {s.author} · {s.branchCount} {s.branchCount === 1 ? 'branch' : 'branches'}
+                        {genreLabel(s.genre)} · by {authorNames(s)} · {s.branchCount} {s.branchCount === 1 ? 'branch' : 'branches'}
                       </p>
                     </div>
                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'flex-start' }}>

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import ConnectingLoader from '../components/ConnectingLoader'
+import { GENRE_COLORS } from '../components/StoryCard'
 
 const GENRES = ['fantasy', 'mystery', 'sci_fi', 'romance', 'horror', 'thriller', 'literary']
 
@@ -108,45 +109,61 @@ export default function Contests() {
 }
 
 function ContestCard({ contest }) {
+  const [hovered, setHovered] = useState(false)
   const open = contest.status === 'open'
+  const genre = GENRE_COLORS[contest.genre] || GENRE_COLORS.default
+  const timing = open ? timeLeft(contest.endsAt) : contest.status === 'upcoming' ? 'opens soon' : 'ended'
+
   return (
     <Link
       to={`/contests/${contest._id}`}
       className="animate-fadeUp"
-      style={{
-        display: 'block',
-        padding: '20px 22px',
-        border: `1px solid ${open ? 'rgba(var(--gold-rgb),0.3)' : 'rgba(var(--panel-rgb),var(--pa10))'}`,
-        borderRadius: '4px',
-        background: open ? 'rgba(var(--gold-rgb),0.04)' : 'transparent',
-        textDecoration: 'none',
-        transition: 'border-color 0.2s ease',
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(var(--gold-rgb),0.55)')}
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.borderColor = open ? 'rgba(var(--gold-rgb),0.3)' : 'rgba(var(--panel-rgb),var(--pa10))')
-      }
+      style={{ textDecoration: 'none' }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '16px', alignItems: 'baseline', flexWrap: 'wrap' }}>
-        <h2 className="font-story" style={{ fontSize: '20px', fontWeight: 400, color: 'var(--parchment)' }}>
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          background: 'var(--surface)',
+          border: `1px solid ${hovered ? 'rgba(var(--gold-rgb),0.45)' : 'rgba(var(--panel-rgb),var(--pa06))'}`,
+          borderRadius: '8px',
+          padding: '24px 26px',
+          cursor: 'pointer',
+          boxShadow: hovered ? 'var(--card-shadow-hover)' : 'var(--card-shadow)',
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
+          transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '14px' }}>
+          <span
+            style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 9px', borderRadius: '4px', background: genre.bg, border: `1px solid ${genre.border}`, color: genre.text }}
+          >
+            {contest.genre ? contest.genre.replace('_', '-') : 'Any genre'}
+          </span>
+          <span style={{ fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', color: open ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta40))' }}>
+            {timing}
+          </span>
+        </div>
+
+        <h2
+          className="font-story"
+          style={{ fontSize: '22px', fontWeight: 400, color: hovered ? 'var(--gold)' : 'var(--parchment)', transition: 'color 0.3s ease', lineHeight: 1.2 }}
+        >
           {contest.title}
         </h2>
-        <span style={{ fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', color: open ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta40))' }}>
-          {contest.status === 'open' ? timeLeft(contest.endsAt) : contest.status === 'upcoming' ? 'opens soon' : 'ended'}
-        </span>
-      </div>
-      {contest.theme && (
-        <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta55))', lineHeight: 1.6, marginTop: '8px', maxWidth: '560px' }}>
-          {contest.theme}
+
+        {contest.theme && (
+          <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta55))', lineHeight: 1.6, marginTop: '10px', maxWidth: '560px' }}>
+            {contest.theme}
+          </p>
+        )}
+
+        <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta35))', marginTop: '16px' }}>
+          {contest.entryCount} {contest.entryCount === 1 ? 'entry' : 'entries'}
+          {' · '}
+          {contest.voteCount} {contest.voteCount === 1 ? 'vote' : 'votes'}
         </p>
-      )}
-      <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta35))', marginTop: '12px' }}>
-        {contest.genre ? `${contest.genre.replace('_', '-')} only` : 'any genre'}
-        {' · '}
-        {contest.entryCount} {contest.entryCount === 1 ? 'entry' : 'entries'}
-        {' · '}
-        {contest.voteCount} {contest.voteCount === 1 ? 'vote' : 'votes'}
-      </p>
+      </div>
     </Link>
   )
 }

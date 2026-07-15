@@ -121,16 +121,19 @@ router.post('/password-request', async (req, res) => {
 })
 
 // PUT /api/auth/me/avatar — set or clear the signed-in user's profile picture.
+// Accepts either a Cloudinary upload URL or a built-in avatar token (avatar:<id>).
 router.put('/me/avatar', requireAuth, async (req, res) => {
   let { avatarUrl } = req.body || {}
+  const isCloudinary = (v) => /^https:\/\/res\.cloudinary\.com\//.test(v)
+  const isBuiltIn = (v) => /^avatar:[a-z0-9-]{1,40}$/.test(v)
   if (avatarUrl === '' || avatarUrl == null) {
     avatarUrl = null
   } else if (
     typeof avatarUrl !== 'string' ||
     avatarUrl.length > 400 ||
-    !/^https:\/\/res\.cloudinary\.com\//.test(avatarUrl)
+    !(isCloudinary(avatarUrl) || isBuiltIn(avatarUrl))
   ) {
-    return res.status(400).json({ message: 'Invalid image URL.' })
+    return res.status(400).json({ message: 'Invalid avatar.' })
   }
   try {
     const user = await User.setAvatar(req.user._id, avatarUrl)
