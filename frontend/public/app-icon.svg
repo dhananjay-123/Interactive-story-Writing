@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="96" fill="#1a1a2e"/>
+  <rect x="26" y="26" width="460" height="460" rx="78" fill="none" stroke="#c9a84c" stroke-width="10" opacity="0.55"/>
+  <!-- quill -->
+  <path d="M352 118 C 300 138, 232 196, 204 268 C 192 300, 186 330, 184 352 L 214 344 C 224 306, 244 258, 282 214 C 306 186, 332 160, 352 146 Z"
+        fill="#c9a84c"/>
+  <path d="M352 118 C 330 150, 300 196, 268 244 C 240 286, 216 324, 200 350"
+        fill="none" stroke="#1a1a2e" stroke-width="8" stroke-linecap="round"/>
+  <!-- nib line into the well -->
+  <path d="M196 356 L 172 386" stroke="#c9a84c" stroke-width="10" stroke-linecap="round"/>
+  <!-- inkwell -->
+  <path d="M120 386 h 96 l -10 44 a 14 14 0 0 1 -14 11 h -48 a 14 14 0 0 1 -14 -11 Z" fill="#faf8f3"/>
+  <ellipse cx="168" cy="386" rx="48" ry="10" fill="#c9a84c"/>
+  <!-- three story branches -->
+  <g stroke="#faf8f3" stroke-width="9" stroke-linecap="round" opacity="0.85">
+    <path d="M310 330 h 76"/>
+    <path d="M310 366 h 56"/>
+    <path d="M310 402 h 66"/>
+    <path d="M310 330 v 72" opacity="0.6"/>
+  </g>
+</svg>

@@ -4,6 +4,7 @@ import StoryList from './pages/StoryList'
 import Featured from './pages/Featured'
 import StoryReader from './pages/StoryReader'
 import StoryEditor from './pages/StoryEditor'
+import StoryStudio from './pages/StoryStudio'
 import CreateStory from './pages/CreateStory'
 import MyStories from './pages/MyStories'
 import Login from './pages/Login'
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/featured" element={<Featured />} />
                 <Route path="/story/:id" element={<StoryReader />} />
                 <Route path="/story/:id/edit" element={<StoryEditor />} />
+                <Route path="/story/:id/studio" element={<StoryStudio />} />
                 <Route path="/create" element={<CreateStory />} />
                 <Route path="/my-stories" element={<MyStories />} />
                 <Route path="/achievements" element={<Achievements />} />

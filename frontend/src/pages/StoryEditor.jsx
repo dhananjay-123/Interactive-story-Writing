@@ -3,9 +3,11 @@ import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import BranchComposer from '../components/BranchComposer'
+import NodeHistory from '../components/NodeHistory'
 import RichTextEditor, { textToDoc } from '../components/RichTextEditor'
 import { inputStyle, labelStyle, focusBorder, blurBorder } from '../components/authStyles'
 import SoundscapePanel from '../components/SoundscapePanel'
+import PlacesPanel from '../components/PlacesPanel'
 import ReaderPaths from '../components/ReaderPaths'
 import ConnectingLoader from '../components/ConnectingLoader'
 import { avatarSrc } from '../avatars/catalog'
@@ -19,6 +21,7 @@ export default function StoryEditor() {
 
   const [story, setStory] = useState(null)
   const [nodeMap, setNodeMap] = useState({})
+  const [places, setPlaces] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -44,6 +47,11 @@ export default function StoryEditor() {
   useEffect(() => {
     load()
   }, [load])
+
+  // The world map's pins — shared by the map panel and the passage editor.
+  useEffect(() => {
+    api.get(`/api/stories/${id}/places`).then(({ data }) => setPlaces(data)).catch(() => {})
+  }, [id])
 
   // Edit gate — the owner, or a collaborator the owner invited. `canEdit` comes
   // from the tree endpoint; fall back to the owner check if an older backend
@@ -136,6 +144,7 @@ export default function StoryEditor() {
     setActiveCompose,
     storyId: story._id,
     rootId: story.rootNodeId,
+    places,
     onReload: afterMutation,
     reloadTree: load,
     // Collaboration
@@ -171,6 +180,12 @@ export default function StoryEditor() {
             Every choice can branch into its own passage, as deep as you like. Expand a branch to keep writing,
             edit any passage, or prune a path you don’t want.
           </p>
+          <Link
+            to={`/story/${id}/studio`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginTop: '16px', color: 'var(--gold)', textDecoration: 'none', fontSize: '12px', letterSpacing: '0.08em', textTransform: 'uppercase', border: '1px solid rgba(var(--gold-rgb),0.35)', borderRadius: 'var(--r-sm)', padding: '9px 16px' }}
+          >
+            ⌥ Open story studio — graph · validate · debug →
+          </Link>
 
           {/* Who else is writing this right now. */}
           <PresenceBar presence={presence} myId={user?._id} connected={connected} />
@@ -181,6 +196,9 @@ export default function StoryEditor() {
 
         {/* Soundscape picker */}
         <SoundscapePanel story={story} onChange={(next) => setStory((s) => ({ ...s, ambience: next }))} />
+
+        {/* World map — pin the story's places. */}
+        <PlacesPanel storyId={story._id} places={places} onChange={setPlaces} />
 
         {/* Reader paths — which way people actually went. */}
         <div style={{ margin: '0 0 36px', padding: '20px 22px', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '8px', background: 'rgba(var(--panel-rgb),var(--pa02))' }}>
@@ -339,6 +357,7 @@ function NodeEditor({ node, ctx }) {
   const [editor, setEditor] = useState(null)
   const [empty, setEmpty] = useState(!node.text && !node.content)
   const [choices, setChoices] = useState(node.choices.map((c) => ({ ...c })))
+  const [placeId, setPlaceId] = useState(node.placeId || '')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const editorControls = useRef(null)
@@ -366,6 +385,10 @@ function NodeEditor({ node, ctx }) {
         content: editor.getJSON(),
         choices: choices.map((c) => ({ text: c.text.trim(), nextNodeId: c.nextNodeId ?? null })),
       })
+      // The world-map pin rides along when it changed.
+      if ((node.placeId || '') !== placeId) {
+        await api.put(`/api/nodes/${node._id}/place`, { placeId: placeId || null })
+      }
       ctx.endEdit(node._id) // release the soft lock, then refresh the tree
       await ctx.reloadTree()
     } catch (err) {
@@ -425,7 +448,30 @@ function NodeEditor({ node, ctx }) {
         </p>
       </div>
 
+      {/* Where on the world map this passage happens. */}
+      {ctx.places.length > 0 && (
+        <div style={{ marginTop: '18px' }}>
+          <label style={labelStyle}>Place on the map</label>
+          <select
+            value={placeId}
+            onChange={(e) => setPlaceId(e.target.value)}
+            style={{ ...inputStyle, cursor: 'pointer' }}
+          >
+            <option value="">— nowhere in particular —</option>
+            {ctx.places.map((p) => (
+              <option key={p._id} value={p._id}>{p.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {error && <p style={{ fontSize: '13px', color: 'var(--crimson)', marginTop: '14px' }}>{error}</p>}
+
+      {/* Prior versions of this passage — preview or roll back. */}
+      <NodeHistory
+        nodeId={node._id}
+        onRestored={async () => { ctx.endEdit(node._id); await ctx.reloadTree() }}
+      />
 
       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '20px' }}>
         <button onClick={save} disabled={!canSave}

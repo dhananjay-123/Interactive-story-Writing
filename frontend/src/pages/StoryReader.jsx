@@ -8,6 +8,8 @@ import ConnectingLoader from '../components/ConnectingLoader'
 import EngagementBar from '../components/EngagementBar'
 import CommentSection from '../components/CommentSection'
 import NarrationPanel from '../components/NarrationPanel'
+import EndingDiscovery from '../components/EndingDiscovery'
+import WorldMap from '../components/WorldMap'
 import ReportButton from '../components/ReportButton'
 import { TagRow } from '../components/TagRow'
 import { generateHTML } from '@tiptap/core'
@@ -38,6 +40,8 @@ export default function StoryReader() {
   // recognise is worse than one extra click.
   const [resumable, setResumable] = useState(null) // { currentNodeId, path, passagesIn }
   const [resuming, setResuming] = useState(false)
+  // Set when a progress save reports the reader just collected a new ending.
+  const [endingNews, setEndingNews] = useState(null) // { isNew, nodeId }
 
   const isAuthor = Boolean(user && story && user._id === story.authorId)
 
@@ -100,6 +104,8 @@ export default function StoryReader() {
   }, [user, node, refreshAchievements])
 
   // Fire-and-forget: a failed bookmark save must never interrupt the reading.
+  // The response does carry one thing worth keeping — whether this arrival
+  // collected a brand-new ending.
   const saveProgress = useCallback(
     (currentNodeId, trail) => {
       if (!user) return
@@ -107,6 +113,11 @@ export default function StoryReader() {
         .put(`/api/stories/${id}/progress`, {
           currentNodeId,
           path: trail.map((n) => n._id),
+        })
+        .then(({ data }) => {
+          if (data?.endingDiscovery) {
+            setEndingNews({ ...data.endingDiscovery, nodeId: currentNodeId })
+          }
         })
         .catch(() => {})
     },
@@ -341,6 +352,13 @@ export default function StoryReader() {
 
           <Passage node={node} />
 
+          {/* The world map, lit as far as this reading has travelled. */}
+          <WorldMap
+            storyId={story._id}
+            trail={[...history, node].map((n) => n.placeId).filter(Boolean)}
+            currentPlaceId={node.placeId || null}
+          />
+
           <Divider />
 
           {composing ? (
@@ -353,7 +371,17 @@ export default function StoryReader() {
               onDone={handleComposed}
             />
           ) : isEnding ? (
-            <EndingBlock isAuthor={isAuthor} onRestart={handleRestart} />
+            <>
+              <EndingBlock isAuthor={isAuthor} onRestart={handleRestart} />
+              {!isAuthor && (
+                <EndingDiscovery
+                  storyId={story._id}
+                  currentNodeId={node._id}
+                  user={user}
+                  news={endingNews}
+                />
+              )}
+            </>
           ) : (
             <div>
               <p style={{ fontSize: '11px', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '20px' }}>

@@ -1,6 +1,8 @@
 const router = require('express').Router()
 const Node = require('../models/Node')
 const Story = require('../models/Story')
+const Snapshot = require('../models/Snapshot')
+const Place = require('../models/Place')
 const { requireAuth, optionalAuth } = require('../middleware/auth')
 const { validateContent } = require('../utils/validateContent')
 const { canEditStory } = require('../utils/permissions')
@@ -133,6 +135,9 @@ router.put('/:id', requireAuth, async (req, res) => {
       return res.status(409).json({ message: 'Delete a written branch before removing its choice.' })
     }
 
+    // Keep the pre-edit version so the author can roll back later.
+    await Snapshot.record(node, req.user._id)
+
     const updated = await Node.update(node._id, { text: (text || '').trim(), content, choices })
     await Story.setBranchCount(story._id, (await Node.countByStory(story._id)) - 1)
     achievements.emit(story.authorId, 'STORY_UPDATED', { storyId: story._id })
@@ -169,6 +174,80 @@ router.delete('/:id', requireAuth, async (req, res) => {
     collab?.notifyChanged(story._id, { by: req.user._id, action: 'delete', nodeId: node._id })
 
     res.json({ message: 'Deleted' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// PUT set (or clear) which world-map place a passage happens at.
+router.put('/:id/place', requireAuth, async (req, res) => {
+  const { placeId } = req.body || {}
+  try {
+    const owned = await loadEditable(req, res)
+    if (!owned) return
+    const { node, story } = owned
+
+    if (placeId) {
+      const place = await Place.findById(placeId)
+      if (!place || place.storyId !== story._id) {
+        return res.status(400).json({ message: 'That place is not on this story’s map.' })
+      }
+    }
+    const updated = await Node.setPlace(node._id, placeId || null)
+    req.app.get('collab')?.notifyChanged(story._id, { by: req.user._id, action: 'edit', nodeId: node._id })
+    res.json(updated)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// GET a passage's edit history (prior versions). Owner/collaborator only.
+router.get('/:id/history', requireAuth, async (req, res) => {
+  try {
+    const owned = await loadEditable(req, res)
+    if (!owned) return
+    const snapshots = await Snapshot.listForNode(owned.node._id)
+    res.json(snapshots)
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// POST restore a prior version. To keep the tree intact this only reverts the
+// passage's prose and its choice *labels* (matched by position) — it never
+// relinks or changes the number of branches. The current state is snapshotted
+// first, so a restore is itself undoable.
+router.post('/:id/restore', requireAuth, async (req, res) => {
+  const { snapshotId } = req.body || {}
+  if (!snapshotId) return res.status(400).json({ message: 'snapshotId is required' })
+  try {
+    const owned = await loadEditable(req, res)
+    if (!owned) return
+    const { node, story } = owned
+
+    const snap = await Snapshot.findById(snapshotId)
+    if (!snap || snap.nodeId !== node._id) {
+      return res.status(404).json({ message: 'That version does not belong to this passage.' })
+    }
+
+    // Preserve the live tree: keep each current choice's link + count, but pull
+    // the label back from the snapshot where a choice still exists at that slot.
+    const snapChoices = snap.choices || []
+    const choices = (node.choices || []).map((c, i) => ({
+      text: (snapChoices[i]?.text ?? c.text) || '',
+      nextNodeId: c.nextNodeId ?? null,
+    }))
+
+    await Snapshot.record(node, req.user._id) // make the restore reversible
+    const updated = await Node.update(node._id, {
+      text: snap.text || '',
+      content: snap.content || null,
+      choices,
+    })
+    achievements.emit(story.authorId, 'STORY_UPDATED', { storyId: story._id })
+    req.app.get('collab')?.notifyChanged(story._id, { by: req.user._id, action: 'edit', nodeId: node._id })
+
+    res.json(updated)
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

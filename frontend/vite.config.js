@@ -21,5 +21,20 @@ export default defineConfig({
         ws: true,
       },
     }
+  },
+  // `vite preview` serves the production build (service worker included) and
+  // needs the same API proxy as dev.
+  preview: {
+    proxy: {
+      '/api': {
+        target: 'https://interactive-story-writing.onrender.com',
+        changeOrigin: true,
+      },
+      '/socket.io': {
+        target: 'https://interactive-story-writing.onrender.com',
+        changeOrigin: true,
+        ws: true,
+      },
+    }
   }
 })

@@ -679,3 +679,39 @@ textarea::placeholder {
   .animate-unlockPop, .achv-toast-in, .achv-toast-out { animation: none; }
   .confetti-piece { display: none; }
 }
+
+/* World map — the "you are here" ring breathes. */
+@keyframes wmPulse {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(1.35); }
+}
+.wm-here {
+  animation: wmPulse 2.4s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wm-here { animation: none; }
+}
+
+/* Story studio — graph beside a tab panel; the panel drops below on narrow screens. */
+.ct-studio-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 26px;
+  align-items: start;
+}
+.ct-studio-panel {
+  position: sticky;
+  top: 100px;
+  max-height: calc(100vh - 130px);
+  overflow-y: auto;
+  padding: 20px 20px 24px;
+  border: 1px solid rgba(var(--panel-rgb), var(--pa10));
+  border-radius: var(--r-md);
+  background: rgba(var(--panel-rgb), var(--pa02));
+}
+@media (max-width: 860px) {
+  .ct-studio-grid { grid-template-columns: minmax(0, 1fr); }
+  .ct-studio-panel { position: static; max-height: none; }
+}

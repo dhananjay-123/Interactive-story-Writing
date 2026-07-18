@@ -6,6 +6,8 @@ const Comment = require('../models/Comment')
 const Report = require('../models/Report')
 const Progress = require('../models/Progress')
 const ChoiceEvent = require('../models/ChoiceEvent')
+const Discovery = require('../models/Discovery')
+const Place = require('../models/Place')
 const User = require('../models/User')
 const Collaborator = require('../models/Collaborator')
 const Follow = require('../models/Follow')
@@ -503,6 +505,7 @@ router.put('/:id/progress', requireAuth, async (req, res) => {
 
     // Every save is a sign of reader activity; reaching an ending is a completion.
     achievements.emit(req.user._id, 'READING_PROGRESS', { storyId: req.params.id })
+    let endingDiscovery = null
     if (node.isEnding) {
       const story = await Story.findById(req.params.id)
       achievements.emit(req.user._id, 'STORY_COMPLETED', {
@@ -510,8 +513,18 @@ router.put('/:id/progress', requireAuth, async (req, res) => {
         nodeId: node._id,
         genre: story?.genre || null,
       })
+      // Collect the ending — but not for the author, whose walkthroughs of
+      // their own draft aren't discoveries (same rule as choice analytics).
+      if (story && story.authorId !== req.user._id) {
+        const isNew = await Discovery.record({
+          userId: req.user._id,
+          storyId: req.params.id,
+          nodeId: node._id,
+        })
+        endingDiscovery = { isNew }
+      }
     }
-    res.json(saved)
+    res.json({ ...saved, endingDiscovery })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }
@@ -560,6 +573,103 @@ router.post('/:id/choice', optionalAuth, async (req, res) => {
     // Signed-in choices feed exploration achievements; anonymous ones don't count.
     if (req.user) achievements.emit(req.user._id, 'CHOICE_MADE', { storyId: req.params.id })
     res.status(201).json({ recorded: true })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// ── World map places ─────────────────────────────────────────────────────────
+
+// GET /api/stories/:id/places — the pins on this story's map. Public: readers
+// need them to draw the map.
+router.get('/:id/places', async (req, res) => {
+  try {
+    const story = await Story.findById(req.params.id)
+    if (!story) return res.status(404).json({ message: 'Story not found' })
+    res.json(await Place.findByStory(req.params.id))
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// Owner or collaborator may shape the map; everyone else just reads it.
+const loadEditableStory = async (req, res) => {
+  const story = await Story.findById(req.params.id)
+  if (!story) {
+    res.status(404).json({ message: 'Story not found' })
+    return null
+  }
+  if (!(await canEditStory(story, req.user._id))) {
+    res.status(403).json({ message: 'You can only edit stories you own or collaborate on.' })
+    return null
+  }
+  return story
+}
+
+const validPlaceBody = ({ name, x, y }) =>
+  name?.trim() && name.trim().length <= 60 && Number.isFinite(Number(x)) && Number.isFinite(Number(y))
+
+// POST /api/stories/:id/places  { name, blurb, x, y }
+router.post('/:id/places', requireAuth, async (req, res) => {
+  if (!validPlaceBody(req.body || {})) {
+    return res.status(400).json({ message: 'A place needs a name (max 60 chars) and map coordinates.' })
+  }
+  try {
+    const story = await loadEditableStory(req, res)
+    if (!story) return
+    if ((await Place.countByStory(story._id)) >= Place.MAX_PER_STORY) {
+      return res.status(400).json({ message: `A map holds at most ${Place.MAX_PER_STORY} places.` })
+    }
+    const { name, blurb, x, y } = req.body
+    res.status(201).json(await Place.create({ storyId: story._id, name, blurb, x, y }))
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// PUT /api/stories/:id/places/:placeId  { name, blurb, x, y }
+router.put('/:id/places/:placeId', requireAuth, async (req, res) => {
+  if (!validPlaceBody(req.body || {})) {
+    return res.status(400).json({ message: 'A place needs a name (max 60 chars) and map coordinates.' })
+  }
+  try {
+    const story = await loadEditableStory(req, res)
+    if (!story) return
+    const place = await Place.findById(req.params.placeId)
+    if (!place || place.storyId !== story._id) {
+      return res.status(404).json({ message: 'That place is not on this map.' })
+    }
+    const { name, blurb, x, y } = req.body
+    res.json(await Place.update(place._id, { name, blurb, x, y }))
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// DELETE /api/stories/:id/places/:placeId — unpins its passages (FK SET NULL).
+router.delete('/:id/places/:placeId', requireAuth, async (req, res) => {
+  try {
+    const story = await loadEditableStory(req, res)
+    if (!story) return
+    const place = await Place.findById(req.params.placeId)
+    if (!place || place.storyId !== story._id) {
+      return res.status(404).json({ message: 'That place is not on this map.' })
+    }
+    await Place.remove(place._id)
+    res.json({ message: 'Removed' })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// GET /api/stories/:id/endings — the story's ending collection through this
+// viewer's eyes. Endings they haven't reached come back sealed (no id, no
+// text), so the list teases what's left without spoiling it.
+router.get('/:id/endings', optionalAuth, async (req, res) => {
+  try {
+    const story = await Story.findById(req.params.id)
+    if (!story) return res.status(404).json({ message: 'Story not found' })
+    res.json(await Discovery.collection(req.params.id, viewerId(req)))
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

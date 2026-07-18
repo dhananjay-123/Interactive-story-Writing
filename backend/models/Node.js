@@ -8,6 +8,7 @@ const mapNode = (row) =>
     content: row.content,
     choices: row.choices,
     isEnding: row.is_ending,
+    placeId: row.place_id || null,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }
@@ -86,6 +87,15 @@ const deleteSubtree = async (id) => {
   await db.query('DELETE FROM nodes WHERE id = $1', [id])
 }
 
+// Pin a passage to a place on the story's world map (or null to unpin).
+const setPlace = async (id, placeId) => {
+  const { rows } = await db.query(
+    `UPDATE nodes SET place_id = $2, updated_at = NOW() WHERE id = $1 RETURNING *`,
+    [id, placeId || null]
+  )
+  return mapNode(rows[0])
+}
+
 const attachChild = async (parentId, choiceIndex, childId) => {
   await db.query(
     `UPDATE nodes
@@ -103,6 +113,7 @@ module.exports = {
   countByStory,
   findByStory,
   update,
+  setPlace,
   attachChild,
   detachChild,
   deleteSubtree,

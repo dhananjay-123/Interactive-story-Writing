@@ -205,6 +205,44 @@ const initDb = async () => {
     CREATE INDEX IF NOT EXISTS idx_choice_events_node ON choice_events (from_node_id, choice_index);
     CREATE INDEX IF NOT EXISTS idx_choice_events_story ON choice_events (story_id, created_at DESC);
 
+    -- Ending discovery ---------------------------------------------------------
+
+    -- One row per (reader, ending reached). Distinct from reader_completions,
+    -- which records that a story was finished at all — this tracks WHICH endings
+    -- a reader has collected, so a branching story stays replayable ("4 of 9
+    -- endings found"). The node FK cascades: delete an ending and its
+    -- discoveries vanish with it.
+    CREATE TABLE IF NOT EXISTS ending_discoveries (
+      user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      story_id   UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      node_id    UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, node_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_discoveries_user_story ON ending_discoveries (user_id, story_id);
+    CREATE INDEX IF NOT EXISTS idx_discoveries_story ON ending_discoveries (story_id);
+
+    -- World map ----------------------------------------------------------------
+
+    -- Named places an author pins onto their story's map. Coordinates are
+    -- percentages of the map canvas (0-100), so the same pin works at any
+    -- rendered size. Passages point at a place via nodes.place_id; the reader's
+    -- map lights up the places their trail has passed through.
+    CREATE TABLE IF NOT EXISTS story_places (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      story_id   UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      name       TEXT NOT NULL,
+      blurb      TEXT,
+      x          REAL NOT NULL CHECK (x >= 0 AND x <= 100),
+      y          REAL NOT NULL CHECK (y >= 0 AND y <= 100),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_places_story ON story_places (story_id, created_at ASC);
+
+    -- Where a passage takes place. SET NULL: deleting a place unpins its
+    -- passages instead of deleting prose.
+    ALTER TABLE nodes ADD COLUMN IF NOT EXISTS place_id UUID REFERENCES story_places(id) ON DELETE SET NULL;
+
     -- Account recovery -------------------------------------------------------
 
     -- A locked-out reader asks an admin to set them a new password. We store no
@@ -242,6 +280,26 @@ const initDb = async () => {
     -- "Who can I edit with" and "which stories can I help write" — both directions.
     CREATE INDEX IF NOT EXISTS idx_collab_story ON story_collaborators (story_id);
     CREATE INDEX IF NOT EXISTS idx_collab_user  ON story_collaborators (user_id, added_at DESC);
+
+    -- Version history --------------------------------------------------------
+
+    -- A prior version of a passage, written just before an edit or restore
+    -- overwrites it. Cascades with the node, so deleting a passage clears its
+    -- history too. edited_by is SET NULL so a removed account leaves the trail
+    -- readable. Restores only revert prose + choice labels (never relink the
+    -- tree), so the choices JSON here is a record, not something replayed blindly.
+    CREATE TABLE IF NOT EXISTS node_snapshots (
+      id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      node_id     UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+      story_id    UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      text        TEXT NOT NULL DEFAULT '',
+      content     JSONB,
+      choices     JSONB NOT NULL DEFAULT '[]'::jsonb,
+      is_ending   BOOLEAN NOT NULL DEFAULT FALSE,
+      edited_by   UUID REFERENCES users(id) ON DELETE SET NULL,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_node_snapshots_node ON node_snapshots (node_id, created_at DESC);
 
     -- Social notifications ---------------------------------------------------
 

@@ -28,6 +28,9 @@ Thumbs.db
 # Vite cache
 frontend/.vite/
 
+# Generated study documentation
+project-docs/
+
 
 CLAUDE.md
 .claude/
