@@ -16,6 +16,7 @@ import Achievements from './pages/Achievements'
 import Leaderboard from './pages/Leaderboard'
 import Contests from './pages/Contests'
 import ContestDetail from './pages/ContestDetail'
+import NotFound from './pages/NotFound'
 import RequireAdmin from './components/RequireAdmin'
 import Navbar from './components/Navbar'
 import InkCursor from './components/InkCursor'
@@ -64,6 +65,7 @@ function App() {
                     </RequireAdmin>
                   }
                 />
+                <Route path="*" element={<NotFound />} />
               </Routes>
             </AchievementsProvider>
             </NotificationsProvider>

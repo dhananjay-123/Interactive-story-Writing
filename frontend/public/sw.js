@@ -11,7 +11,9 @@
      Auth, admin, uploads and notifications are never cached.
    - Everything else passes straight through. */
 
-const VERSION = 'ct-v1'
+// Bumping this drops every old cache on activate — needed here to clear the
+// per-reader tree/progress responses a previous version had already stored.
+const VERSION = 'ct-v2'
 const SHELL_CACHE = `${VERSION}-shell`
 const ASSET_CACHE = `${VERSION}-assets`
 const API_CACHE = `${VERSION}-api`
@@ -48,8 +50,19 @@ async function trim(cacheName, limit) {
   await Promise.all(keys.slice(0, keys.length - limit).map((k) => cache.delete(k)))
 }
 
+// Per-reader or edit-time responses. These are cached under a URL that says
+// nothing about who asked or what the tree looked like a minute ago, so a stale
+// hit shows the wrong bookmark, or an author's story map as it was before their
+// last edit. Never cached, never served from cache — they always go to the
+// network and fail honestly when it isn't there.
+const isLiveOnlyApi = (url) =>
+  /^\/api\/nodes\/story\/[^/]+\/tree$/.test(url.pathname) ||
+  /^\/api\/nodes\/[^/]+\/history$/.test(url.pathname) ||
+  /^\/api\/stories\/[^/]+\/(progress|endings|analytics|collaborators)$/.test(url.pathname)
+
 const isReadableApi = (url) =>
-  url.pathname.startsWith('/api/stories') || url.pathname.startsWith('/api/nodes')
+  (url.pathname.startsWith('/api/stories') || url.pathname.startsWith('/api/nodes')) &&
+  !isLiveOnlyApi(url)
 
 self.addEventListener('fetch', (event) => {
   const { request } = event

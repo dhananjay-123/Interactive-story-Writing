@@ -64,6 +64,9 @@ export default function CommentSection({ storyId, storyAuthorId }) {
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Share what you thought of this story…"
+            // The placeholder disappears the moment anyone types, so it can't be
+            // the field's only name.
+            aria-label="Write a comment"
             maxLength={2000}
             style={{
               width: '100%', minHeight: '84px', resize: 'vertical',

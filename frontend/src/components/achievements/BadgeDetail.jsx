@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import Badge from './Badge'
 import { rarityOf } from './rarity'
 
@@ -7,6 +8,14 @@ import { rarityOf } from './rarity'
 // existing overlay pattern (see Profile's FollowList).
 
 export default function BadgeDetail({ badge, onClose, pinControl }) {
+  // Escape closes it. Clicking the backdrop already did, but that is no use to
+  // anyone reading with a keyboard.
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
   if (!badge) return null
   const rarity = rarityOf(badge.rarity)
   const unlocked = badge.state === 'unlocked'
@@ -19,6 +28,9 @@ export default function BadgeDetail({ badge, onClose, pinControl }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${badge.name} — ${rarity.label}`}
         className="animate-fadeUp"
         style={{ width: '100%', maxWidth: '380px', background: 'var(--ink-soft)', border: `1px solid ${unlocked ? rarity.ring : 'rgba(var(--panel-rgb),var(--pa15))'}`, borderRadius: '8px', overflow: 'hidden' }}
       >

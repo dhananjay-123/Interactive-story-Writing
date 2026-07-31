@@ -2,14 +2,15 @@ import { useState } from 'react'
 import BadgeIcon from './BadgeIcon'
 import { rarityOf, rarityRank, isRadiant } from './rarity'
 
-// A single badge medallion: a gilt/gem disc with a rarity ring, an optional
-// progress arc, and locked / in-progress / unlocked treatments. Pure CSS — the
-// gradient, bevel, glow and shimmer are all layered background + box-shadow, and
-// the only motion is a light hover lift plus a slow sheen on Legendary+.
-
-const RING = 100
-const R = 45
-const CIRC = 2 * Math.PI * R
+// A single badge medallion: a gilt/gem disc, locked / in-progress / unlocked
+// treatments, and — for a badge part-way earned — a short rule beneath it.
+// Pure CSS: the gradient, bevel, glow and shimmer are layered background +
+// box-shadow, and the only motion is a light hover lift plus a slow sheen on
+// Legendary+.
+//
+// Progress is drawn as a rule rather than an arc around the disc. A ring is on
+// the house list of AI-generic tells (CLAUDE.md), and the tier tracks further up
+// the same page already read as horizontal bars, so this matches them.
 
 export default function Badge({ badge, size = 92, onClick, showLabel = true, earnedDate = false }) {
   const [hover, setHover] = useState(false)
@@ -27,7 +28,6 @@ export default function Badge({ badge, size = 92, onClick, showLabel = true, ear
     ? `radial-gradient(circle at 34% 28%, ${rarity.hi}, ${rarity.lo} 78%)`
     : `radial-gradient(circle at 34% 28%, rgba(var(--panel-rgb),var(--pa10)), rgba(var(--panel-rgb),var(--pa04)) 80%)`
 
-  const ringColor = unlocked ? rarity.ring : 'rgba(var(--panel-rgb),var(--pa15))'
   const lift = hover ? 'translateY(-3px)' : 'translateY(0)'
   const glow = unlocked
     ? `0 6px 18px -6px ${rarity.glow}, inset 0 2px 5px rgba(255,255,255,0.28), inset 0 -4px 8px rgba(0,0,0,0.3)`
@@ -47,23 +47,11 @@ export default function Badge({ badge, size = 92, onClick, showLabel = true, ear
       }}
     >
       <div style={{ position: 'relative', width: size, height: size, transition: 'transform 0.25s ease', transform: lift }}>
-        {/* Progress / rarity ring */}
-        <svg viewBox={`0 0 ${RING} ${RING}`} width={size} height={size} style={{ position: 'absolute', inset: 0, transform: 'rotate(-90deg)' }} aria-hidden="true">
-          <circle cx="50" cy="50" r={R} fill="none" stroke="rgba(var(--panel-rgb),var(--pa10))" strokeWidth="3.5" />
-          {(unlocked || inProgress) && (
-            <circle
-              cx="50" cy="50" r={R} fill="none" stroke={ringColor} strokeWidth="3.5" strokeLinecap="round"
-              strokeDasharray={CIRC} strokeDashoffset={unlocked ? 0 : CIRC * (1 - pct / 100)}
-              style={{ transition: 'stroke-dashoffset 0.6s ease' }}
-            />
-          )}
-        </svg>
-
         {/* Medallion disc */}
         <div
           className={unlocked && isRadiant(badge.rarity) ? 'badge-radiant' : undefined}
           style={{
-            position: 'absolute', inset: '10%', borderRadius: '50%',
+            position: 'absolute', inset: '4%', borderRadius: '50%',
             background: discGradient,
             border: `1px solid ${unlocked ? 'rgba(255,255,255,0.25)' : 'rgba(var(--panel-rgb),var(--pa12))'}`,
             boxShadow: glow,
@@ -75,12 +63,6 @@ export default function Badge({ badge, size = 92, onClick, showLabel = true, ear
           }}
         >
           <BadgeIcon shape={badge.icon?.shape || 'star'} size={size * 0.42} />
-          {inProgress && (
-            <span style={{
-              position: 'absolute', bottom: '-1px', left: 0, right: 0, textAlign: 'center',
-              fontSize: '9px', fontWeight: 700, letterSpacing: '0.04em', color: 'rgba(var(--text-rgb),var(--ta55))',
-            }}>{pct}%</span>
-          )}
         </div>
 
         {/* Rarity gemstone marker */}
@@ -94,6 +76,32 @@ export default function Badge({ badge, size = 92, onClick, showLabel = true, ear
             boxShadow: unlocked ? `0 0 6px ${rarity.glow}` : 'none',
           }}
         />
+      </div>
+
+      {/* How far along, for a badge not yet earned. Always laid out, hidden when
+          there is nothing to report, so every label in a row sits on one line. */}
+      <div
+        aria-hidden={!inProgress}
+        style={{
+          width: Math.round(size * 0.68),
+          marginTop: '-4px',
+          visibility: inProgress ? 'visible' : 'hidden',
+        }}
+      >
+        <div style={{ height: '2px', background: 'rgba(var(--panel-rgb),var(--pa10))' }}>
+          <div
+            style={{
+              width: `${Math.max(2, Math.min(100, pct))}%`,
+              height: '100%',
+              background: rarity.ring,
+              transition: 'width 0.6s ease',
+            }}
+          />
+        </div>
+        <p style={{
+          fontSize: '9px', letterSpacing: '0.08em', marginTop: '4px', textAlign: 'center',
+          color: 'rgba(var(--text-rgb),var(--ta45))',
+        }}>{pct}%</p>
       </div>
 
       {showLabel && (

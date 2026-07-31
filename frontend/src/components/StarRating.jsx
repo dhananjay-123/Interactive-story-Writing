@@ -60,7 +60,15 @@ export function StarInput({ value = 0, size = 26, onRate, disabled }) {
           onMouseEnter={() => !disabled && setHover(n)}
           onClick={() => !disabled && onRate(n)}
           aria-label={`Rate ${n} star${n > 1 ? 's' : ''}`}
-          style={{ background: 'none', border: 'none', padding: 0, cursor: disabled ? 'default' : 'pointer', lineHeight: 0 }}
+          // The star itself can be small, but the thing a thumb has to hit
+          // cannot: WCAG 2.2 asks for 24x24 minimum. The box is centred around
+          // the glyph, so nothing moves visually.
+          style={{
+            background: 'none', border: 'none', padding: 0,
+            cursor: disabled ? 'default' : 'pointer', lineHeight: 0,
+            minWidth: '24px', minHeight: '24px',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          }}
         >
           <Star size={size} fill={active >= n ? 1 : 0} />
         </button>

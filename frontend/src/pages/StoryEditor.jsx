@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -67,6 +67,17 @@ export default function StoryEditor() {
       navigate(`/story/${id}`, { replace: true })
     }
   }, [authLoading, loading, user, story, canEdit, id, navigate])
+
+  // How many passages sit at each place. A place with none is drawn on the map
+  // but no reader can ever reach it — the panel says so rather than leaving the
+  // author to wonder why their map never fills in.
+  const placeUsage = useMemo(() => {
+    const counts = {}
+    for (const n of Object.values(nodeMap)) {
+      if (n.placeId) counts[n.placeId] = (counts[n.placeId] || 0) + 1
+    }
+    return counts
+  }, [nodeMap])
 
   const toggleCollapse = (nodeId) =>
     setCollapsed((prev) => {
@@ -198,7 +209,7 @@ export default function StoryEditor() {
         <SoundscapePanel story={story} onChange={(next) => setStory((s) => ({ ...s, ambience: next }))} />
 
         {/* World map — pin the story's places. */}
-        <PlacesPanel storyId={story._id} places={places} onChange={setPlaces} />
+        <PlacesPanel storyId={story._id} places={places} onChange={setPlaces} usage={placeUsage} />
 
         {/* Reader paths — which way people actually went. */}
         <div style={{ margin: '0 0 36px', padding: '20px 22px', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '8px', background: 'rgba(var(--panel-rgb),var(--pa02))' }}>
@@ -232,10 +243,14 @@ export default function StoryEditor() {
   )
 }
 
-/* ── One passage in the tree, with its choices and nested children ── */
-function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
+/* ── One passage in the tree, with its choices and nested children ──
+   `ancestors` is the chain of passages above this one. A choice that points back
+   into that chain would otherwise recurse until the tab locks up, so it's drawn
+   as a link instead of expanded again. */
+function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx, ancestors = [] }) {
   const node = ctx.nodeMap[nodeId]
-  if (!node) return null
+  if (!node) return <BrokenLink />
+  if (ancestors.includes(nodeId)) return <LoopBack />
 
   const isRoot = nodeId === ctx.rootId
   const isEnding = node.choices.length === 0
@@ -312,7 +327,14 @@ function TreeNode({ nodeId, parentNodeId, choiceIndex, depth, ctx }) {
                 </div>
 
                 {choice.nextNodeId ? (
-                  <TreeNode nodeId={choice.nextNodeId} parentNodeId={nodeId} choiceIndex={i} depth={depth + 1} ctx={ctx} />
+                  <TreeNode
+                    nodeId={choice.nextNodeId}
+                    parentNodeId={nodeId}
+                    choiceIndex={i}
+                    depth={depth + 1}
+                    ctx={ctx}
+                    ancestors={[...ancestors, nodeId]}
+                  />
                 ) : composing ? (
                   <div style={{ background: 'rgba(var(--panel-rgb),var(--pa03))', border: '1px solid rgba(var(--gold-rgb),0.2)', borderRadius: '8px', padding: '16px 18px' }}>
                     <BranchComposer
@@ -521,6 +543,29 @@ function DeleteBranchButton({ nodeId, parentNodeId, choiceIndex, ctx }) {
     >
       ⌫ delete branch
     </button>
+  )
+}
+
+/* ── what a branch looks like when it doesn't lead anywhere sensible ── */
+
+// The choice loops back to a passage further up this same path.
+function LoopBack() {
+  return (
+    <Note>↺ This choice returns to a passage above — shown there, not repeated here.</Note>
+  )
+}
+
+// The choice points at a passage that is no longer in the story. Drawn rather
+// than skipped: a branch that silently renders nothing looks like a lost edit.
+function BrokenLink() {
+  return <Note>⚠ This choice points at a passage that no longer exists.</Note>
+}
+
+function Note({ children }) {
+  return (
+    <p style={{ fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(var(--text-rgb),var(--ta35))', border: '1px dashed rgba(var(--panel-rgb),var(--pa12))', borderRadius: '4px', padding: '8px 14px', display: 'inline-block' }}>
+      {children}
+    </p>
   )
 }
 

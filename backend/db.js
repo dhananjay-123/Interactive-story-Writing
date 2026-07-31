@@ -1,9 +1,20 @@
 const { Pool } = require('pg')
 
+// Neon hangs up on connections that have been idle for a while. Retire our own
+// clients well before that happens and keep the sockets warm, so the pool hands
+// out a live connection instead of one the server has already closed.
+const resilience = {
+  idleTimeoutMillis: 10000,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 5000,
+  max: 10,
+}
+
 const pool = process.env.DATABASE_URL
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : undefined,
+      ...resilience,
     })
   : new Pool({
       host: process.env.PGHOST || 'localhost',
@@ -11,16 +22,38 @@ const pool = process.env.DATABASE_URL
       user: process.env.PGUSER || 'postgres',
       password: process.env.PGPASSWORD || 'postgres',
       database: process.env.PGDATABASE || 'inkwell',
+      ...resilience,
     })
 
-// Neon's free tier closes idle connections. Without this handler, a dropped
-// idle client emits an 'error' on the pool with no listener, which crashes the
-// whole process. Log it and let the pool recycle the connection instead.
+// Without this handler, a dropped idle client emits an 'error' on the pool with
+// no listener, which crashes the whole process. Log it and let the pool recycle
+// the connection instead.
 pool.on('error', (err) => {
   console.error('Unexpected PG pool error (idle client dropped):', err.message)
 })
 
-const query = (text, params) => pool.query(text, params)
+// A connection can still die between the pool handing it over and the query
+// reaching the server — the timeouts above shrink that window but can't close
+// it. Those failures are the connection, not the statement, so the same query
+// on a fresh client succeeds. Retrying once here is the difference between a
+// reader seeing their page and seeing a 500.
+const DEAD_CONNECTION = new Set([
+  'ECONNRESET', 'EPIPE', 'ETIMEDOUT', 'ENOTFOUND', 'ECONNREFUSED',
+  'CONNECTION_TERMINATED', 'CONNECTION_ENDED', '57P01',
+])
+const isDeadConnection = (err) =>
+  DEAD_CONNECTION.has(err?.code) ||
+  /Connection terminated|Client has encountered a connection error|server closed the connection/i.test(err?.message || '')
+
+const query = async (text, params) => {
+  try {
+    return await pool.query(text, params)
+  } catch (err) {
+    if (!isDeadConnection(err)) throw err
+    console.warn('Retrying query on a fresh connection:', err.message)
+    return pool.query(text, params)
+  }
+}
 
 // gen_random_uuid() is a core function in PostgreSQL 13+; no extension needed.
 const initDb = async () => {

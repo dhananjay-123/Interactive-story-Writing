@@ -18,6 +18,9 @@ const achievements = require('../achievements')
 const notify = require('../notify')
 
 const REPORT_REASONS = ['spam', 'offensive', 'plagiarism', 'broken', 'other']
+// Mirrors the CHECK constraint on stories.genre. Without this an unknown genre
+// reaches Postgres and comes back as a 500 quoting the constraint name.
+const GENRES = ['fantasy', 'mystery', 'sci_fi', 'romance', 'horror', 'thriller', 'literary']
 
 const viewerId = (req) => (req.user ? req.user._id : null)
 
@@ -129,6 +132,9 @@ router.post('/', requireAuth, async (req, res) => {
   }
   if (openingContent && !validateContent(openingContent)) {
     return res.status(400).json({ message: 'Opening passage content is not valid.' })
+  }
+  if (genre != null && !GENRES.includes(genre)) {
+    return res.status(400).json({ message: 'Choose one of the listed genres.' })
   }
 
   try {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -31,6 +31,12 @@ export default function StoryReader() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [transitioning, setTransitioning] = useState(false)
+  // The choice whose passage is being fetched. Kept separate from `transitioning`
+  // so the card can respond the instant it's clicked, before the request lands.
+  const [pendingChoice, setPendingChoice] = useState(null)
+  // A passage that wouldn't load. Recoverable, so it's shown in place rather
+  // than replacing the whole story with "could not be found".
+  const [loadError, setLoadError] = useState('')
 
   // When the author decides to write an unwritten branch.
   const [composing, setComposing] = useState(null) // { choiceIndex, choiceText }
@@ -43,15 +49,62 @@ export default function StoryReader() {
   // Set when a progress save reports the reader just collected a new ending.
   const [endingNews, setEndingNews] = useState(null) // { isNew, nodeId }
 
-  const isAuthor = Boolean(user && story && user._id === story.authorId)
+  // Where the reader is, mirrored outside React state. Every handler reads the
+  // position from here instead of from a closure: a click handler created three
+  // renders ago would otherwise build its trail from a stale `history`/`node`
+  // and quietly drop or repeat a passage.
+  const posRef = useRef({ node: null, history: [] })
+  // One move at a time, claimed synchronously on click — `transitioning` only
+  // flips after the fetch resolves, far too late to stop a second click.
+  const busyRef = useRef(false)
+  // Cancels responses from a move that has since been superseded (the reader
+  // went back, restarted, or opened a different story while it was in flight).
+  const genRef = useRef(0)
+  // The page-turn fade. Held so it can be cancelled instead of firing into a
+  // story it no longer belongs to and leaving the reader stuck mid-transition.
+  const timerRef = useRef(null)
+  // Whether this sitting has moved off the opening passage yet.
+  const startedRef = useRef(false)
 
+  const isAuthor = Boolean(user && story && user._id === story.authorId)
+  const userId = user?._id || null
+  const rootNodeId = story?.rootNodeId || null
+
+  const clearTimer = () => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current)
+      timerRef.current = null
+    }
+  }
+  useEffect(() => clearTimer, [])
+
+  const commit = useCallback((next) => {
+    posRef.current = next
+    setNode(next.node)
+    setHistory(next.history)
+  }, [])
+
+  // The story and its opening passage. Keyed on the story alone: this used to
+  // also depend on `user`, so the moment `/api/auth/me` came back — seconds
+  // later on a backend waking from sleep — it re-ran and threw the reader back
+  // to the opening passage they had already read past.
   useEffect(() => {
     let active = true
     setLoading(true)
     setError('')
+    setLoadError('')
     setResumable(null)
+    setComposing(null)
+    setDeadEnd('')
+    setEndingNews(null)
+    setTransitioning(false)
+    setPendingChoice(null)
+    clearTimer()
+    genRef.current++
+    busyRef.current = false
+    startedRef.current = false
+    commit({ node: null, history: [] })
     ;(async () => {
-      let rootId = null
       try {
         // The story and its opening passage are the only things reading truly
         // depends on. Fetch them first; anything else is a nicety layered on top.
@@ -63,36 +116,61 @@ export default function StoryReader() {
           setError('empty')
           return
         }
-        rootId = s.rootNodeId
         const { data: root } = await api.get(`/api/nodes/${s.rootNodeId}`)
         if (!active) return
-        setNode(root)
-        setHistory([])
+        commit({ node: root, history: [] })
       } catch {
         if (active) setError('not-found')
-        return
       } finally {
         if (active) setLoading(false)
-      }
-
-      // A saved bookmark is optional — a failed lookup (stale token, a sleepy
-      // backend dropping its first query) must never turn a readable story into
-      // "could not be found". So it lives outside the load above, in its own guard.
-      if (user && rootId) {
-        try {
-          const { data: p } = await api.get(`/api/stories/${id}/progress`)
-          if (active && p && p.currentNodeId && p.currentNodeId !== rootId) {
-            setResumable({ ...p, passagesIn: (p.path?.length || 0) + 1 })
-          }
-        } catch {
-          /* no bookmark, or it couldn't be fetched — start from the top */
-        }
       }
     })()
     return () => {
       active = false
     }
-  }, [id, user])
+  }, [id, commit])
+
+  // A saved bookmark is optional — a failed lookup (stale token, a sleepy
+  // backend dropping its first query) must never turn a readable story into
+  // "could not be found", so it loads on its own. If it arrives after the
+  // reader has already started moving, it's dropped: offering to restore a
+  // place they've walked past is worse than not offering at all.
+  useEffect(() => {
+    if (!userId || !rootNodeId) return
+    let active = true
+    api
+      .get(`/api/stories/${id}/progress`)
+      .then(({ data: p }) => {
+        if (!active || startedRef.current) return
+        if (!p?.currentNodeId || p.currentNodeId === rootNodeId) return
+        setResumable({ ...p, passagesIn: (p.path?.length || 0) + 1 })
+      })
+      .catch(() => {
+        /* no bookmark, or it couldn't be fetched — start from the top */
+      })
+    return () => {
+      active = false
+    }
+  }, [id, userId, rootNodeId])
+
+  // The places this reading has passed through, in order. Built here rather than
+  // inline in the render so the array keeps its identity between renders — the
+  // map memoises on it, and a fresh literal every render defeated that.
+  const mapTrail = useMemo(
+    () =>
+      [...history, node]
+        .filter(Boolean)
+        .map((n) => n.placeId)
+        .filter(Boolean),
+    [history, node]
+  )
+
+  // Where the reader is on the map. Authors pin a place to the passage where
+  // the story arrives somewhere, not to every passage that happens there — so
+  // an unpinned passage keeps the last place the path reached. Reading the
+  // passage's own placeId meant the marker blinked out the moment you moved
+  // past a pinned passage, and the map sat unchanged for the rest of the story.
+  const currentPlaceId = mapTrail.length ? mapTrail[mapTrail.length - 1] : null
 
   // Reaching an ending may unlock reading/completion badges server-side. Give the
   // fire-and-forget award a moment to land, then pull any new unlocks so the
@@ -136,17 +214,19 @@ export default function StoryReader() {
 
   // Rebuild the trail from the saved ids so "go back" still works after a reload.
   const handleResume = async () => {
-    if (!resumable) return
+    if (!resumable || busyRef.current) return
     setResuming(true)
+    const gen = ++genRef.current
     try {
       const { data: tree } = await api.get(`/api/nodes/story/${id}/tree`)
+      if (gen !== genRef.current) return
       const byId = new Map(tree.nodes.map((n) => [n._id, n]))
       const target = byId.get(resumable.currentNodeId)
       if (!target) throw new Error('gone')
       // Passages deleted since the bookmark was written simply drop out of the trail.
       const trail = (resumable.path || []).map((nid) => byId.get(nid)).filter(Boolean)
-      setHistory(trail)
-      setNode(target)
+      startedRef.current = true
+      commit({ node: target, history: trail })
       setResumable(null)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch {
@@ -170,83 +250,98 @@ export default function StoryReader() {
     return () => stopAmbience()
   }, [story?.ambience, playAmbience, stopAmbience])
 
-  const goToNode = (next) => {
+  // Land on a passage: fade out, swap, fade in. The caller owns `busyRef` from
+  // the moment of the click; this releases it once the move has actually landed.
+  const move = (next, trail, { save = true } = {}) => {
+    startedRef.current = true
+    busyRef.current = true
     setTransitioning(true)
     setDeadEnd('')
+    setLoadError('')
     setComposing(null)
-    const trail = [...history, node]
-    saveProgress(next._id, trail)
-    setTimeout(() => {
-      setHistory(trail)
-      setNode(next)
+    setResumable(null)
+    if (save) saveProgress(next._id, trail)
+    clearTimer()
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null
+      commit({ node: next, history: trail })
       setTransitioning(false)
+      setPendingChoice(null)
+      busyRef.current = false
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }, 260)
   }
 
   const handleChoice = async (choice, index) => {
-    if (transitioning) return
+    if (busyRef.current) return
     setDeadEnd('')
-    if (choice.nextNodeId) {
-      try {
-        const { data: next } = await api.get(`/api/nodes/${choice.nextNodeId}`)
-        recordChoice(node._id, index)
-        goToNode(next)
-      } catch {
-        setError('load-failed')
-      }
+    setLoadError('')
+
+    // Unwritten path — nothing to fetch.
+    if (!choice.nextNodeId) {
+      if (isAuthor) setComposing({ choiceIndex: index, choiceText: choice.text })
+      else setDeadEnd(choice.text)
       return
     }
-    // Unwritten path.
-    if (isAuthor) {
-      setComposing({ choiceIndex: index, choiceText: choice.text })
-    } else {
-      setDeadEnd(choice.text)
+
+    // Claim the move and mark the card before awaiting. The fetch can take
+    // seconds against a backend waking from sleep, and a choice that looks
+    // untouched for that long reads as a dead button — so people click again.
+    busyRef.current = true
+    setPendingChoice(index)
+    const gen = ++genRef.current
+    const from = posRef.current.node
+
+    try {
+      const { data: next } = await api.get(`/api/nodes/${choice.nextNodeId}`)
+      if (gen !== genRef.current) return // superseded while in flight
+      recordChoice(from._id, index)
+      move(next, [...posRef.current.history, from])
+    } catch {
+      if (gen !== genRef.current) return
+      busyRef.current = false
+      setPendingChoice(null)
+      setLoadError('That passage wouldn’t load. Check your connection and try again.')
     }
   }
 
   const handleComposed = (newNode) => {
-    // Reflect the new link on the current node so a later "go back" shows it written.
+    const from = posRef.current.node
+    // Reflect the new link on the passage we're leaving so a later "go back"
+    // shows it written rather than still offering to write it.
     const updated = {
-      ...node,
-      choices: node.choices.map((c, i) =>
+      ...from,
+      choices: from.choices.map((c, i) =>
         i === composing.choiceIndex ? { ...c, nextNodeId: newNode._id } : c
       ),
     }
-    setNode(updated)
-    goToNode(newNode)
+    move(newNode, [...posRef.current.history, updated])
   }
 
   const handleBack = () => {
-    if (!history.length || transitioning) return
-    setTransitioning(true)
-    setDeadEnd('')
-    setComposing(null)
-    const target = history[history.length - 1]
-    const trail = history.slice(0, -1)
-    saveProgress(target._id, trail)
-    setTimeout(() => {
-      setNode(target)
-      setHistory(trail)
-      setTransitioning(false)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }, 260)
+    if (busyRef.current) return
+    const trail = posRef.current.history
+    if (!trail.length) return
+    genRef.current++ // abandon any choice still in flight
+    move(trail[trail.length - 1], trail.slice(0, -1))
   }
 
   const handleRestart = async () => {
-    if (!story?.rootNodeId) return
-    const { data: root } = await api.get(`/api/nodes/${story.rootNodeId}`)
-    // Starting over discards the bookmark rather than parking it on the opening.
-    if (user) api.delete(`/api/stories/${id}/progress`).catch(() => {})
-    setTransitioning(true)
-    setDeadEnd('')
-    setComposing(null)
-    setTimeout(() => {
-      setNode(root)
-      setHistory([])
-      setTransitioning(false)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }, 260)
+    if (busyRef.current || !story?.rootNodeId) return
+    busyRef.current = true
+    setLoadError('')
+    const gen = ++genRef.current
+    try {
+      const { data: root } = await api.get(`/api/nodes/${story.rootNodeId}`)
+      if (gen !== genRef.current) return
+      // Starting over discards the bookmark rather than parking it on the opening.
+      if (user) api.delete(`/api/stories/${id}/progress`).catch(() => {})
+      move(root, [], { save: false })
+    } catch {
+      if (gen !== genRef.current) return
+      busyRef.current = false
+      setLoadError('Couldn’t reload the opening passage. Try again in a moment.')
+    }
   }
 
   if (loading) {
@@ -269,6 +364,8 @@ export default function StoryReader() {
   }
 
   const isEnding = node.choices.length === 0
+  // A move is under way — either fetching the next passage or fading into it.
+  const busy = transitioning || pendingChoice !== null
 
   // What the narrator reads: the passage (plain-text fallback is kept even for
   // rich passages), then the choices, so eyes-free readers hear their options.
@@ -353,11 +450,7 @@ export default function StoryReader() {
           <Passage node={node} />
 
           {/* The world map, lit as far as this reading has travelled. */}
-          <WorldMap
-            storyId={story._id}
-            trail={[...history, node].map((n) => n.placeId).filter(Boolean)}
-            currentPlaceId={node.placeId || null}
-          />
+          <WorldMap storyId={story._id} trail={mapTrail} currentPlaceId={currentPlaceId} />
 
           <Divider />
 
@@ -372,7 +465,12 @@ export default function StoryReader() {
             />
           ) : isEnding ? (
             <>
-              <EndingBlock isAuthor={isAuthor} onRestart={handleRestart} />
+              <EndingBlock isAuthor={isAuthor} onRestart={handleRestart} busy={busy} />
+              {loadError && (
+                <p className="animate-fadeIn text-center" style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta55))', marginTop: '-12px', marginBottom: '24px' }}>
+                  {loadError}
+                </p>
+              )}
               {!isAuthor && (
                 <EndingDiscovery
                   storyId={story._id}
@@ -394,11 +492,20 @@ export default function StoryReader() {
                     choice={choice}
                     index={i}
                     onSelect={handleChoice}
-                    disabled={transitioning}
+                    disabled={busy}
+                    pending={pendingChoice === i}
                     unwritten={isAuthor && !choice.nextNodeId}
                   />
                 ))}
               </div>
+
+              {loadError && (
+                <div className="animate-fadeIn" style={{ marginTop: '20px', padding: '16px 20px', border: '1px solid rgba(139,26,46,0.35)', borderRadius: '4px' }}>
+                  <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta65))', lineHeight: 1.6 }}>
+                    {loadError}
+                  </p>
+                </div>
+              )}
 
               {deadEnd && (
                 <div className="animate-fadeIn" style={{ marginTop: '20px', padding: '16px 20px', border: '1px solid rgba(var(--gold-rgb),0.25)', borderRadius: '4px', background: 'rgba(var(--gold-rgb),0.05)' }}>
@@ -413,8 +520,8 @@ export default function StoryReader() {
           {/* Go back */}
           {history.length > 0 && !composing && (
             <div style={{ marginTop: '48px', paddingTop: '24px', borderTop: '1px solid rgba(var(--panel-rgb),var(--pa06))' }}>
-              <button onClick={handleBack} style={backLinkStyle}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta60))')}
+              <button onClick={handleBack} disabled={busy} style={{ ...backLinkStyle, cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.4 : 1 }}
+                onMouseEnter={(e) => { if (!busy) e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta60))' }}
                 onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
               >
                 ← Go back
@@ -431,7 +538,7 @@ export default function StoryReader() {
   )
 }
 
-function EndingBlock({ isAuthor, onRestart }) {
+function EndingBlock({ isAuthor, onRestart, busy }) {
   return (
     <div className="animate-fadeUp text-center" style={{ padding: '32px 0' }}>
       <div style={{ width: '40px', height: '1px', background: 'rgba(var(--gold-rgb),0.3)', margin: '0 auto 24px' }} />
@@ -444,12 +551,12 @@ function EndingBlock({ isAuthor, onRestart }) {
         </p>
       )}
       <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap', marginTop: isAuthor ? 0 : '24px' }}>
-        <button onClick={onRestart}
-          style={{ padding: '12px 28px', background: 'transparent', border: '1px solid rgba(var(--gold-rgb),0.4)', color: 'var(--gold)', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: 'pointer', borderRadius: '4px', transition: 'background 0.2s ease' }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(var(--gold-rgb),0.08)')}
+        <button onClick={onRestart} disabled={busy}
+          style={{ padding: '12px 28px', background: 'transparent', border: '1px solid rgba(var(--gold-rgb),0.4)', color: 'var(--gold)', fontSize: '12px', letterSpacing: '0.12em', textTransform: 'uppercase', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.55 : 1, borderRadius: '4px', transition: 'background 0.2s ease' }}
+          onMouseEnter={(e) => { if (!busy) e.currentTarget.style.background = 'rgba(var(--gold-rgb),0.08)' }}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
         >
-          Start over
+          {busy ? 'Turning back…' : 'Start over'}
         </button>
       </div>
     </div>

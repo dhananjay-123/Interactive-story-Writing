@@ -7,7 +7,7 @@ import { inputStyle, labelStyle, focusBorder, blurBorder } from './authStyles'
 // them, move them, remove them. Readers then watch the same map light up as
 // they travel. Places are held by the parent (StoryEditor) so the passage
 // editor can offer them too.
-export default function PlacesPanel({ storyId, places, onChange }) {
+export default function PlacesPanel({ storyId, places, onChange, usage = {} }) {
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState(null) // 'add' | placeId being edited | null
   const [draft, setDraft] = useState(null) // { name, blurb, x, y, _id? }
@@ -167,8 +167,27 @@ export default function PlacesPanel({ storyId, places, onChange }) {
             </div>
           )}
 
+          {places.length > 0 && (
+            <div style={{ marginTop: '18px', paddingTop: '14px', borderTop: '1px solid rgba(var(--panel-rgb),var(--pa06))' }}>
+              {places.map((p) => {
+                const n = usage[p._id] || 0
+                return (
+                  <div key={p._id} style={{ display: 'flex', alignItems: 'baseline', gap: '10px', padding: '5px 0' }}>
+                    <button onClick={() => handlePinClick(p)} className="font-story" style={{ ...miniLink, textTransform: 'none', letterSpacing: 0, fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta75))' }}>
+                      {p.name}
+                    </button>
+                    <span style={{ fontSize: '11px', letterSpacing: '0.08em', textTransform: 'uppercase', color: n ? 'rgba(var(--text-rgb),var(--ta35))' : 'var(--gold)' }}>
+                      {n ? `${n} ${n === 1 ? 'passage' : 'passages'}` : 'no passage yet — readers can’t reach it'}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
           <p style={{ fontSize: '11.5px', color: 'rgba(var(--text-rgb),var(--ta35))', marginTop: '14px' }}>
             Then pin each passage to a place while editing it — that's how the reader's map knows where they are.
+            A passage you leave unpinned keeps the last place the reader reached.
           </p>
         </div>
       )}
