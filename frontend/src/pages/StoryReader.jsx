@@ -82,6 +82,7 @@ export default function StoryReader() {
     game,
     clueNews,
     dismissClueNews,
+    openAt: openGameAt,
     accuse,
     saveNotes: saveCaseNotes,
     applyProgress: applyGameProgress,
@@ -188,6 +189,14 @@ export default function StoryReader() {
   // passage's own placeId meant the marker blinked out the moment you moved
   // past a pinned passage, and the map sat unchanged for the rest of the story.
   const currentPlaceId = mapTrail.length ? mapTrail[mapTrail.length - 1] : null
+
+  // The opening passage is arrived at, never moved to, so the progress save that
+  // banks clues never fires for it. Report it once, on landing, so a clue planted
+  // in the opening passage is reachable like any other.
+  useEffect(() => {
+    if (!game || !node || history.length > 0) return
+    openGameAt(node._id)
+  }, [game, node, history.length, openGameAt])
 
   // Reaching an ending may unlock reading/completion badges server-side. Give the
   // fire-and-forget award a moment to land, then pull any new unlocks so the

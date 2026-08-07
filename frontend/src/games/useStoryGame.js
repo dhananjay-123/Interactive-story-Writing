@@ -22,6 +22,8 @@ export function useStoryGame(storyId, { userId, isAuthor }) {
   // superseded is dropped. That's what stops a slow reply for the story someone
   // just left from overwriting the notebook for the one they're reading now.
   const genRef = useRef(0)
+  // The passage `openAt` has already reported, so a re-render can't report it twice.
+  const openedRef = useRef(null)
 
   const load = useCallback(async () => {
     const gen = ++genRef.current
@@ -43,6 +45,7 @@ export function useStoryGame(storyId, { userId, isAuthor }) {
     setGame(null)
     setClueNews(null)
     setResolved(false)
+    openedRef.current = null
     load()
     // No cleanup: `load` claims its own generation, so switching stories already
     // invalidates whatever was in flight for the previous one.
@@ -61,6 +64,22 @@ export function useStoryGame(storyId, { userId, isAuthor }) {
   )
 
   const dismissClueNews = useCallback(() => setClueNews(null), [])
+
+  // The opening passage is the one arrival nobody *moves* to, so the
+  // reading-progress save never sees it and a clue planted there would be
+  // unreachable. Called once when the reader lands, before they've gone
+  // anywhere. Fire-and-forget, like everything else on this path.
+  const openAt = useCallback(
+    (nodeId) => {
+      if (!nodeId || !userId || openedRef.current === nodeId) return
+      openedRef.current = nodeId
+      api
+        .post(`/api/games/${storyId}/open`, { nodeId })
+        .then(({ data }) => applyProgress(data?.game))
+        .catch(() => {})
+    },
+    [storyId, userId, applyProgress]
+  )
 
   // Submit an answer. Returns { correct } so the panel can respond immediately;
   // a miss carries nothing else, by design.
@@ -92,6 +111,7 @@ export function useStoryGame(storyId, { userId, isAuthor }) {
     clueNews,
     dismissClueNews,
     resolved,
+    openAt,
     accuse,
     saveNotes,
     refresh: load,

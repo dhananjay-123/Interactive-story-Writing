@@ -42,6 +42,33 @@ router.get('/:storyId', optionalAuth, async (req, res) => {
   }
 })
 
+// POST /api/games/:storyId/open  { nodeId }
+// A reader arrives at the opening passage without moving to get there, so the
+// reading-progress save — which is what banks clues — never fires for it. Without
+// this, a clue pinned to the opening passage could never be discovered by anyone.
+// Same shape as the progress hook, and just as harmless when there's no game.
+router.post('/:storyId/open', requireAuth, async (req, res) => {
+  try {
+    const story = await Story.findById(req.params.storyId)
+    if (!story) return res.status(404).json({ message: 'Story not found' })
+
+    const node = await Node.findById(req.body?.nodeId)
+    if (!node || node.storyId !== story._id) {
+      return res.status(400).json({ message: 'That passage is not part of this story.' })
+    }
+
+    const game = await games.onPassage({
+      userId: req.user._id,
+      storyId: story._id,
+      node,
+      isAuthor: story.authorId === req.user._id,
+    })
+    res.json({ game })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
 // POST /api/games/:storyId/accuse  { answer }
 // The answer may be submitted at any point in the story. A miss returns nothing
 // but the miss — never a narrowing hint, never a hint of the ending.
