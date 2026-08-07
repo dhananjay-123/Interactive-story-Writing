@@ -6,6 +6,7 @@
 const catalog = require('./catalog')
 const store = require('./store')
 const engine = require('./engine')
+const points = require('../points')
 const db = require('../db')
 const { track: getTrack } = require('./catalog/tiers')
 
@@ -24,6 +25,8 @@ const grantBadge = async (actorId, targetUserId, badgeId, { note } = {}) => {
     await store.clearProgress(targetUserId, badgeId)
     await store.addUnlockHistory(targetUserId, { kind: 'badge', badgeId, source: 'manual' })
     await store.addNotification(targetUserId, { kind: 'badge', badgeId, title: badge.name, body: badge.description })
+    // A hand-granted badge is worth the same points as an earned one.
+    await points.awardBadge(targetUserId, badge)
   }
   await store.addAudit({ actorId, targetUserId, action: 'grant_badge', badgeId, detail: { note: note || null, alreadyHeld: !inserted } })
   return { ok: true, granted: inserted }

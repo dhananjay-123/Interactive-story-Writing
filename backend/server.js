@@ -21,6 +21,8 @@ app.use('/api/nodes', require('./routes/nodes'))
 app.use('/api/uploads', require('./routes/uploads'))
 app.use('/api/notifications', require('./routes/notifications'))
 app.use('/api/contests', require('./routes/contests'))
+app.use('/api/games', require('./routes/games'))
+app.use('/api/points', require('./routes/points'))
 app.use('/api/achievements', require('./routes/achievements'))
 // Mounted before /api/admin so the more specific achievements path wins the match.
 app.use('/api/admin/achievements', require('./routes/adminAchievements'))

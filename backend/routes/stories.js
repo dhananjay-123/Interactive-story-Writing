@@ -15,6 +15,7 @@ const { requireAuth, optionalAuth } = require('../middleware/auth')
 const { validateContent } = require('../utils/validateContent')
 const { canEditStory } = require('../utils/permissions')
 const achievements = require('../achievements')
+const games = require('../games')
 const notify = require('../notify')
 
 const REPORT_REASONS = ['spam', 'offensive', 'plagiarism', 'broken', 'other']
@@ -511,9 +512,18 @@ router.put('/:id/progress', requireAuth, async (req, res) => {
 
     // Every save is a sign of reader activity; reaching an ending is a completion.
     achievements.emit(req.user._id, 'READING_PROGRESS', { storyId: req.params.id })
+
+    const story = await Story.findById(req.params.id)
+    const isAuthor = story?.authorId === req.user._id
+
+    // The Story Game layer rides on the move the reader already made — no extra
+    // request, no extra click, and nothing for the reader to opt into. It returns
+    // null for stories carrying no game (nearly all of them) and never throws in
+    // here: a challenge is a layer on reading, so it can't break the read.
+    const game = await games.onPassage({ userId: req.user._id, storyId: req.params.id, node, isAuthor })
+
     let endingDiscovery = null
     if (node.isEnding) {
-      const story = await Story.findById(req.params.id)
       achievements.emit(req.user._id, 'STORY_COMPLETED', {
         storyId: req.params.id,
         nodeId: node._id,
@@ -521,7 +531,7 @@ router.put('/:id/progress', requireAuth, async (req, res) => {
       })
       // Collect the ending — but not for the author, whose walkthroughs of
       // their own draft aren't discoveries (same rule as choice analytics).
-      if (story && story.authorId !== req.user._id) {
+      if (story && !isAuthor) {
         const isNew = await Discovery.record({
           userId: req.user._id,
           storyId: req.params.id,
@@ -530,7 +540,7 @@ router.put('/:id/progress', requireAuth, async (req, res) => {
         endingDiscovery = { isNew }
       }
     }
-    res.json({ ...saved, endingDiscovery })
+    res.json({ ...saved, endingDiscovery, game })
   } catch (err) {
     res.status(500).json({ message: err.message })
   }

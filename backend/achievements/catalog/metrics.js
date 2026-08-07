@@ -40,6 +40,12 @@ const METRICS = [
   { id: 'following',                audience: 'reader', source: 'query',   label: 'Authors followed',       unit: 'authors' },
   { id: 'reading_streak',           audience: 'reader', source: 'counter', label: 'Day reading streak',     unit: 'days' },
   { id: 'active_days',              audience: 'reader', source: 'counter', label: 'Active days',            unit: 'days' },
+
+  // ── Story Games (reader) ──────────────────────────────────────────────────
+  { id: 'games_played',             audience: 'reader', source: 'query',   label: 'Story Games finished',   unit: 'games' },
+  { id: 'games_solved',             audience: 'reader', source: 'query',   label: 'Story Games solved',     unit: 'games' },
+  { id: 'games_perfect',            audience: 'reader', source: 'query',   label: 'Flawless cases',         unit: 'games' },
+  { id: 'clues_found',              audience: 'reader', source: 'query',   label: 'Clues discovered',       unit: 'clues' },
 ]
 
 const byId = new Map(METRICS.map((m) => [m.id, m]))

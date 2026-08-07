@@ -42,6 +42,13 @@ const SOURCE = {
   comments_posted:         (u) => one(`SELECT COUNT(*)::int n FROM comments WHERE user_id=$1`, [u]),
   ratings_given:           (u) => one(`SELECT COUNT(*)::int n FROM ratings WHERE user_id=$1`, [u]),
   following:               (u) => one(`SELECT COUNT(*)::int n FROM follows WHERE follower_id=$1`, [u]),
+
+  // Story Games. Sessions only close once, so these can't be inflated by
+  // re-reading; "perfect" is stamped by the game engine at scoring time.
+  games_played:            (u) => one(`SELECT COUNT(*)::int n FROM game_sessions WHERE user_id=$1 AND finished_at IS NOT NULL`, [u]),
+  games_solved:            (u) => one(`SELECT COUNT(*)::int n FROM game_sessions WHERE user_id=$1 AND solved`, [u]),
+  games_perfect:           (u) => one(`SELECT COUNT(*)::int n FROM game_sessions WHERE user_id=$1 AND perfect`, [u]),
+  clues_found:             (u) => one(`SELECT COUNT(*)::int n FROM game_discoveries WHERE user_id=$1`, [u]),
 }
 
 const QUERY_METRIC_IDS = METRICS.filter((m) => m.source === 'query').map((m) => m.id)

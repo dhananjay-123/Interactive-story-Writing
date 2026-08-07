@@ -53,7 +53,14 @@ export default function StoryCard({ story, index }) {
           >
             {story.genre?.replace('_', '-') || 'Story'}
           </span>
-          <span className="text-xs" style={{ color: 'rgba(var(--text-rgb),var(--ta30))' }}>
+          <span className="text-xs" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', color: 'rgba(var(--text-rgb),var(--ta30))' }}>
+            {/* A story carrying a challenge says so once, in the same weight as
+                its branch count — a note, not a badge. */}
+            {story.gameMode && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--gold)', opacity: 0.8 }}>
+                <CaseMini /> case
+              </span>
+            )}
             {story.branchCount || 0} branches
           </span>
         </div>
@@ -125,6 +132,15 @@ function HeartMini() {
   return (
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
+    </svg>
+  )
+}
+
+function CaseMini() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="7" width="18" height="13" rx="1.5" />
+      <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
     </svg>
   )
 }

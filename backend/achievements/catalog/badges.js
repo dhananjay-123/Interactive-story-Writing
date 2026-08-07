@@ -112,6 +112,20 @@ const RAW = [
   { id: 'omnireader',        name: 'Omnireader',        category: 'genres', rarity: 'epic',     icon: { shape: 'globe' },
     description: 'Every genre on the shelf, all read.',             hint: 'Read in all 7 genres.',           criteria: { metric: 'distinct_genres_read', target: 7 } },
 
+  // ── Investigation (Story Games) ─────────────────────────────────────────────
+  { id: 'first_case',     name: 'First Case',        category: 'investigation', rarity: 'common',   icon: { shape: 'key' },
+    description: 'You worked one out before the story told you.',   hint: 'Solve 1 Story Game.',            criteria: { metric: 'games_solved', target: 1 } },
+  { id: 'keen_eye',       name: 'Keen Eye',          category: 'investigation', rarity: 'uncommon', icon: { shape: 'eye' },
+    description: 'Small things, noticed and kept.',                 hint: 'Discover 25 clues.',             criteria: { metric: 'clues_found', target: 25 } },
+  { id: 'case_closed',    name: 'Case Closed',       category: 'investigation', rarity: 'rare',     icon: { shape: 'ribbon' },
+    description: 'Five cases, five answers.',                       hint: 'Solve 5 Story Games.',           criteria: { metric: 'games_solved', target: 5 } },
+  { id: 'clean_record',   name: 'Clean Record',      category: 'investigation', rarity: 'rare',     icon: { shape: 'shield' },
+    description: 'Everything noticed, first answer, ahead of the reveal.', hint: 'Finish a Story Game flawlessly.', criteria: { metric: 'games_perfect', target: 1 } },
+  { id: 'evidence_room',  name: 'The Evidence Room', category: 'investigation', rarity: 'epic',     icon: { shape: 'chalice' },
+    description: 'A hundred and fifty details nobody else stopped for.', hint: 'Discover 150 clues.',       criteria: { metric: 'clues_found', target: 150 } },
+  { id: 'master_of_cases', name: 'Master of Cases',  category: 'investigation', rarity: 'epic',     icon: { shape: 'crown' },
+    description: 'Twenty cases closed by your own reading.',        hint: 'Solve 20 Story Games.',          criteria: { metric: 'games_solved', target: 20 } },
+
   // ── Challenges (streaks) ────────────────────────────────────────────────────
   { id: 'streak_starter', name: 'Kindling',            category: 'challenges', rarity: 'uncommon', icon: { shape: 'flame' },
     description: 'Three days running.',                             hint: 'Read 3 days in a row.',           criteria: { metric: 'reading_streak', target: 3 } },
@@ -129,6 +143,8 @@ const RAW = [
     description: 'Five hundred choices made in the dark between the lines.', hint: 'A secret revealed once earned.', criteria: { metric: 'choices_made', target: 500 } },
   { id: 'true_completionist', name: 'The Cartographer', category: 'hidden', rarity: 'mythic', hidden: true, icon: { shape: 'key' },
     description: 'You have completed a story in every genre this world holds.', hint: 'A secret revealed once earned.', criteria: { metric: 'genres_completed', target: 7 } },
+  { id: 'never_wrong', name: 'Never Wrong', category: 'hidden', rarity: 'mythic', hidden: true, icon: { shape: 'diamond' },
+    description: 'Five cases running, every clue in hand, never a wrong answer.', hint: 'A secret revealed once earned.', criteria: { metric: 'games_perfect', target: 5 } },
 
   // ── Seasonal / Special / Platform events (admin-granted) ─────────────────────
   { id: 'launch_week', name: 'Day One', category: 'platform_events', rarity: 'legendary', icon: { shape: 'sparkle' },

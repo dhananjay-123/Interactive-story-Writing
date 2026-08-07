@@ -12,7 +12,8 @@ const CATEGORY_LABELS = {
   publishing: 'Publishing', writing_quality: 'Writing Quality', story_design: 'Story Design',
   community: 'Community', popularity: 'Popularity', retention: 'Retention',
   reading: 'Reading', exploration: 'Exploration', engagement: 'Engagement',
-  challenges: 'Challenges', genres: 'Genres', seasonal: 'Seasonal', special_events: 'Special Events',
+  challenges: 'Challenges', genres: 'Genres', investigation: 'Investigation',
+  seasonal: 'Seasonal', special_events: 'Special Events',
   platform_events: 'Platform Events', founder: 'Founder', premium: 'Premium', hidden: 'Hidden',
   administrative: 'Administrative',
 }
@@ -26,6 +27,7 @@ export default function Achievements() {
   const [filter, setFilter] = useState('all') // all | earned | progress | rarity id
   const [showcaseIds, setShowcaseIds] = useState([])
   const [pinBusy, setPinBusy] = useState(false)
+  const [points, setPoints] = useState(null)
 
   useEffect(() => {
     if (!user) { setLoading(false); return }
@@ -36,6 +38,9 @@ export default function Achievements() {
     }).catch(() => setData(null)).finally(() => setLoading(false))
     // Timeline lazy-loads alongside — a separate, paginated section.
     api.get('/api/achievements/me/timeline?limit=15').then((r) => setTimeline(r.data)).catch(() => setTimeline([]))
+    // Platform points: earned from badges and Story Games alike, so this page is
+    // where they belong. A failure here leaves the tile off, nothing more.
+    api.get('/api/points/me').then((r) => setPoints(r.data)).catch(() => setPoints(null))
   }, [user])
 
   const MAX_SHOWCASE = 8
@@ -114,7 +119,28 @@ export default function Achievements() {
           <Stat label="Completion" value={`${summary.completion}%`} />
           <Stat label="Rare or better" value={rareCount(summary.byRarity)} />
           <Stat label="Hidden found" value={summary.hiddenFound} />
+          {points && <Stat label="Points" value={points.points} />}
         </div>
+
+        {/* Where the points came from — badges, cases, clues. */}
+        {points?.ledger?.length > 0 && (
+          <Section title="Points" subtitle="Earned from badges and Story Games">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              {points.ledger.slice(0, 8).map((entry, i) => (
+                <div
+                  key={`${entry.kind}-${entry.ref}-${i}`}
+                  style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '14px', padding: '8px 0', borderBottom: '1px solid rgba(var(--panel-rgb),var(--pa04))' }}
+                >
+                  <span style={{ fontSize: '13.5px', color: 'rgba(var(--text-rgb),var(--ta65))' }}>
+                    {entry.label}
+                    {entry.meta?.name && <span style={{ color: 'rgba(var(--text-rgb),var(--ta40))' }}>  ·  {entry.meta.name}</span>}
+                  </span>
+                  <span className="font-story" style={{ fontSize: '14px', color: 'var(--gold)' }}>+{entry.points}</span>
+                </div>
+              ))}
+            </div>
+          </Section>
+        )}
 
         {/* Showcase */}
         {showcase && showcase.length > 0 && (

@@ -75,6 +75,7 @@ export default function Navbar() {
         <div className="hidden md:flex items-center gap-6">
           <NavLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
           <NavLink to="/featured" label="Featured" active={location.pathname === '/featured'} />
+          <NavLink to="/games" label="Story Games" active={location.pathname === '/games'} />
           <NavLink to="/contests" label="Contests" active={location.pathname.startsWith('/contests')} />
 
           {user ? (
@@ -188,6 +189,7 @@ export default function Navbar() {
         >
           <MobileLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
           <MobileLink to="/featured" label="Featured" active={location.pathname === '/featured'} />
+          <MobileLink to="/games" label="Story Games" active={location.pathname === '/games'} />
           <MobileLink to="/contests" label="Contests" active={location.pathname.startsWith('/contests')} />
           <MobileLink to="/leaderboard" label="Ranks" active={location.pathname === '/leaderboard'} />
           {user ? (

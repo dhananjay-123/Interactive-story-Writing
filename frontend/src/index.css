@@ -694,6 +694,83 @@ textarea::placeholder {
   .wm-here { animation: none; }
 }
 
+/* ── Story Games — the case notebook ──────────────────────────────────────
+   A marker in the corner of the page and a panel that slides in beside the
+   story. Deliberately quiet: no backdrop, no dimming, no scroll lock — the prose
+   stays exactly where it was and stays readable while the notebook is open.
+   Reading is accompanied, never interrupted. */
+
+.case-notes-tab {
+  position: fixed;
+  right: 20px;
+  bottom: 22px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: var(--surface);
+  border: 1px solid rgba(var(--gold-rgb), 0.32);
+  border-radius: var(--r-sm);
+  box-shadow: var(--card-shadow);
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.case-notes-tab:hover {
+  border-color: rgba(var(--gold-rgb), 0.6);
+  transform: translateY(-1px);
+}
+.case-notes-count {
+  min-width: 17px;
+  padding: 1px 5px;
+  border-radius: 2px;
+  background: rgba(var(--gold-rgb), 0.16);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.case-notes-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 61;
+  width: min(400px, 100vw);
+  background: var(--ink-soft);
+  border-left: 1px solid rgba(var(--gold-rgb), 0.22);
+  box-shadow: var(--card-shadow-hover);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform: translateX(100%);
+  /* Closed, it is out of the tab order and out of the accessibility tree — an
+     invisible panel must not be reachable by keyboard. */
+  visibility: hidden;
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.32s;
+}
+.case-notes-panel.is-open {
+  transform: translateX(0);
+  visibility: visible;
+}
+.case-notes-inner {
+  padding: 92px 26px 40px;
+}
+
+/* On a narrow screen the panel takes the width but keeps the marker clear of it. */
+@media (max-width: 520px) {
+  .case-notes-inner { padding: 80px 20px 32px; }
+  .case-notes-tab { right: 14px; bottom: 14px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .case-notes-panel { transition: none; }
+  .case-notes-tab:hover { transform: none; }
+}
+
 /* Story studio — graph beside a tab panel; the panel drops below on narrow screens. */
 .ct-studio-grid {
   display: grid;

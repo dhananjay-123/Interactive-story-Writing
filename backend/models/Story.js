@@ -29,6 +29,9 @@ const mapStory = (row) =>
     myRating: row.my_rating ?? null,
     // Co-authors (owner excluded) — present on enriched reads, [] otherwise.
     collaborators: row.collaborators || [],
+    // The Story Game layer, when the story carries a live one. Null for the
+    // overwhelming majority of stories, which are read exactly as before.
+    gameMode: row.game_mode || null,
   }
 
 // Enriched projection. `v` is the SQL placeholder holding the viewer's id
@@ -46,7 +49,8 @@ const enriched = (v) => `
       SELECT json_agg(json_build_object('username', cu.username, 'displayName', cu.display_name) ORDER BY sc.added_at)
       FROM story_collaborators sc JOIN users cu ON cu.id = sc.user_id
       WHERE sc.story_id = s.id
-    ), '[]'::json) AS collaborators
+    ), '[]'::json) AS collaborators,
+    (SELECT g.mode FROM story_games g WHERE g.story_id = s.id AND g.published) AS game_mode
   FROM stories s
   LEFT JOIN users u ON u.id = s.author_id
 `
@@ -59,13 +63,21 @@ const ORDERS = {
 }
 
 // Discovery query: genre + tag + text filters and a sort, viewer-aware.
-const findMany = async ({ genre, tag, q, sort, viewerId } = {}) => {
+// `game` narrows to stories carrying a live Story Game; `gameMode` narrows
+// further to one flavour of it. Both are EXISTS predicates rather than filters on
+// the game_mode alias, which isn't in scope in the inner query's WHERE.
+const findMany = async ({ genre, tag, q, sort, game, gameMode, viewerId } = {}) => {
   const params = [viewerId ?? null] // $1 = viewer
   const add = (val) => { params.push(val); return '$' + params.length }
 
   const where = ['s.published = TRUE']
   if (genre && genre !== 'all') where.push(`s.genre = ${add(genre)}`)
   if (tag) where.push(`${add(tag)} = ANY(s.tags)`)
+  if (gameMode) {
+    where.push(`EXISTS(SELECT 1 FROM story_games g WHERE g.story_id = s.id AND g.published AND g.mode = ${add(gameMode)})`)
+  } else if (game) {
+    where.push('EXISTS(SELECT 1 FROM story_games g WHERE g.story_id = s.id AND g.published)')
+  }
   if (q && q.trim()) {
     const p = add('%' + q.trim() + '%')
     where.push(`(s.title ILIKE ${p} OR s.description ILIKE ${p})`)

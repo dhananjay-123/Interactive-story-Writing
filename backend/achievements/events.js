@@ -32,6 +32,11 @@ const EVENTS = {
   STORY_COMPLETED: { track: 'reader', metrics: ['stories_completed', 'genres_completed'], activity: true },
   CHOICE_MADE:     { track: 'reader', metrics: ['choices_made'], activity: true },
   DAILY_ACTIVE:    { track: 'reader', metrics: [], activity: true },
+
+  // ── Story Games (reader) ──────────────────────────────────────────────────
+  CLUE_FOUND:      { track: 'reader', metrics: ['clues_found'], activity: true },
+  GAME_COMPLETED:  { track: 'reader', metrics: ['games_played'], activity: true },
+  GAME_SOLVED:     { track: 'reader', metrics: ['games_solved', 'games_perfect', 'games_played'], activity: true },
 }
 
 const isEvent = (name) => Object.prototype.hasOwnProperty.call(EVENTS, name)

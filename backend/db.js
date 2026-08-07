@@ -400,6 +400,7 @@ const initDb = async () => {
   `)
 
   await initAchievements()
+  await initGames()
 }
 
 // ── Achievements, badges & progression ──────────────────────────────────────
@@ -544,6 +545,158 @@ const initAchievements = async () => {
     )
     if (rowCount > 0) console.log(`Promoted ${process.env.ADMIN_EMAIL} to admin`)
   }
+}
+
+// ── Story Games & platform points ───────────────────────────────────────────
+// A Story Game is a challenge layered onto an ordinary story — same tree, same
+// passages, same reader. Nothing here alters how a story is stored or read: the
+// game is one optional row keyed by story_id, plus the clues its passages carry
+// and the sessions readers build. A story without a row is untouched by all of
+// it, which is the point.
+//
+// Mode ids are validated in code against games/catalog (the same discipline the
+// badge catalogue follows) rather than by a CHECK constraint, so adding a mode
+// stays a config edit and never needs a schema change.
+const initGames = async () => {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS story_games (
+      story_id      UUID PRIMARY KEY REFERENCES stories(id) ON DELETE CASCADE,
+      mode          TEXT NOT NULL,
+      objective     TEXT NOT NULL,
+      briefing      TEXT,
+      -- 'subject' → the answer is one of game_subjects; 'answer' → free text.
+      solution_kind TEXT NOT NULL DEFAULT 'subject'
+                      CHECK (solution_kind IN ('subject','answer')),
+      -- A subject key, or the accepted answer(s) separated by '|'. Never sent to
+      -- a reader: only the authoring projection in games/store exposes it.
+      solution_key  TEXT NOT NULL,
+      answer_hint   TEXT,
+      max_attempts  SMALLINT NOT NULL DEFAULT 3 CHECK (max_attempts BETWEEN 1 AND 10),
+      -- The game layer goes live separately from the story, so an author can
+      -- publish the tale while the challenge is still half-built.
+      published     BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    -- The answer options: suspects, witnesses, exits, assets — the mode names
+    -- them. The key is stable and is what solution_key points at, so renaming a
+    -- suspect in the editor can never invalidate the solution.
+    CREATE TABLE IF NOT EXISTS game_subjects (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      story_id   UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      key        TEXT NOT NULL,
+      name       TEXT NOT NULL,
+      blurb      TEXT,
+      sort_order SMALLINT NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (story_id, key)
+    );
+    CREATE INDEX IF NOT EXISTS idx_game_subjects_story ON game_subjects (story_id, sort_order ASC);
+
+    -- What a passage gives away. The reader collects a clue by reaching the
+    -- passage that carries it, so clues cascade with the passage: delete the
+    -- prose and the note that came from it goes too. An optional clue marks a side
+    -- discovery — worth points, never required to solve the case.
+    CREATE TABLE IF NOT EXISTS game_clues (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      story_id   UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      node_id    UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+      label      TEXT NOT NULL,
+      detail     TEXT,
+      kind       TEXT NOT NULL DEFAULT 'clue'
+                   CHECK (kind IN ('clue','evidence','observation')),
+      weight     SMALLINT NOT NULL DEFAULT 1 CHECK (weight BETWEEN 1 AND 5),
+      optional   BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    -- The hot path: "what does this passage reveal", asked on every move.
+    CREATE INDEX IF NOT EXISTS idx_game_clues_node  ON game_clues (node_id);
+    CREATE INDEX IF NOT EXISTS idx_game_clues_story ON game_clues (story_id, created_at ASC);
+
+    -- One reader's run at one game. Opened the first time they touch the story,
+    -- closed when they solve it or an ending gives the answer away — whichever
+    -- comes first. notes is their own notebook text, kept here rather than in a
+    -- table of its own because it is exactly one blob per (reader, game).
+    CREATE TABLE IF NOT EXISTS game_sessions (
+      user_id              UUID NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
+      story_id             UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      started_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      finished_at          TIMESTAMPTZ,
+      -- When the story itself revealed the answer (an ending was reached).
+      revealed_at          TIMESTAMPTZ,
+      solved_at            TIMESTAMPTZ,
+      attempts             SMALLINT NOT NULL DEFAULT 0,
+      solved               BOOLEAN NOT NULL DEFAULT FALSE,
+      solved_before_reveal BOOLEAN NOT NULL DEFAULT FALSE,
+      -- Every required clue, first answer, ahead of the reveal. Stored rather
+      -- than re-derived so "flawless cases" is one indexed count.
+      perfect              BOOLEAN NOT NULL DEFAULT FALSE,
+      score                INTEGER NOT NULL DEFAULT 0,
+      rank_id              TEXT,
+      elapsed_ms           BIGINT,
+      notes                TEXT NOT NULL DEFAULT '',
+      updated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, story_id)
+    );
+    -- Serves every leaderboard window in one shape; the partial predicate keeps
+    -- in-flight sessions out of the boards entirely.
+    CREATE INDEX IF NOT EXISTS idx_game_sessions_board
+      ON game_sessions (story_id, score DESC, elapsed_ms ASC) WHERE finished_at IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_game_sessions_user
+      ON game_sessions (user_id, updated_at DESC);
+
+    -- Which clues a reader holds. The primary key is the anti-inflation guard:
+    -- walking back over a passage can never re-find what it gave you.
+    CREATE TABLE IF NOT EXISTS game_discoveries (
+      user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      story_id   UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      clue_id    UUID NOT NULL REFERENCES game_clues(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, clue_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_game_discoveries_user_story
+      ON game_discoveries (user_id, story_id);
+
+    -- Every answer submitted, right or wrong. The session carries the count that
+    -- scoring uses; this is the record behind it.
+    CREATE TABLE IF NOT EXISTS game_attempts (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id    UUID NOT NULL REFERENCES users(id)   ON DELETE CASCADE,
+      story_id   UUID NOT NULL REFERENCES stories(id) ON DELETE CASCADE,
+      answer     TEXT NOT NULL,
+      correct    BOOLEAN NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_game_attempts_user
+      ON game_attempts (user_id, story_id, created_at DESC);
+
+    -- Platform points ---------------------------------------------------------
+
+    -- An append-only ledger. (user_id, kind, ref) is UNIQUE, which is what makes
+    -- every payout idempotent: the same clue, game or badge can only ever pay
+    -- once, however many times the request that earned it is retried.
+    CREATE TABLE IF NOT EXISTS point_events (
+      id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      kind       TEXT NOT NULL,
+      ref        TEXT NOT NULL,
+      points     INTEGER NOT NULL,
+      meta       JSONB NOT NULL DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      UNIQUE (user_id, kind, ref)
+    );
+    CREATE INDEX IF NOT EXISTS idx_point_events_user ON point_events (user_id, created_at DESC);
+
+    -- A cache of the ledger's sum, recomputed from it on every award rather than
+    -- incremented — so it can never drift from the rows behind it.
+    CREATE TABLE IF NOT EXISTS user_points (
+      user_id    UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      points     INTEGER NOT NULL DEFAULT 0,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+    CREATE INDEX IF NOT EXISTS idx_user_points_board ON user_points (points DESC) WHERE points > 0;
+  `)
 }
 
 module.exports = { pool, query, initDb }

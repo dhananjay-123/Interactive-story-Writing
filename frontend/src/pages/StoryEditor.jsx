@@ -8,6 +8,7 @@ import RichTextEditor, { textToDoc } from '../components/RichTextEditor'
 import { inputStyle, labelStyle, focusBorder, blurBorder } from '../components/authStyles'
 import SoundscapePanel from '../components/SoundscapePanel'
 import PlacesPanel from '../components/PlacesPanel'
+import StoryGamePanel from '../components/game/StoryGamePanel'
 import ReaderPaths from '../components/ReaderPaths'
 import ConnectingLoader from '../components/ConnectingLoader'
 import { avatarSrc } from '../avatars/catalog'
@@ -210,6 +211,9 @@ export default function StoryEditor() {
 
         {/* World map — pin the story's places. */}
         <PlacesPanel storyId={story._id} places={places} onChange={setPlaces} usage={placeUsage} />
+
+        {/* The optional challenge layer: objective, cast and clues. */}
+        <StoryGamePanel storyId={story._id} nodes={nodeMap} rootId={story.rootNodeId} />
 
         {/* Reader paths — which way people actually went. */}
         <div style={{ margin: '0 0 36px', padding: '20px 22px', border: '1px solid rgba(var(--panel-rgb),var(--pa08))', borderRadius: '8px', background: 'rgba(var(--panel-rgb),var(--pa02))' }}>

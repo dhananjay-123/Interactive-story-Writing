@@ -17,6 +17,11 @@ import { editorExtensions } from '../components/RichTextEditor'
 import { useAudio } from '../audio/AudioProvider'
 import { authorNames } from '../utils/authors'
 import { useAchievements } from '../components/achievements/AchievementsProvider'
+import { useStoryGame } from '../games/useStoryGame'
+import ObjectiveCard from '../components/game/ObjectiveCard'
+import ClueWhisper from '../components/game/ClueWhisper'
+import CaseNotes from '../components/game/CaseNotes'
+import CaseResolution from '../components/game/CaseResolution'
 
 export default function StoryReader() {
   const { id } = useParams()
@@ -69,6 +74,18 @@ export default function StoryReader() {
   const isAuthor = Boolean(user && story && user._id === story.authorId)
   const userId = user?._id || null
   const rootNodeId = story?.rootNodeId || null
+
+  // The Story Game layer, when this story carries one. `game` is null for every
+  // ordinary story — and for the author of this one — so everything below simply
+  // doesn't render and the page is the reader it has always been.
+  const {
+    game,
+    clueNews,
+    dismissClueNews,
+    accuse,
+    saveNotes: saveCaseNotes,
+    applyProgress: applyGameProgress,
+  } = useStoryGame(id, { userId, isAuthor })
 
   const clearTimer = () => {
     if (timerRef.current) {
@@ -196,10 +213,13 @@ export default function StoryReader() {
           if (data?.endingDiscovery) {
             setEndingNews({ ...data.endingDiscovery, nodeId: currentNodeId })
           }
+          // Any clues this passage held rode back on the same response — the
+          // challenge costs the reading no extra round-trip.
+          applyGameProgress(data?.game)
         })
         .catch(() => {})
     },
-    [user, id]
+    [user, id, applyGameProgress]
   )
 
   // The author walking their own draft would drown out real readers, so their
@@ -433,6 +453,12 @@ export default function StoryReader() {
           </div>
         )}
 
+        {/* The challenge, if this story carries one — introduced once, at the top,
+            and put away for good with one click. */}
+        {game && history.length === 0 && !resumable && (
+          <ObjectiveCard game={game} signedIn={Boolean(user)} />
+        )}
+
         {/* Progress crumbs */}
         {history.length > 0 && (
           <div className="animate-fadeIn" style={{ display: 'flex', gap: '4px', marginBottom: '32px', alignItems: 'center' }}>
@@ -448,6 +474,9 @@ export default function StoryReader() {
           <NarrationPanel text={narrationText} nodeId={node._id} />
 
           <Passage node={node} />
+
+          {/* Anything this passage gave away, said once and quietly. */}
+          <ClueWhisper news={clueNews} onDone={dismissClueNews} />
 
           {/* The world map, lit as far as this reading has travelled. */}
           <WorldMap storyId={story._id} trail={mapTrail} currentPlaceId={currentPlaceId} />
@@ -479,6 +508,9 @@ export default function StoryReader() {
                   news={endingNews}
                 />
               )}
+              {/* How the case came out — beside the endings collection, in the
+                  same shape, so closing a Story Game feels like closing a story. */}
+              <CaseResolution game={game} signedIn={Boolean(user)} />
             </>
           ) : (
             <div>
@@ -529,6 +561,10 @@ export default function StoryReader() {
             </div>
           )}
         </div>
+
+        {/* The notebook. Fixed to the corner of the page, so it is reachable from
+            anywhere in a long passage without ever sitting over the prose. */}
+        <CaseNotes game={game} onAccuse={accuse} onSaveNotes={saveCaseNotes} />
 
         {story && <ReportButton storyId={story._id} isAuthor={isAuthor} />}
 

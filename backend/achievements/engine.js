@@ -11,6 +11,7 @@ const catalog = require('./catalog')
 const { EVENTS, isEvent } = require('./events')
 const metrics = require('./metrics')
 const store = require('./store')
+const points = require('../points')
 const { badgeProgress, resolveTier } = require('./evaluator')
 const { track: getTrack } = require('./catalog/tiers')
 
@@ -40,6 +41,9 @@ const evaluateBadges = async (userId, candidates, metricMap, { event, storyId } 
           title: badge.name,
           body: badge.description,
         })
+        // Badges pay platform points, scaled by rarity. Idempotent on
+        // (user, badge), so this can never double-pay.
+        await points.awardBadge(userId, badge)
         newlyUnlocked.push(badge)
       }
     } else {
@@ -142,6 +146,7 @@ const recomputeUser = async (userId, { actorId = null } = {}) => {
           await store.clearProgress(userId, badge.id)
           await store.addUnlockHistory(userId, { kind: 'badge', badgeId: badge.id, source: 'auto', event: 'recompute' })
           await store.addNotification(userId, { kind: 'badge', badgeId: badge.id, title: badge.name, body: badge.description })
+          await points.awardBadge(userId, badge)
           summary.badgesUnlocked++
         }
       } else {

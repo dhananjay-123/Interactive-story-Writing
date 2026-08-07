@@ -14,6 +14,7 @@ const CATEGORIES = [
   { id: 'engagement',      label: 'Engagement',       audience: 'reader' },
   { id: 'challenges',      label: 'Challenges',       audience: 'reader' },
   { id: 'genres',          label: 'Genres',           audience: 'reader' },
+  { id: 'investigation',   label: 'Investigation',    audience: 'reader' },
   { id: 'seasonal',        label: 'Seasonal',         audience: 'special' },
   { id: 'special_events',  label: 'Special Events',   audience: 'special' },
   { id: 'platform_events', label: 'Platform Events',  audience: 'special' },

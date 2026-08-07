@@ -3,6 +3,7 @@ import Home from './pages/Home'
 import StoryList from './pages/StoryList'
 import Featured from './pages/Featured'
 import StoryReader from './pages/StoryReader'
+import StoryGames from './pages/StoryGames'
 import StoryEditor from './pages/StoryEditor'
 import StoryStudio from './pages/StoryStudio'
 import CreateStory from './pages/CreateStory'
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/stories" element={<StoryList />} />
                 <Route path="/featured" element={<Featured />} />
+                <Route path="/games" element={<StoryGames />} />
                 <Route path="/story/:id" element={<StoryReader />} />
                 <Route path="/story/:id/edit" element={<StoryEditor />} />
                 <Route path="/story/:id/studio" element={<StoryStudio />} />
