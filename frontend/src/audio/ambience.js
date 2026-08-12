@@ -39,7 +39,7 @@ export const AMBIENCE_BY_GENRE = {
     { id: 'rom_rain', name: 'Rainy Afternoon', desc: 'Gentle rain over a soft, warm chord.' },
     { id: 'rom_fire', name: 'Fireside', desc: 'A crackling hearth and low, mellow strings.' },
     { id: 'rom_shore', name: 'Evening Shore', desc: 'Slow waves at dusk with a distant gull.' },
-    { id: 'rom_waltz', name: 'Slow Waltz', desc: 'Soft chords swelling like a quiet dance.' },
+    { id: 'rom_waltz', name: 'Slow Waltz', desc: 'A soft three-beat lilt, played very quietly.' },
   ],
   horror: [
     { id: 'hor_drone', name: 'Dread Drone', desc: 'A dissonant low drone that never quite settles.' },
@@ -50,17 +50,17 @@ export const AMBIENCE_BY_GENRE = {
   ],
   thriller: [
     { id: 'thr_pulse', name: 'Pursuit Pulse', desc: 'A driving low pulse that keeps pushing forward.' },
-    { id: 'thr_city', name: 'City at Night', desc: 'Traffic hum with a far-off siren cutting through.' },
+    { id: 'thr_city', name: 'City at Night', desc: 'Cars passing, a horn, a far-off siren.' },
     { id: 'thr_tension', name: 'Wire Tension', desc: 'A high, trembling line over a ticking clock.' },
-    { id: 'thr_stakeout', name: 'Stakeout Rain', desc: 'Rain on the windshield of a idling car.' },
+    { id: 'thr_stakeout', name: 'Stakeout Rain', desc: 'Rain on the windshield of an idling car.' },
     { id: 'thr_countdown', name: 'Countdown', desc: 'A steady tick under a slowly rising drone.' },
   ],
   literary: [
     { id: 'lit_cafe', name: 'Coffeehouse', desc: 'A gentle hum of talk and the clink of saucers.' },
-    { id: 'lit_library', name: 'Quiet Library', desc: 'Still room tone and the turn of a page.' },
+    { id: 'lit_library', name: 'Quiet Library', desc: 'Still air, a page turning, footsteps two aisles over.' },
     { id: 'lit_rain', name: 'Study Rain', desc: 'Soft rain beside a warm reading lamp.' },
     { id: 'lit_garden', name: 'Morning Garden', desc: 'Birdsong and a light breeze through leaves.' },
-    { id: 'lit_night', name: 'Late Night', desc: 'Crickets and the soft air of a summer night.' },
+    { id: 'lit_night', name: 'Late Night', desc: 'Crickets, still summer air, an owl somewhere out there.' },
   ],
 }
 

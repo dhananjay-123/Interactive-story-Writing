@@ -1,0 +1,203 @@
+{
+ "nodes": [
+  {
+   "id": "a3d43270-f46a-4151-9c2a-9a426a89c673",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "text": "March is when DRIFTWOOD took over routing HALFLIGHT's material.\n\nThe hedging did not stop because the analyst became certain. It stopped because somebody in the middle started tidying, and tidying is what people do to a document they have already read.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:42.274Z",
+   "updated_at": "2026-08-07T19:43:42.274Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "5715de8c-8ac5-4cbf-93bb-ae784d4dc59c",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "text": "Every early drop belongs to a window DRIFTWOOD controls. On its own that means nothing — somebody has to control the windows, and it is his job.\n\nWhat means something is that all three were early by the same eleven minutes.",
+   "choices": [
+    {
+     "text": "Work out what eleven minutes buys",
+     "nextNodeId": "472c85d9-c485-4ab9-8504-fa3f31000e3c"
+    },
+    {
+     "text": "Put it down to sloppiness",
+     "nextNodeId": "cb3c8009-1c97-4274-a6d3-d6370f070023"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:41.586Z",
+   "updated_at": "2026-08-07T19:43:42.202Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "d6f93259-56f0-4bcf-96dc-f8ca367568f6",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "text": "The network has run for nineteen months on the assumption that boring is safe, and boring has held.\n\nThis month the traffic got interesting. Three drops arrived early. One arrived twice. Nobody has an explanation that survives being written down and read back.",
+   "choices": [
+    {
+     "text": "Pull the drop timings",
+     "nextNodeId": "5715de8c-8ac5-4cbf-93bb-ae784d4dc59c"
+    },
+    {
+     "text": "Re-read HALFLIGHT's summaries",
+     "nextNodeId": "e48b864c-00af-4832-83a4-96be0e593be2"
+    },
+    {
+     "text": "Check the courier's route",
+     "nextNodeId": "6fcb9435-9513-4545-8263-f76ec8848c83"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:41.450Z",
+   "updated_at": "2026-08-07T19:43:41.925Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "e48b864c-00af-4832-83a4-96be0e593be2",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "text": "HALFLIGHT's summaries are excellent, and since March they have got worse in one specific way: the hedging has gone.\n\nAnalysts hedge. It is the whole discipline. An analyst who has stopped hedging is either very sure of something, or is no longer writing for us.",
+   "choices": [
+    {
+     "text": "Ask what changed in March",
+     "nextNodeId": "a3d43270-f46a-4151-9c2a-9a426a89c673"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:41.722Z",
+   "updated_at": "2026-08-07T19:43:42.355Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "6fcb9435-9513-4545-8263-f76ec8848c83",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "text": "CANDLE's route is the same six streets it has always been, walked at the same pace, in the same order, on the same three days.\n\nIt is terrible tradecraft. It has been terrible tradecraft, unchanged, for nineteen months — which is its own peculiar kind of alibi.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:41.858Z",
+   "updated_at": "2026-08-07T19:43:41.858Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "472c85d9-c485-4ab9-8504-fa3f31000e3c",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "text": "Eleven minutes is what it takes to walk a package from the drop to the tram stop, photograph it on the bench, and walk it back.\n\nYou have done it yourself, twice, with a stopwatch. Eleven minutes each time. The window is DRIFTWOOD's and so, it turns out, are the eleven minutes.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:41.993Z",
+   "updated_at": "2026-08-07T19:43:41.993Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "cb3c8009-1c97-4274-a6d3-d6370f070023",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "text": "You write it up as sloppiness, because sloppiness is what nineteen quiet months train you to expect.\n\nThe network runs another six weeks and then stops running at all, and the report you filed is the last honest document in the file.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:42.133Z",
+   "updated_at": "2026-08-07T19:43:42.133Z",
+   "content": null,
+   "place_id": null
+  }
+ ],
+ "clues": [
+  {
+   "id": "ed22eeaf-a33d-4c1b-9a89-229dda9337bf",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "node_id": "5715de8c-8ac5-4cbf-93bb-ae784d4dc59c",
+   "label": "Three early drops, all early by eleven minutes",
+   "detail": "The same eleven. Not a range — a figure.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": false,
+   "created_at": "2026-08-07T19:43:42.901Z"
+  },
+  {
+   "id": "275873fb-2969-4318-8693-401c1b15eef2",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "node_id": "e48b864c-00af-4832-83a4-96be0e593be2",
+   "label": "HALFLIGHT's summaries stopped hedging in March",
+   "detail": "Analysts hedge. Something changed upstream of the writing.",
+   "kind": "clue",
+   "weight": 2,
+   "optional": false,
+   "created_at": "2026-08-07T19:43:42.971Z"
+  },
+  {
+   "id": "3e9bff80-ddbc-4d45-8401-8799c4a82829",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "node_id": "6fcb9435-9513-4545-8263-f76ec8848c83",
+   "label": "CANDLE's route has not changed in nineteen months",
+   "detail": "Terrible tradecraft, consistently. Which is an alibi of sorts.",
+   "kind": "observation",
+   "weight": 1,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:43.042Z"
+  },
+  {
+   "id": "886ba1b6-9eaa-482f-a2f9-70211d5af238",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "node_id": "472c85d9-c485-4ab9-8504-fa3f31000e3c",
+   "label": "Eleven minutes is the walk to the tram stop and back",
+   "detail": "Timed twice, with a stopwatch, on the actual pavement.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:43.110Z"
+  },
+  {
+   "id": "741e0401-3f76-4062-8825-bae56e9672a3",
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "node_id": "a3d43270-f46a-4151-9c2a-9a426a89c673",
+   "label": "In March, DRIFTWOOD took over routing HALFLIGHT's material",
+   "detail": "The hedging stopped the same month.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:43.189Z"
+  }
+ ],
+ "game": [
+  {
+   "story_id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "mode": "spy",
+   "objective": "Which of the four assets is compromised?",
+   "briefing": "Three drops came early. One came twice. Nobody has an explanation that survives being written down.",
+   "solution_kind": "subject",
+   "solution_key": "driftwood",
+   "answer_hint": null,
+   "max_attempts": 3,
+   "published": true,
+   "created_at": "2026-08-07T19:43:43.277Z",
+   "updated_at": "2026-08-07T19:43:43.277Z"
+  }
+ ],
+ "story": [
+  {
+   "id": "ee19e7b8-6526-4e90-b45a-190ee79527b1",
+   "title": "Signal Discipline",
+   "description": "Nineteen quiet months, four assets, and traffic that has started arriving a little too clean.",
+   "genre": "sci_fi",
+   "author": "Dev Ranganathan",
+   "root_node_id": "d6f93259-56f0-4bcf-96dc-f8ca367568f6",
+   "branch_count": 6,
+   "published": true,
+   "created_at": "2026-08-07T19:43:41.382Z",
+   "updated_at": "2026-08-07T19:43:42.561Z",
+   "author_id": "7d8e72ee-5473-4d9d-baad-6252ebe310bf",
+   "ambience": "sci_console",
+   "tags": [
+    "spy",
+    "tradecraft",
+    "network"
+   ],
+   "featured": false,
+   "featured_at": null
+  }
+ ]
+}

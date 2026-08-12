@@ -1,0 +1,214 @@
+{
+ "nodes": [
+  {
+   "id": "e66d987c-25f1-4c78-bf6d-05187612df61",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "text": "Four keys were cut in 1998 and never re-cut. Sil leans on the mower and enjoys the question for a moment before answering it.\n\n\"You want to know who's got one? Everyone. That's the point of a boat club.\" He is not wrong, and he is not helping, and he knows both.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:42:38.630Z",
+   "updated_at": "2026-08-07T19:42:38.630Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "9eedea3d-e512-414f-9d26-6a9eece6aadb",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "text": "She admits she wrote the last line the next morning, to make the book tidy. *Tidy* is doing a great deal of work in that sentence.\n\nShe wrote it because the real last entry was a single scull signed out at half past nine — and she did not want to be the one who put that name in the book, in ink, in her own hand.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:42:38.773Z",
+   "updated_at": "2026-08-07T19:42:38.773Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "62b52e63-fded-407b-a63b-2feee4d4e16a",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "text": "You let it go. The ledger stays tidy, the inquest records misadventure, and the club buys a good lock in the spring that nobody ever uses.\n\nRuth Fennimore keeps the minutes for another eleven years and never once writes anything down that is not true.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:42:38.914Z",
+   "updated_at": "2026-08-07T19:42:38.914Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "d03294c4-f7a9-40b5-a53e-33bc4dff826a",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "text": "The prints come back to the boathouse steps and stop at the boot rack, where a pair of size-nine trainers sits under the peg marked PIKE, still wet on the inside three days later.\n\nHe went down to the water. He came back up. He did not go home at nine.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:42:39.059Z",
+   "updated_at": "2026-08-07T19:42:39.059Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "9bcf4d67-bd6b-413c-8f47-b9b16e339a46",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "text": "They found Coach Ollerenshaw face down in the shallows at six the next morning, still wearing his club jacket. The boathouse door was standing open.\n\nNobody locks the boathouse. That is the first thing everyone tells you, and they tell you it the way people tell you things they have decided in advance.",
+   "choices": [
+    {
+     "text": "Talk to the club secretary",
+     "nextNodeId": "081629b8-03a1-4f62-9dd6-e7a6ad996fed"
+    },
+    {
+     "text": "Walk the towpath",
+     "nextNodeId": "8ec91cdb-ac17-4d27-800e-2927cc802081"
+    },
+    {
+     "text": "Ask about the keys",
+     "nextNodeId": "e66d987c-25f1-4c78-bf6d-05187612df61"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:42:38.185Z",
+   "updated_at": "2026-08-07T19:42:38.703Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "081629b8-03a1-4f62-9dd6-e7a6ad996fed",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "text": "Ruth Fennimore keeps the club's minutes in a hand-ruled ledger, and she turns it towards you before you ask, which is either helpfulness or practice.\n\nShe left at ten past nine. The last entry proves it. The ink on that line is a different black from the rest of the page.",
+   "choices": [
+    {
+     "text": "Press her on the ledger",
+     "nextNodeId": "9eedea3d-e512-414f-9d26-6a9eece6aadb"
+    },
+    {
+     "text": "Let it go",
+     "nextNodeId": "62b52e63-fded-407b-a63b-2feee4d4e16a"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:42:38.337Z",
+   "updated_at": "2026-08-07T19:42:38.985Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "8ec91cdb-ac17-4d27-800e-2927cc802081",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "text": "The towpath is churned to mud for thirty yards either side of the boathouse steps, and most of it means nothing — a club is a hundred pairs of feet a week.\n\nOne set goes down and comes back. Trainers. Sil Warrick has worn the same boots since before the flood.",
+   "choices": [
+    {
+     "text": "Follow them back towards the club",
+     "nextNodeId": "d03294c4-f7a9-40b5-a53e-33bc4dff826a"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:42:38.486Z",
+   "updated_at": "2026-08-07T19:42:39.134Z",
+   "content": null,
+   "place_id": null
+  }
+ ],
+ "clues": [
+  {
+   "id": "a89d51be-3db0-49ad-86c1-c34939336b7a",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "node_id": "9bcf4d67-bd6b-413c-8f47-b9b16e339a46",
+   "label": "The boathouse door was standing open",
+   "detail": "Which everyone volunteers before being asked.",
+   "kind": "observation",
+   "weight": 1,
+   "optional": false,
+   "created_at": "2026-08-07T19:42:39.711Z"
+  },
+  {
+   "id": "0c10dd51-d8a6-4fb7-b51e-86cef008c4ed",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "node_id": "081629b8-03a1-4f62-9dd6-e7a6ad996fed",
+   "label": "The last ledger line is in different ink",
+   "detail": "Every other entry that night is the same black; the last one is not.",
+   "kind": "evidence",
+   "weight": 2,
+   "optional": false,
+   "created_at": "2026-08-07T19:42:39.792Z"
+  },
+  {
+   "id": "b9cd78b5-a5f4-44fa-bda5-9c039126b0e1",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "node_id": "8ec91cdb-ac17-4d27-800e-2927cc802081",
+   "label": "Trainer prints on the towpath, going both ways",
+   "detail": "Down to the water and back up again. The groundsman wears boots.",
+   "kind": "clue",
+   "weight": 2,
+   "optional": false,
+   "created_at": "2026-08-07T19:42:39.862Z"
+  },
+  {
+   "id": "520edd6d-3c5e-471a-8ae2-db8ae9a03ade",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "node_id": "e66d987c-25f1-4c78-bf6d-05187612df61",
+   "label": "Four keys, cut in 1998, never re-cut",
+   "detail": "Which is a way of saying the keys prove nothing at all.",
+   "kind": "observation",
+   "weight": 1,
+   "optional": true,
+   "created_at": "2026-08-07T19:42:39.970Z"
+  },
+  {
+   "id": "aeb6d2bf-8440-486b-94ce-ca95203e1086",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "node_id": "9eedea3d-e512-414f-9d26-6a9eece6aadb",
+   "label": "A single scull was signed out at half past nine",
+   "detail": "Ruth rewrote the page rather than record the name.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": true,
+   "created_at": "2026-08-07T19:42:40.052Z"
+  },
+  {
+   "id": "50e019ca-b70a-4ced-a4c8-3a2f6e39760c",
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "node_id": "d03294c4-f7a9-40b5-a53e-33bc4dff826a",
+   "label": "Wet trainers under Pike's peg, three days on",
+   "detail": "Size nine, still damp on the inside.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": true,
+   "created_at": "2026-08-07T19:42:40.203Z"
+  }
+ ],
+ "game": [
+  {
+   "story_id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "mode": "detective",
+   "objective": "Who was in the boathouse after nine?",
+   "briefing": "Four people had a key. Three of them are telling the truth about the hour they left.",
+   "solution_kind": "subject",
+   "solution_key": "adam-pike",
+   "answer_hint": null,
+   "max_attempts": 3,
+   "published": true,
+   "created_at": "2026-08-07T19:42:40.309Z",
+   "updated_at": "2026-08-07T19:42:40.309Z"
+  }
+ ],
+ "story": [
+  {
+   "id": "7e5fbc8b-98ae-4c7c-a93f-d6d94f95e1a1",
+   "title": "Nobody Locks the Boathouse",
+   "description": "A rowing club, a drowned coach, and four people who all say they went home at nine.",
+   "genre": "mystery",
+   "author": "Tom Whitlock",
+   "root_node_id": "9bcf4d67-bd6b-413c-8f47-b9b16e339a46",
+   "branch_count": 6,
+   "published": true,
+   "created_at": "2026-08-07T19:42:38.104Z",
+   "updated_at": "2026-08-07T19:42:39.348Z",
+   "author_id": "9aeca59f-0376-4656-bc9c-557a838c2ef1",
+   "ambience": "myst_fog",
+   "tags": [
+    "detective",
+    "whodunit",
+    "club"
+   ],
+   "featured": false,
+   "featured_at": null
+  }
+ ]
+}

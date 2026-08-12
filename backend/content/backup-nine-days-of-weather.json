@@ -1,0 +1,203 @@
+{
+ "nodes": [
+  {
+   "id": "41ba3f74-33dd-4c89-9c49-74153fb6d9c2",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "text": "Half a canister, perhaps less. The gauge lies at altitude and the only honest measure is the weight of the thing in your hand.\n\nWeighed honestly it is one day of melting snow, or two days of being cold and drinking less than you should.",
+   "choices": [
+    {
+     "text": "Ration it across two days",
+     "nextNodeId": "940dec5c-d18f-4cd3-8787-447914eb6bd1"
+    },
+    {
+     "text": "Accept that it is one day",
+     "nextNodeId": "8e145bec-cf44-41c9-b397-be24c806a6b5"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:16.558Z",
+   "updated_at": "2026-08-07T19:43:17.190Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "33ac0c72-b20f-4bc2-a3b9-168fb896a910",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "text": "The radio gives you sixteen seconds of a woman reading numbers, and then nothing at all, for the rest of the evening.\n\nSixteen seconds is enough to know the repeater on the ridge is still standing. It is also enough to know that you are the thing that has stopped working.",
+   "choices": [
+    {
+     "text": "Work out where the signal came from",
+     "nextNodeId": "3bc3f5ef-9c6d-4cd5-95cc-b6ea22077412"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:16.701Z",
+   "updated_at": "2026-08-07T19:43:17.337Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "f4fc4cb3-85e9-485a-9177-0a514df5baa7",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "text": "The gully is loaded. You can hear it in the way the snow answers your boot — a hollow note, like a drum skin, that carries further than snow should.\n\nIt is the fast way down. It is also, in precisely this weather, the way down that kills people.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:16.837Z",
+   "updated_at": "2026-08-07T19:43:16.837Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "57349b3e-91ed-4a5a-88c6-71b3a1fa2ca2",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "text": "The forecast said three days. It has been six.\n\nThe canister has the light sound that means tomorrow at the latest, and above the col the weather is doing something with the light that nobody who has spent time up here likes to watch.",
+   "choices": [
+    {
+     "text": "Weigh the fuel properly",
+     "nextNodeId": "41ba3f74-33dd-4c89-9c49-74153fb6d9c2"
+    },
+    {
+     "text": "Try the radio",
+     "nextNodeId": "33ac0c72-b20f-4bc2-a3b9-168fb896a910"
+    },
+    {
+     "text": "Look at the east gully",
+     "nextNodeId": "f4fc4cb3-85e9-485a-9177-0a514df5baa7"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:16.417Z",
+   "updated_at": "2026-08-07T19:43:16.908Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "940dec5c-d18f-4cd3-8787-447914eb6bd1",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "text": "Two days of being cold, then. It is the wrong arithmetic and you know it while you are doing it.\n\nRationing water is how people talk themselves into staying still, and staying still is the only thing the mountain has ever needed you to do.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:16.979Z",
+   "updated_at": "2026-08-07T19:43:16.979Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "8e145bec-cf44-41c9-b397-be24c806a6b5",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "text": "One day. That makes it simple, which is not at all the same as easy.\n\nOne day of fuel means you go in the morning whatever the sky is doing — and it means the lower hut, four hours down the west side, stops being an option you are considering and becomes the only plan you have.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:17.120Z",
+   "updated_at": "2026-08-07T19:43:17.120Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "3bc3f5ef-9c6d-4cd5-95cc-b6ea22077412",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "text": "Bearing and distance, worked twice because your hands are cold and once is not enough.\n\nThe repeater sits on the shoulder above the lower hut, four hours down the west side, out of the wind. The numbers on the radio were never for you. The direction they came from is.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:17.261Z",
+   "updated_at": "2026-08-07T19:43:17.261Z",
+   "content": null,
+   "place_id": null
+  }
+ ],
+ "clues": [
+  {
+   "id": "c7749bed-354d-434b-9b5a-0bd5219e0841",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "node_id": "41ba3f74-33dd-4c89-9c49-74153fb6d9c2",
+   "label": "The fuel is one day of water, or two of thirst",
+   "detail": "Weighed in the hand, not read off the gauge.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": false,
+   "created_at": "2026-08-07T19:43:17.894Z"
+  },
+  {
+   "id": "70d014d0-bb76-4011-946e-425822064d88",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "node_id": "33ac0c72-b20f-4bc2-a3b9-168fb896a910",
+   "label": "The ridge repeater is still transmitting",
+   "detail": "Sixteen seconds of numbers, then nothing.",
+   "kind": "clue",
+   "weight": 2,
+   "optional": false,
+   "created_at": "2026-08-07T19:43:17.965Z"
+  },
+  {
+   "id": "9e24f7c9-b72a-4636-9ff3-7b286d4737ec",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "node_id": "f4fc4cb3-85e9-485a-9177-0a514df5baa7",
+   "label": "The gully snow sounds hollow",
+   "detail": "A drum-skin note that carries. Loaded.",
+   "kind": "observation",
+   "weight": 1,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:18.035Z"
+  },
+  {
+   "id": "e8c8e85f-d127-47aa-9ab1-f405de9ad9fd",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "node_id": "940dec5c-d18f-4cd3-8787-447914eb6bd1",
+   "label": "Rationing water is how people talk themselves into staying put",
+   "detail": "And staying put is the thing that kills you here.",
+   "kind": "clue",
+   "weight": 2,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:18.106Z"
+  },
+  {
+   "id": "9a3f0e1f-641f-41a9-94d0-028a023d2a07",
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "node_id": "3bc3f5ef-9c6d-4cd5-95cc-b6ea22077412",
+   "label": "The repeater sits above the lower hut, four hours west",
+   "detail": "Out of the wind, with a stove and a roof under it.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:18.176Z"
+  }
+ ],
+ "game": [
+  {
+   "story_id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "mode": "survival",
+   "objective": "Work out what actually gets you off this mountain.",
+   "briefing": "Four things look like a plan from inside a tent. One of them is one.",
+   "solution_kind": "subject",
+   "solution_key": "reach-the-lower-hut-before-dark",
+   "answer_hint": null,
+   "max_attempts": 3,
+   "published": true,
+   "created_at": "2026-08-07T19:43:18.247Z",
+   "updated_at": "2026-08-07T19:43:18.247Z"
+  }
+ ],
+ "story": [
+  {
+   "id": "8fe00b67-840a-4845-a8d7-ad2dedc20513",
+   "title": "Nine Days of Weather",
+   "description": "The forecast said three days. It has been six, and the canister has that light sound.",
+   "genre": "literary",
+   "author": "Meera Kulkarni",
+   "root_node_id": "57349b3e-91ed-4a5a-88c6-71b3a1fa2ca2",
+   "branch_count": 6,
+   "published": true,
+   "created_at": "2026-08-07T19:43:16.349Z",
+   "updated_at": "2026-08-07T19:43:17.542Z",
+   "author_id": "f959c7ce-6498-4dbd-85db-c55a8169e3f2",
+   "ambience": "lit_night",
+   "tags": [
+    "survival",
+    "mountain",
+    "weather"
+   ],
+   "featured": false,
+   "featured_at": null
+  }
+ ]
+}

@@ -1,0 +1,203 @@
+{
+ "nodes": [
+  {
+   "id": "8c0c963a-2367-40f2-aea5-f526f973e620",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "text": "Between two and half past, most nights, something moves on the floor above you.\n\nYou have been sleeping on the top floor since the first night.",
+   "choices": [
+    {
+     "text": "Go up while it is happening",
+     "nextNodeId": "fdd0de9a-bda6-459f-a0f9-3694d1f9f191"
+    },
+    {
+     "text": "Wait for the morning",
+     "nextNodeId": "f7de6e8a-a765-4b1c-b3cc-4cbda258a483"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:53.797Z",
+   "updated_at": "2026-08-07T19:43:54.444Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "de0083e2-0c16-4734-862f-731f29f8a1e7",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "text": "The meter has been reading for a household of four since the day you moved in alone.\n\nYou photograph it every night for a week and plot it out on the back of the survey. The curve is not yours. It peaks at eleven, and again at three.",
+   "choices": [
+    {
+     "text": "Compare it against your own hours",
+     "nextNodeId": "0cbb82b1-5ac6-420a-a3fc-ce66fe45080f"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:53.941Z",
+   "updated_at": "2026-08-07T19:43:54.590Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "5c6309c8-7983-4a81-bef8-e402722d820b",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "text": "The survey found nothing. The wiring passed. The previous owners left in the spring without a forwarding address, which the agent said was normal and which you have since learned is not.\n\nYou have been here eleven days, and on the ninth you started writing things down, which is not a thing you have ever needed to do in a house before.",
+   "choices": [
+    {
+     "text": "Write down the noises",
+     "nextNodeId": "8c0c963a-2367-40f2-aea5-f526f973e620"
+    },
+    {
+     "text": "Check the meter",
+     "nextNodeId": "de0083e2-0c16-4734-862f-731f29f8a1e7"
+    },
+    {
+     "text": "Go up to the loft",
+     "nextNodeId": "7818176d-46f0-474e-89a8-1f045036f33b"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:53.651Z",
+   "updated_at": "2026-08-07T19:43:54.156Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "7818176d-46f0-474e-89a8-1f045036f33b",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "text": "The loft is boarded, insulated, and clean in the particular way that only a room somebody sweeps is clean.\n\nThere is no dust at all on the hatch frame. You have never opened this hatch.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:54.084Z",
+   "updated_at": "2026-08-07T19:43:54.084Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "fdd0de9a-bda6-459f-a0f9-3694d1f9f191",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "text": "You go up while it is happening. The landing light is off. The door to the small back room is closed.\n\nIt was open at eleven — you know because you closed the window in there yourself. There is no draught in this house. You sealed the sashes in week one, with your own hands, and you remember being pleased about it.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:54.227Z",
+   "updated_at": "2026-08-07T19:43:54.227Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "f7de6e8a-a765-4b1c-b3cc-4cbda258a483",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "text": "You wait for the morning, the way people do, and the morning makes it ridiculous. Pipes. Birds. An old house settling into an old frame.\n\nIt is ridiculous every morning for eleven mornings. It is not ridiculous at two.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:54.370Z",
+   "updated_at": "2026-08-07T19:43:54.370Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "0cbb82b1-5ac6-420a-a3fc-ce66fe45080f",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "text": "Your hours are seven and eleven. You have never once been awake at three in this house, which is the entire reason you noticed.\n\nThe meter's hours are eleven and three. Two households. One supply. Only one of you is paying for it.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:54.517Z",
+   "updated_at": "2026-08-07T19:43:54.517Z",
+   "content": null,
+   "place_id": null
+  }
+ ],
+ "clues": [
+  {
+   "id": "76e081b8-d6e4-4729-b587-ef82e44e1b1a",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "node_id": "8c0c963a-2367-40f2-aea5-f526f973e620",
+   "label": "Movement above the top floor, nightly, at two",
+   "detail": "You sleep on the top floor. There is no floor above it.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": false,
+   "created_at": "2026-08-07T19:43:55.175Z"
+  },
+  {
+   "id": "59e5a03b-841f-4faa-bb7e-f7d31c2a875a",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "node_id": "de0083e2-0c16-4734-862f-731f29f8a1e7",
+   "label": "The meter reads for four people and peaks twice",
+   "detail": "Eleven and three. Neither is one of your hours.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": false,
+   "created_at": "2026-08-07T19:43:55.248Z"
+  },
+  {
+   "id": "e38de868-78c6-4ff5-95f3-0de82ff50581",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "node_id": "7818176d-46f0-474e-89a8-1f045036f33b",
+   "label": "No dust on a hatch you have never opened",
+   "detail": "And a loft that is clean the way a swept room is clean.",
+   "kind": "observation",
+   "weight": 1,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:55.321Z"
+  },
+  {
+   "id": "6afd912f-c8b9-48d7-b3e8-220f9ed14788",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "node_id": "fdd0de9a-bda6-459f-a0f9-3694d1f9f191",
+   "label": "A door open at eleven, closed at two",
+   "detail": "No draught — you sealed the sashes yourself.",
+   "kind": "clue",
+   "weight": 2,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:55.392Z"
+  },
+  {
+   "id": "a6c29f24-d50b-4acd-a7a0-504ae58f0ba7",
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "node_id": "0cbb82b1-5ac6-420a-a3fc-ce66fe45080f",
+   "label": "The meter's hours are not your hours",
+   "detail": "Two households on one supply.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:55.465Z"
+  }
+ ],
+ "game": [
+  {
+   "story_id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "mode": "horror",
+   "objective": "Work out what is actually happening in this house.",
+   "briefing": "Four explanations fit everything you have written down. Three of them are comfortable.",
+   "solution_kind": "subject",
+   "solution_key": "someone-else-is-living-here",
+   "answer_hint": null,
+   "max_attempts": 3,
+   "published": true,
+   "created_at": "2026-08-07T19:43:55.541Z",
+   "updated_at": "2026-08-07T19:43:55.541Z"
+  }
+ ],
+ "story": [
+  {
+   "id": "55bbc43f-c8f3-4f94-ac67-e7291089f2ff",
+   "title": "The House Keeps Its Own Hours",
+   "description": "The survey found nothing, the wiring passed, and on the eleventh night you started writing things down.",
+   "genre": "horror",
+   "author": "Felix Obi",
+   "root_node_id": "5c6309c8-7983-4a81-bef8-e402722d820b",
+   "branch_count": 6,
+   "published": true,
+   "created_at": "2026-08-07T19:43:53.580Z",
+   "updated_at": "2026-08-07T19:43:54.807Z",
+   "author_id": "bffbc244-9f59-46d9-bd46-47738656caaa",
+   "ambience": "hor_drone",
+   "tags": [
+    "horror",
+    "investigation",
+    "house"
+   ],
+   "featured": false,
+   "featured_at": null
+  }
+ ]
+}

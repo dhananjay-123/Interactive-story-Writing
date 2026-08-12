@@ -77,14 +77,41 @@ const detachChild = async (parentId, choiceIndex) => {
   )
 }
 
-// Recursively delete a node and every passage reachable beneath it.
+/* Delete a passage and everything that existed only underneath it.
+   A story is a graph rather than a strictly a tree — several leads can rejoin at
+   the same passage, which is how the investigation stories are built — so walking
+   the children and deleting blindly would take out the shared passage and every
+   other lead with it. Anything still reachable from the opening survives, and
+   passages that were already orphaned elsewhere are left alone. */
 const deleteSubtree = async (id) => {
   const node = await findById(id)
   if (!node) return
-  for (const c of node.choices || []) {
-    if (c.nextNodeId) await deleteSubtree(c.nextNodeId)
+
+  const { rows } = await db.query('SELECT id, choices FROM nodes WHERE story_id = $1', [node.storyId])
+  const links = new Map(rows.map((r) => [r.id, (r.choices || []).map((c) => c.nextNodeId).filter(Boolean)]))
+
+  // Everything under the passage being removed, cycles included.
+  const doomed = new Set()
+  const collect = (from) => {
+    if (doomed.has(from)) return
+    doomed.add(from)
+    ;(links.get(from) || []).forEach(collect)
   }
-  await db.query('DELETE FROM nodes WHERE id = $1', [id])
+  collect(id)
+
+  // Everything the reader can still get to without passing through it.
+  const { rows: storyRows } = await db.query('SELECT root_node_id FROM stories WHERE id = $1', [node.storyId])
+  const root = storyRows[0]?.root_node_id
+  const kept = new Set()
+  const reach = (from) => {
+    if (!from || from === id || kept.has(from)) return
+    kept.add(from)
+    ;(links.get(from) || []).forEach(reach)
+  }
+  reach(root)
+
+  const gone = [...doomed].filter((n) => !kept.has(n))
+  if (gone.length) await db.query('DELETE FROM nodes WHERE id = ANY($1::uuid[])', [gone])
 }
 
 // Pin a passage to a place on the story's world map (or null to unpin).

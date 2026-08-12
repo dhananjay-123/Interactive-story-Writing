@@ -1,0 +1,203 @@
+{
+ "nodes": [
+  {
+   "id": "3d38f32d-d5c6-48f1-a047-2e3e58b186a4",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "text": "Callum Fry served him at twenty past six and describes the coat exactly: navy, toggle buttons, a tear at the left cuff.\n\nHe describes it a second time, later, under cross-examination. The same three details. The same order. The same words.",
+   "choices": [
+    {
+     "text": "Ask him to describe it once more",
+     "nextNodeId": "f2bf3b2c-ef2c-4002-9df1-bf2b49642646"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:42:52.216Z",
+   "updated_at": "2026-08-07T19:42:52.835Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "7905f9ba-d118-4ef5-9c05-d9bb0f249e87",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "text": "Sgt Doyle's notebook is neat to the point of art. Every entry timed to the minute, every page numbered, nothing crossed out.\n\nEleven years of notebooks and not one correction. You have read a great many police notebooks. That has never once been true of anybody.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:42:52.354Z",
+   "updated_at": "2026-08-07T19:42:52.354Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "dbe4606a-1e71-41c2-9959-e9538b8607b1",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "text": "She thinks about it properly for the first time, and her certainty comes apart in her hands while everyone watches.\n\n\"It was *getting* dark,\" she says. \"That's not the same, is it.\" It is not. She is wrong, and being wrong is not the same as lying, and the jury will need to be told the difference very carefully.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:42:52.493Z",
+   "updated_at": "2026-08-07T19:42:52.493Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "88f82a1c-f703-4ae0-8881-23afb8d863f1",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "text": "You let it stand. She steps down certain, and the jury believes her, because she believes herself.\n\nBelief is the most contagious thing in a courtroom and the hardest to cross-examine.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:42:52.631Z",
+   "updated_at": "2026-08-07T19:42:52.631Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "ef798f32-75dd-4208-8474-0b46dd84140e",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "text": "Ines Barrow drove the 74 and remembers him because he paid in coins, counted out slowly, holding up the queue. She is certain about the coins.\n\nShe is less careful about the light. She says it was dark. In November, at six, on that road, it was not yet.",
+   "choices": [
+    {
+     "text": "Ask her about the light",
+     "nextNodeId": "dbe4606a-1e71-41c2-9959-e9538b8607b1"
+    },
+    {
+     "text": "Accept her account",
+     "nextNodeId": "88f82a1c-f703-4ae0-8881-23afb8d863f1"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:42:52.077Z",
+   "updated_at": "2026-08-07T19:42:52.699Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "f2bf3b2c-ef2c-4002-9df1-bf2b49642646",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "text": "Navy, toggle buttons, a tear at the left cuff. The same words in the same order, with the same small pause before *toggle*.\n\nNobody remembers a coat. People remember a sentence, and a sentence that comes back identical three times is a sentence somebody was given.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:42:52.767Z",
+   "updated_at": "2026-08-07T19:42:52.767Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "728f598c-05cf-4dc7-8427-58e6dfbeb2bb",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "text": "The prosecution's case is an hour long. Six o'clock to seven, on a Tuesday in November.\n\nEverything twelve people will decide about the rest of a man's life rests on where he stood inside it.",
+   "choices": [
+    {
+     "text": "Hear the bus driver",
+     "nextNodeId": "ef798f32-75dd-4208-8474-0b46dd84140e"
+    },
+    {
+     "text": "Hear the shop assistant",
+     "nextNodeId": "3d38f32d-d5c6-48f1-a047-2e3e58b186a4"
+    },
+    {
+     "text": "Read the officer's notebook",
+     "nextNodeId": "7905f9ba-d118-4ef5-9c05-d9bb0f249e87"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:42:51.929Z",
+   "updated_at": "2026-08-07T19:42:52.425Z",
+   "content": null,
+   "place_id": null
+  }
+ ],
+ "clues": [
+  {
+   "id": "323376ee-1c73-4dda-a0df-588af25d11f5",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "node_id": "ef798f32-75dd-4208-8474-0b46dd84140e",
+   "label": "She says it was dark at six; it was not",
+   "detail": "November, that road — the light goes about twenty past.",
+   "kind": "clue",
+   "weight": 2,
+   "optional": false,
+   "created_at": "2026-08-07T19:42:53.376Z"
+  },
+  {
+   "id": "9d9c8fac-23b5-45c1-bd54-cb4ed4e5c559",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "node_id": "3d38f32d-d5c6-48f1-a047-2e3e58b186a4",
+   "label": "Fry describes the coat in identical words, twice",
+   "detail": "Navy, toggle buttons, tear at the left cuff. Same order both times.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": false,
+   "created_at": "2026-08-07T19:42:53.444Z"
+  },
+  {
+   "id": "467c49e0-9fa1-4646-bdd4-0975e42195cd",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "node_id": "7905f9ba-d118-4ef5-9c05-d9bb0f249e87",
+   "label": "Eleven years of notebooks, not one crossing-out",
+   "detail": "Tidy to a degree that nobody actually manages.",
+   "kind": "observation",
+   "weight": 1,
+   "optional": true,
+   "created_at": "2026-08-07T19:42:53.512Z"
+  },
+  {
+   "id": "1f19d97a-82c1-4fe2-ac5c-9932eb7e26ea",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "node_id": "dbe4606a-1e71-41c2-9959-e9538b8607b1",
+   "label": "Her certainty was about the coins, not the hour",
+   "detail": "She was honestly wrong, and knew it the moment she was asked properly.",
+   "kind": "clue",
+   "weight": 2,
+   "optional": true,
+   "created_at": "2026-08-07T19:42:53.580Z"
+  },
+  {
+   "id": "37c688cb-a538-4acc-9670-a6d7dbb3aad3",
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "node_id": "f2bf3b2c-ef2c-4002-9df1-bf2b49642646",
+   "label": "The third description is word-for-word identical again",
+   "detail": "A rehearsed sentence, not a memory.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": true,
+   "created_at": "2026-08-07T19:42:53.647Z"
+  }
+ ],
+ "game": [
+  {
+   "story_id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "mode": "courtroom",
+   "objective": "Which witness is lying?",
+   "briefing": "Everyone in this room believes they are telling the truth. That is what makes it difficult.",
+   "solution_kind": "subject",
+   "solution_key": "callum-fry",
+   "answer_hint": null,
+   "max_attempts": 3,
+   "published": true,
+   "created_at": "2026-08-07T19:42:53.716Z",
+   "updated_at": "2026-08-07T19:42:53.716Z"
+  }
+ ],
+ "story": [
+  {
+   "id": "c2cec024-0edb-4303-8635-51fd9aa93911",
+   "title": "The Weight of a Tuesday",
+   "description": "Three witnesses put the same man in three different places within the same hour. Two of them are mistaken.",
+   "genre": "literary",
+   "author": "Alba Reyes",
+   "root_node_id": "728f598c-05cf-4dc7-8427-58e6dfbeb2bb",
+   "branch_count": 6,
+   "published": true,
+   "created_at": "2026-08-07T19:42:51.853Z",
+   "updated_at": "2026-08-07T19:42:53.036Z",
+   "author_id": "f6f8e41f-f69a-4794-83bb-5069f003962e",
+   "ambience": "lit_library",
+   "tags": [
+    "courtroom",
+    "testimony",
+    "trial"
+   ],
+   "featured": false,
+   "featured_at": null
+  }
+ ]
+}

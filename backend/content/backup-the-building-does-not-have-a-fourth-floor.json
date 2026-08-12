@@ -1,0 +1,203 @@
+{
+ "nodes": [
+  {
+   "id": "2641e7c8-87c3-41e4-9855-5096242a95bc",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "text": "From the car park you count them: ground, one, two, three, four. Four rows of glass on a building that insists it has three floors, and the top row has curtains in it.\n\nSomebody was very careful about the inside of this building and forgot the outside entirely.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:05.044Z",
+   "updated_at": "2026-08-07T19:43:05.044Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "84e7d604-aef8-4749-b571-3e3f132324ff",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "text": "The stairwell ends at three. You have walked it twice to be certain, once counting.\n\nThe lift panel has buttons for G to 3 and then a smooth grey gap where 4 would go, and you are standing on the fourth floor reading it.",
+   "choices": [
+    {
+     "text": "Call the lift anyway",
+     "nextNodeId": "96b27246-1e61-4839-b345-7999bf81199a"
+    },
+    {
+     "text": "Look in the riser cupboard",
+     "nextNodeId": "af240983-4cdf-41c9-959f-9afc9e1c461f"
+    },
+    {
+     "text": "Count the windows from the car park",
+     "nextNodeId": "2641e7c8-87c3-41e4-9855-5096242a95bc"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:04.600Z",
+   "updated_at": "2026-08-07T19:43:05.117Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "b33ee90a-b6cb-432d-8f6f-7bd70ebd3f26",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "text": "The sticker gives a firm, a phone number, a date — and a line of block capitals naming the equipment it covers.\n\n**GOODS LIFT — 4TH FLR LANDING.** Serviced every spring, for years, for a landing that is not on any plan in the building.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:05.188Z",
+   "updated_at": "2026-08-07T19:43:05.188Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "c0be924c-57c5-4516-a58a-52a19b8fbeb6",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "text": "You let the doors close and ride down to three, where the building agrees with itself and nothing needs explaining.\n\nIt is an enormous relief for about four minutes.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:05.331Z",
+   "updated_at": "2026-08-07T19:43:05.331Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "96b27246-1e61-4839-b345-7999bf81199a",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "text": "The doors open onto nothing — shaft wall, brick, a smell of old grease.\n\nAt knee height there is a maintenance sticker, laminated, with a date from last spring. Somebody has been servicing something up here. Recently. On a schedule.",
+   "choices": [
+    {
+     "text": "Read the sticker properly",
+     "nextNodeId": "b33ee90a-b6cb-432d-8f6f-7bd70ebd3f26"
+    },
+    {
+     "text": "Let the doors close",
+     "nextNodeId": "c0be924c-57c5-4516-a58a-52a19b8fbeb6"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:04.746Z",
+   "updated_at": "2026-08-07T19:43:05.404Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "cabb4025-4c23-4690-8d08-a4ded9ae2cba",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "text": "The flat brass key from the fire panel fits, because of course it does — every fire panel in every building of this age takes the same key, and that is the whole reason it is there.\n\nBehind the steel doors: a platform, a folding grille, and a lever worn smooth by a very great many hands.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:05.475Z",
+   "updated_at": "2026-08-07T19:43:05.475Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "af240983-4cdf-41c9-959f-9afc9e1c461f",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "text": "The cupboard on four is unlocked and almost empty: a wall of pipework, a dead fluorescent tube, and bolted beside them a pair of steel doors far too wide to belong in a cupboard.\n\nNo call button. One keyhole, brass, worn bright.",
+   "choices": [
+    {
+     "text": "Find something that fits the keyhole",
+     "nextNodeId": "cabb4025-4c23-4690-8d08-a4ded9ae2cba"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:04.898Z",
+   "updated_at": "2026-08-07T19:43:05.548Z",
+   "content": null,
+   "place_id": null
+  }
+ ],
+ "clues": [
+  {
+   "id": "9a928bf4-17cb-40bb-a619-a309325e035d",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "node_id": "96b27246-1e61-4839-b345-7999bf81199a",
+   "label": "A serviced maintenance sticker inside the shaft",
+   "detail": "Laminated, dated last spring, at knee height.",
+   "kind": "clue",
+   "weight": 2,
+   "optional": false,
+   "created_at": "2026-08-07T19:43:05.836Z"
+  },
+  {
+   "id": "35131423-3c58-44fd-9c2c-6502e000f4af",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "node_id": "af240983-4cdf-41c9-959f-9afc9e1c461f",
+   "label": "Steel double doors in the riser cupboard",
+   "detail": "Too wide for a cupboard. No call button. One brass keyhole.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": false,
+   "created_at": "2026-08-07T19:43:05.906Z"
+  },
+  {
+   "id": "fb49c351-089c-4d86-8c73-e09c2c4fbaf8",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "node_id": "2641e7c8-87c3-41e4-9855-5096242a95bc",
+   "label": "Four rows of windows on a three-floor building",
+   "detail": "And the top row has curtains in it.",
+   "kind": "observation",
+   "weight": 1,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:05.977Z"
+  },
+  {
+   "id": "eab0d247-aec5-4663-b1c5-a19b052eccb9",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "node_id": "b33ee90a-b6cb-432d-8f6f-7bd70ebd3f26",
+   "label": "The sticker reads GOODS LIFT — 4TH FLR LANDING",
+   "detail": "Maintained on a schedule, for a landing that is on no plan.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:06.050Z"
+  },
+  {
+   "id": "3c680e50-6779-4a30-a5a1-7b79c4e4511b",
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "node_id": "cabb4025-4c23-4690-8d08-a4ded9ae2cba",
+   "label": "The fire-panel key opens the steel doors",
+   "detail": "Platform, grille, and a lever worn smooth.",
+   "kind": "clue",
+   "weight": 2,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:06.123Z"
+  }
+ ],
+ "game": [
+  {
+   "story_id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "mode": "escape",
+   "objective": "Find the way out of a floor that officially does not exist.",
+   "briefing": "Everything in this building agrees that you are not here. Find the one thing that does not.",
+   "solution_kind": "answer",
+   "solution_key": "the service lift | service lift | goods lift | the goods lift | goods hoist",
+   "answer_hint": "It is a piece of machinery, and the building has been paying to maintain it.",
+   "max_attempts": 4,
+   "published": true,
+   "created_at": "2026-08-07T19:43:06.196Z",
+   "updated_at": "2026-08-07T19:43:06.196Z"
+  }
+ ],
+ "story": [
+  {
+   "id": "c1c5d607-afc2-4500-9667-c75abe395c6e",
+   "title": "The Building Does Not Have a Fourth Floor",
+   "description": "The stairwell ends at three. The lifts stop at three. You are standing on four.",
+   "genre": "thriller",
+   "author": "Priya Nain",
+   "root_node_id": "84e7d604-aef8-4749-b571-3e3f132324ff",
+   "branch_count": 6,
+   "published": true,
+   "created_at": "2026-08-07T19:43:04.527Z",
+   "updated_at": "2026-08-07T19:43:05.762Z",
+   "author_id": "a99d1220-b7c9-41d8-b26a-69c824dd3a2b",
+   "ambience": "thr_countdown",
+   "tags": [
+    "escape",
+    "locked-room",
+    "puzzle"
+   ],
+   "featured": false,
+   "featured_at": null
+  }
+ ]
+}

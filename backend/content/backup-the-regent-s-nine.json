@@ -1,0 +1,203 @@
+{
+ "nodes": [
+  {
+   "id": "c359c62a-57a1-41a5-881a-8adb953830bf",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "text": "The physician poured, as she does every council night, and she poured for everyone including herself.\n\nThat is the point of pouring for yourself. It is also, if you have been at court long enough, the point of appearing to.",
+   "choices": [
+    {
+     "text": "Watch her drink",
+     "nextNodeId": "fd2cf71d-df2a-445e-bd05-ab0b2622f07a"
+    },
+    {
+     "text": "Say nothing",
+     "nextNodeId": "4dc7c653-9542-4b02-a9c7-749c642bf1ca"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:28.758Z",
+   "updated_at": "2026-08-07T19:43:29.419Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "c3995d29-25f6-41eb-be0d-d4e43dc1cb50",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "text": "The quoted sentence is exact. Every word — including the regent's stammer on *Callow*, written out as a stammer, with the repetition marked.\n\nNobody reproduces a stammer from memory. You reproduce it from a page.",
+   "choices": [
+    {
+     "text": "Ask who writes at council",
+     "nextNodeId": "700a69a0-3f15-4e1c-b70f-6fbdc0c7a6df"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:28.905Z",
+   "updated_at": "2026-08-07T19:43:29.576Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "5e0d9753-4e52-427a-b557-c114258312e3",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "text": "Bren Callow spends the evening being obviously suspicious: the wrong answers, the silences that run a beat too long, the hand that keeps finding his belt and leaving again.\n\nHe is a man being blackmailed. That is a different animal from a man being paid, and it wears its fear on the outside.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:29.051Z",
+   "updated_at": "2026-08-07T19:43:29.051Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "0855ed68-6f7a-4e4d-87b7-2021196d768c",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "text": "Nine chairs, nine cups, and a letter in the enemy's hand that quotes a sentence spoken in this room on a night when the doors were barred from the inside.\n\nSomeone at this table has already been paid, and is sitting at it still.",
+   "choices": [
+    {
+     "text": "Ask who poured the wine",
+     "nextNodeId": "c359c62a-57a1-41a5-881a-8adb953830bf"
+    },
+    {
+     "text": "Read the letter again",
+     "nextNodeId": "c3995d29-25f6-41eb-be0d-d4e43dc1cb50"
+    },
+    {
+     "text": "Watch the Northern Watch",
+     "nextNodeId": "5e0d9753-4e52-427a-b557-c114258312e3"
+    }
+   ],
+   "is_ending": false,
+   "created_at": "2026-08-07T19:43:28.614Z",
+   "updated_at": "2026-08-07T19:43:29.124Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "fd2cf71d-df2a-445e-bd05-ab0b2622f07a",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "text": "She raises the cup. She drinks. Her throat does not move.\n\nIt is the smallest thing in the world, and you have watched a hundred honest people do it honestly, which is exactly how you know what it looks like when somebody does not.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:29.202Z",
+   "updated_at": "2026-08-07T19:43:29.202Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "4dc7c653-9542-4b02-a9c7-749c642bf1ca",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "text": "You say nothing, because saying something means being right in front of nine people, and being wrong in front of nine people is how regents lose councils.\n\nThe wine goes round. The letter stays unexplained. In the spring there is another letter.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:29.346Z",
+   "updated_at": "2026-08-07T19:43:29.346Z",
+   "content": null,
+   "place_id": null
+  },
+  {
+   "id": "700a69a0-3f15-4e1c-b70f-6fbdc0c7a6df",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "text": "Nobody writes at council. That is the entire point of council.\n\nNobody except the physician, who has kept a record of the regent's health at every sitting for eleven years — in a small clean hand, in a book that nobody has ever once asked to read.",
+   "choices": [],
+   "is_ending": true,
+   "created_at": "2026-08-07T19:43:29.489Z",
+   "updated_at": "2026-08-07T19:43:29.489Z",
+   "content": null,
+   "place_id": null
+  }
+ ],
+ "clues": [
+  {
+   "id": "9a3da52d-a1fa-4e57-a21b-1fc0342b0190",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "node_id": "c359c62a-57a1-41a5-881a-8adb953830bf",
+   "label": "The physician pours for everyone, herself included",
+   "detail": "Which proves nothing, and is meant to.",
+   "kind": "clue",
+   "weight": 2,
+   "optional": false,
+   "created_at": "2026-08-07T19:43:30.150Z"
+  },
+  {
+   "id": "809e28cc-ebf1-4c2a-820f-8fd85d809c20",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "node_id": "c3995d29-25f6-41eb-be0d-d4e43dc1cb50",
+   "label": "The letter reproduces the regent's stammer",
+   "detail": "Written out as a stammer. Taken down as it was said.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": false,
+   "created_at": "2026-08-07T19:43:30.223Z"
+  },
+  {
+   "id": "00e634a7-8ea5-4325-bcc4-053481b3dfcc",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "node_id": "5e0d9753-4e52-427a-b557-c114258312e3",
+   "label": "Callow behaves like a man being blackmailed",
+   "detail": "Frightened, not bought. A different animal.",
+   "kind": "observation",
+   "weight": 1,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:30.297Z"
+  },
+  {
+   "id": "93b2b432-1189-4d2f-a572-3c44fbd8dea3",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "node_id": "fd2cf71d-df2a-445e-bd05-ab0b2622f07a",
+   "label": "She raises the cup but her throat does not move",
+   "detail": "She has been not-drinking her own wine for some time.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:30.380Z"
+  },
+  {
+   "id": "0fd3a646-cc30-4b59-90cf-fbb106405be6",
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "node_id": "700a69a0-3f15-4e1c-b70f-6fbdc0c7a6df",
+   "label": "Only the physician writes at council",
+   "detail": "Eleven years of health records nobody has asked to read.",
+   "kind": "evidence",
+   "weight": 3,
+   "optional": true,
+   "created_at": "2026-08-07T19:43:30.485Z"
+  }
+ ],
+ "game": [
+  {
+   "story_id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "mode": "intrigue",
+   "objective": "Which of the nine has already been paid?",
+   "briefing": "The letter is exact. Someone in that room was writing.",
+   "solution_kind": "subject",
+   "solution_key": "isolde-mear",
+   "answer_hint": null,
+   "max_attempts": 3,
+   "published": true,
+   "created_at": "2026-08-07T19:43:30.592Z",
+   "updated_at": "2026-08-07T19:43:30.592Z"
+  }
+ ],
+ "story": [
+  {
+   "id": "3aeb6e21-7ae7-40b6-a0c5-cb2808d3e5ce",
+   "title": "The Regent's Nine",
+   "description": "Nine sit at the council table. A letter in the enemy's hand quotes a sentence spoken behind barred doors.",
+   "genre": "fantasy",
+   "author": "Meera Kulkarni",
+   "root_node_id": "0855ed68-6f7a-4e4d-87b7-2021196d768c",
+   "branch_count": 6,
+   "published": true,
+   "created_at": "2026-08-07T19:43:28.541Z",
+   "updated_at": "2026-08-07T19:43:29.787Z",
+   "author_id": "f959c7ce-6498-4dbd-85db-c55a8169e3f2",
+   "ambience": "fant_castle",
+   "tags": [
+    "intrigue",
+    "court",
+    "betrayal"
+   ],
+   "featured": false,
+   "featured_at": null
+  }
+ ]
+}
