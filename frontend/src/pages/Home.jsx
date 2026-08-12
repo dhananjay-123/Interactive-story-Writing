@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../api/client'
 import StoryCard from '../components/StoryCard'
 import ContinueReading from '../components/ContinueReading'
+import { Button } from '../components/ui'
 
 const OPENING_LINES = [
   "Every choice rewrites the ending.",
@@ -154,48 +155,12 @@ export default function Home() {
           </p>
 
           <div className="animate-fadeUp delay-400 flex items-center justify-center gap-4 flex-wrap">
-            <Link
-              to="/stories"
-              style={{
-                display: 'inline-block',
-                padding: '14px 36px',
-                background: 'var(--gold-solid)',
-                color: 'var(--on-gold)',
-                textDecoration: 'none',
-                fontSize: '14px',
-                fontWeight: 600,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                borderRadius: '4px',
-                boxShadow: 'var(--card-shadow)',
-                transition: 'background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--gold-dark)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = 'var(--card-shadow-hover)' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'var(--gold-solid)'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--card-shadow)' }}
-            >
+            <Button to="/stories" variant="primary" size="lg" className="hero-cta">
               Explore Stories
-            </Link>
-            <Link
-              to="/create"
-              style={{
-                display: 'inline-block',
-                padding: '14px 36px',
-                background: 'transparent',
-                color: 'var(--parchment)',
-                textDecoration: 'none',
-                fontSize: '14px',
-                fontWeight: 500,
-                letterSpacing: '0.08em',
-                textTransform: 'uppercase',
-                borderRadius: '4px',
-                border: '1px solid rgba(var(--text-rgb),var(--ta25))',
-                transition: 'border-color 0.2s ease, color 0.2s ease',
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--gold-rgb),0.5)'; e.currentTarget.style.color = 'var(--gold)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(var(--text-rgb),var(--ta25))'; e.currentTarget.style.color = 'var(--parchment)' }}
-            >
+            </Button>
+            <Button to="/create" variant="ghost" size="lg">
               Write a Story
-            </Link>
+            </Button>
           </div>
         </div>
       </section>
@@ -212,12 +177,7 @@ export default function Home() {
                 Featured stories
               </h2>
             </div>
-            <Link
-              to="/featured"
-              style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta50))', textDecoration: 'none', letterSpacing: '0.04em' }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta50))')}
-            >
+            <Link to="/featured" className="section-link">
               See the whole shelf →
             </Link>
           </div>

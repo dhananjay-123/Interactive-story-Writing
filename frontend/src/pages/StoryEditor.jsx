@@ -14,11 +14,13 @@ import ConnectingLoader from '../components/ConnectingLoader'
 import { avatarSrc } from '../avatars/catalog'
 import CollaboratorsPanel from '../components/CollaboratorsPanel'
 import { useStoryCollab } from '../realtime/useStoryCollab'
+import { useToast } from '../components/ui'
 
 export default function StoryEditor() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user, loading: authLoading } = useAuth()
+  const toast = useToast()
 
   const [story, setStory] = useState(null)
   const [nodeMap, setNodeMap] = useState({})
@@ -109,10 +111,12 @@ export default function StoryEditor() {
   )
 
   // Claim a passage before opening its editor; refuse if a co-author holds it.
+  // A blocking OS alert was a harsh way to deliver this — it's a normal thing to
+  // happen while two people write together, not an error to be dismissed.
   const beginEdit = async (nodeId) => {
     const res = await lockPassage(nodeId)
     if (!res.ok) {
-      window.alert(`${res.by || 'A co-author'} is editing this passage right now.`)
+      toast.info(`${res.by || 'A co-author'} is editing this passage right now.`)
       return
     }
     setActiveCompose(null)

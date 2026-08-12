@@ -1,7 +1,18 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { inputStyle, labelStyle, focusBorder, blurBorder } from '../components/authStyles'
+import { Button, Field } from '../components/ui'
+
+// Two changes worth noting beyond the styling.
+//
+// The fields are wired through Field, which generates the id/for pair — before
+// this, both inputs announced themselves to a screen reader as "edit text,
+// blank", and the same was true of every other form in the app.
+//
+// The submit button is no longer disabled until both boxes have content. A
+// greyed-out button with no explanation is a dead end: you can see that you
+// can't continue but not why. It now submits, validates, and says what's
+// missing next to the field that's missing it.
 
 export default function Login() {
   const { login } = useAuth()
@@ -10,99 +21,88 @@ export default function Login() {
   const redirectTo = location.state?.from || '/stories'
 
   const [form, setForm] = useState({ email: '', password: '' })
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
-  const update = (field, value) => setForm((f) => ({ ...f, [field]: value }))
+  const update = (field, value) => {
+    setForm((f) => ({ ...f, [field]: value }))
+    // Clear a field's error as soon as it's being corrected, rather than making
+    // the reader submit again to find out whether they've fixed it.
+    if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }))
+  }
+
+  const validate = () => {
+    const next = {}
+    if (!form.email.trim()) next.email = 'Enter the email you signed up with.'
+    else if (!/^\S+@\S+\.\S+$/.test(form.email.trim())) next.email = 'That doesn’t look like an email address.'
+    if (!form.password) next.password = 'Enter your password.'
+    return next
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const found = validate()
+    if (Object.keys(found).length) { setErrors(found); return }
+
     setSubmitting(true)
-    setError('')
+    setErrors({})
     try {
       await login(form.email, form.password)
       navigate(redirectTo, { replace: true })
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not sign in. Please try again.')
+      setErrors({ form: err.response?.data?.message || 'Could not sign in. Please try again.' })
       setSubmitting(false)
     }
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--ink)', paddingTop: '120px' }}>
-      <div style={{ maxWidth: '400px', margin: '0 auto', padding: '0 24px 100px' }}>
-        <div className="animate-fadeUp mb-10">
+    <div className="auth-page">
+      <div className="auth-shell">
+        <div className="animate-fadeUp auth-head">
           <p className="eyebrow">Welcome back</p>
-          <h1 className="font-story" style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em' }}>
-            Sign in
-          </h1>
+          <h1 className="font-story auth-title">Sign in</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="animate-fadeUp delay-100" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label style={labelStyle}>Email</label>
+        <form onSubmit={handleSubmit} className="animate-fadeUp delay-100 auth-form" noValidate>
+          <Field label="Email" error={errors.email} required>
             <input
               type="email"
-              style={inputStyle}
               value={form.email}
               onChange={(e) => update('email', e.target.value)}
-              onFocus={focusBorder}
-              onBlur={blurBorder}
               autoComplete="email"
             />
-          </div>
+          </Field>
 
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <label style={labelStyle}>Password</label>
-              <Link
-                to="/forgot-password"
-                style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),var(--ta40))', textDecoration: 'none', marginBottom: '8px' }}
-              >
-                Forgot?
-              </Link>
+            <div className="auth-label-row">
+              <Link to="/forgot-password" className="auth-aside-link">Forgot?</Link>
             </div>
-            <input
-              type="password"
-              style={inputStyle}
-              value={form.password}
-              onChange={(e) => update('password', e.target.value)}
-              onFocus={focusBorder}
-              onBlur={blurBorder}
-              autoComplete="current-password"
-            />
+            <Field label="Password" error={errors.password} required>
+              <input
+                type="password"
+                value={form.password}
+                onChange={(e) => update('password', e.target.value)}
+                autoComplete="current-password"
+              />
+            </Field>
           </div>
 
-          {error && <p style={{ fontSize: '13px', color: 'var(--crimson)', margin: 0 }}>{error}</p>}
+          {/* A failure from the server belongs to the form, not to one field.
+              role="alert" is what makes it spoken — previously this was a plain
+              paragraph that no screen reader ever announced. */}
+          {errors.form && (
+            <p className="ct-error" role="alert">
+              <span>{errors.form}</span>
+            </p>
+          )}
 
-          <button
-            type="submit"
-            disabled={submitting || !form.email || !form.password}
-            style={{
-              padding: '13px 32px',
-              background: 'var(--gold-solid)',
-              color: 'var(--on-gold)',
-              border: 'none',
-              fontSize: '12px',
-              fontWeight: 600,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              cursor: submitting ? 'default' : 'pointer',
-              borderRadius: '4px',
-              transition: 'background 0.2s ease',
-              opacity: submitting || !form.email || !form.password ? 0.5 : 1,
-              marginTop: '4px',
-            }}
-          >
+          <Button type="submit" variant="primary" disabled={submitting}>
             {submitting ? 'Signing in…' : 'Sign in'}
-          </button>
+          </Button>
         </form>
 
-        <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '28px' }}>
-          New here?{' '}
-          <Link to="/register" style={{ color: 'var(--gold)', textDecoration: 'none' }}>
-            Create an account
-          </Link>
+        <p className="auth-foot">
+          New here? <Link to="/register" className="auth-link">Create an account</Link>
         </p>
       </div>
     </div>

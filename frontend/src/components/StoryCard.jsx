@@ -1,22 +1,21 @@
-import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import StarRating from './StarRating'
 import TagRow from './TagRow'
+import { GenreBadge } from './ui'
 import { authorNames, hasCoAuthors } from '../utils/authors'
 
-export const GENRE_COLORS = {
-  fantasy:  { bg: 'rgba(139,26,46,0.15)',  border: 'rgba(139,26,46,0.4)',  text: '#c45a6e' },
-  mystery:  { bg: 'rgba(74,69,96,0.2)',    border: 'rgba(74,69,96,0.5)',   text: '#9d97b8' },
-  sci_fi:   { bg: 'rgba(26,61,43,0.2)',    border: 'rgba(26,61,43,0.5)',   text: '#5fa87a' },
-  romance:  { bg: 'rgba(160,90,60,0.15)',  border: 'rgba(160,90,60,0.4)',  text: '#d4956e' },
-  horror:   { bg: 'rgba(20,20,20,0.3)',    border: 'rgba(80,20,20,0.6)',   text: '#a04040' },
-  default:  { bg: 'rgba(var(--gold-rgb),0.08)', border: 'rgba(var(--gold-rgb),0.25)', text: 'var(--gold)' },
-}
+// The card the whole library is built from.
+//
+// Two things changed here beyond the styling. The genre chip used to carry a
+// hardcoded hex palette — the one part of the UI that never re-themed, which
+// dropped it to 1.7:1 on the cream theme; it now reads from the shared genre
+// tokens. And the hover lift used to be a useState in this component, so every
+// card in a grid of thirty re-rendered on mouse-over and a keyboard reader
+// tabbing through the grid saw no lift and no "Read →" cue at all. Both are
+// CSS now: :hover and :focus-within on .ct-card--interactive.
 
 export default function StoryCard({ story, index }) {
-  const [hovered, setHovered] = useState(false)
   const navigate = useNavigate()
-  const genre = GENRE_COLORS[story.genre] || GENRE_COLORS.default
 
   // Navigate to the author without triggering the card's own link (avoids nested <a>).
   const goToAuthor = (e) => {
@@ -28,101 +27,67 @@ export default function StoryCard({ story, index }) {
   return (
     <Link
       to={`/story/${story._id}`}
-      className="animate-fadeUp"
-      style={{ textDecoration: 'none', animationDelay: `${Math.min(index, 6) * 0.08}s` }}
+      className="animate-fadeUp story-card ct-card ct-card--interactive"
+      style={{ animationDelay: `${Math.min(index, 6) * 0.08}s` }}
     >
-      <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          background: 'var(--surface)',
-          border: `1px solid ${hovered ? 'rgba(var(--gold-rgb),0.45)' : 'rgba(var(--panel-rgb),var(--pa06))'}`,
-          borderRadius: '8px',
-          padding: '28px',
-          cursor: 'pointer',
-          boxShadow: hovered ? 'var(--card-shadow-hover)' : 'var(--card-shadow)',
-          transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
-          transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-          height: '100%',
-        }}
-      >
-        <div className="flex items-start justify-between mb-4">
-          <span
-            className="text-xs font-medium uppercase tracking-widest px-2 py-1 rounded"
-            style={{ ...genre, background: genre.bg, borderColor: genre.border, border: `1px solid`, color: genre.text, fontSize: '10px', letterSpacing: '0.1em' }}
-          >
-            {story.genre?.replace('_', '-') || 'Story'}
-          </span>
-          <span className="text-xs" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', color: 'rgba(var(--text-rgb),var(--ta30))' }}>
-            {/* A story carrying a challenge says so once, in the same weight as
-                its branch count — a note, not a badge. */}
-            {story.gameMode && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--gold)', opacity: 0.8 }}>
-                <CaseMini /> case
-              </span>
-            )}
-            {story.branchCount || 0} branches
-          </span>
-        </div>
-
-        <h3
-          className="font-story text-xl mb-3 leading-snug"
-          style={{ color: hovered ? 'var(--gold)' : 'var(--parchment)', transition: 'color 0.3s ease' }}
-        >
-          {story.title}
-        </h3>
-
-        <p className="text-sm leading-relaxed mb-4" style={{ color: 'rgba(var(--text-rgb),var(--ta55))', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-          {story.description}
-        </p>
-
-        {story.tags?.length > 0 && (
-          <TagRow tags={story.tags.slice(0, 3)} style={{ marginBottom: '14px' }} />
-        )}
-
-        {/* Engagement metrics */}
-        {(story.likeCount > 0 || story.ratingCount > 0 || story.commentCount > 0) && (
-          <div className="flex items-center gap-4 mb-4" style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))' }}>
-            {story.likeCount > 0 && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                <HeartMini /> {story.likeCount}
-              </span>
-            )}
-            {story.ratingCount > 0 && <StarRating value={story.ratingAvg} count={story.ratingCount} size={13} />}
-            {story.commentCount > 0 && (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                <CommentMini /> {story.commentCount}
-              </span>
-            )}
-          </div>
-        )}
-
-        <div className="flex items-center justify-between">
-          {story.authorUsername && !hasCoAuthors(story) ? (
-            <span
-              role="link"
-              tabIndex={0}
-              onClick={goToAuthor}
-              onKeyDown={(e) => e.key === 'Enter' && goToAuthor(e)}
-              className="text-xs"
-              style={{ color: 'rgba(var(--text-rgb),var(--ta35))', cursor: 'pointer' }}
-              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
-              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))')}
-            >
-              by {story.author || 'Anonymous'}
-            </span>
-          ) : (
-            <span className="text-xs" style={{ color: 'rgba(var(--text-rgb),var(--ta35))' }}>
-              by {authorNames(story)}
+      <div className="story-card__top">
+        <GenreBadge genre={story.genre} />
+        <span className="story-card__meta">
+          {/* A story carrying a challenge says so once, in the same weight as
+              its branch count — a note, not a badge. */}
+          {story.gameMode && (
+            <span className="story-card__case">
+              <CaseMini /> case
             </span>
           )}
-          <span
-            className="text-xs card-read-cue"
-            style={{ color: 'var(--gold)', opacity: hovered ? 1 : 0, transition: 'opacity 0.25s ease' }}
-          >
-            Read →
-          </span>
+          {story.branchCount || 0} branches
+        </span>
+      </div>
+
+      <h3 className="font-story story-card__title">{story.title}</h3>
+
+      <p className="story-card__desc">{story.description}</p>
+
+      {story.tags?.length > 0 && (
+        <TagRow tags={story.tags.slice(0, 3)} style={{ marginBottom: 'var(--s-4)' }} />
+      )}
+
+      {/* Engagement metrics */}
+      {(story.likeCount > 0 || story.ratingCount > 0 || story.commentCount > 0) && (
+        <div className="story-card__stats">
+          {story.likeCount > 0 && (
+            <span className="story-card__stat">
+              <HeartMini /> {story.likeCount}
+              <span className="sr-only"> likes</span>
+            </span>
+          )}
+          {story.ratingCount > 0 && <StarRating value={story.ratingAvg} count={story.ratingCount} size={13} />}
+          {story.commentCount > 0 && (
+            <span className="story-card__stat">
+              <CommentMini /> {story.commentCount}
+              <span className="sr-only"> comments</span>
+            </span>
+          )}
         </div>
+      )}
+
+      <div className="story-card__foot">
+        {story.authorUsername && !hasCoAuthors(story) ? (
+          <span
+            role="link"
+            tabIndex={0}
+            onClick={goToAuthor}
+            onKeyDown={(e) => e.key === 'Enter' && goToAuthor(e)}
+            className="story-card__author story-card__author--link"
+          >
+            by {story.author || 'Anonymous'}
+          </span>
+        ) : (
+          <span className="story-card__author">by {authorNames(story)}</span>
+        )}
+        {/* Decorative: the card is already a link with an accessible name, so
+            this cue is hidden from assistive tech rather than repeated. */}
+        <span className="story-card__cue card-read-cue" aria-hidden="true">Read →</span>
       </div>
     </Link>
   )

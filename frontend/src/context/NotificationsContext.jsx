@@ -1,8 +1,12 @@
 import { createContext, useContext, useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { io } from 'socket.io-client'
 import api, { getToken } from '../api/client'
 import { useAuth } from './AuthContext'
+
+// socket.io is imported where it is used rather than at the top of the file.
+// This provider is mounted for everyone, so a static import put 41 kB of socket
+// client in the first-load bundle of every signed-out reader — none of whom can
+// receive a notification.
 
 // In dev, VITE_API_URL is empty → same-origin socket proxied by Vite. In prod it
 // holds the backend origin. Same convention as the collaboration socket.
@@ -41,17 +45,31 @@ export function NotificationsProvider({ children }) {
 
     const token = getToken()
     if (!token) return
-    const socket = io(SOCKET_URL, { auth: { token }, transports: ['websocket', 'polling'] })
-    socketRef.current = socket
-    socket.on('notification', (n) => {
-      setItems((list) => [n, ...list.filter((x) => x._id !== n._id)].slice(0, 30))
-      setUnseen((c) => c + 1)
+
+    // `cancelled` guards the gap between the effect being torn down and the
+    // socket module arriving — signing out mid-load must not leave a live
+    // connection behind.
+    let cancelled = false
+    import('socket.io-client').then(({ io }) => {
+      if (cancelled) return
+      const socket = io(SOCKET_URL, { auth: { token }, transports: ['websocket', 'polling'] })
+      socketRef.current = socket
+      socket.on('notification', (n) => {
+        setItems((list) => [n, ...list.filter((x) => x._id !== n._id)].slice(0, 30))
+        setUnseen((c) => c + 1)
+      })
+    }).catch(() => {
+      /* the bell falls back to the per-navigation resync below */
     })
 
     return () => {
-      socket.removeAllListeners()
-      socket.disconnect()
-      socketRef.current = null
+      cancelled = true
+      const socket = socketRef.current
+      if (socket) {
+        socket.removeAllListeners()
+        socket.disconnect()
+        socketRef.current = null
+      }
     }
   }, [user, reload])
 

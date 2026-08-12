@@ -4,12 +4,25 @@ import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import RichTextEditor from '../components/RichTextEditor'
 import SparkPanel from '../components/SparkPanel'
+import { Button, Field, GENRE_LABELS, CloseIcon, useToast } from '../components/ui'
 
 const GENRES = ['fantasy', 'mystery', 'sci_fi', 'romance', 'horror', 'thriller', 'literary']
+const STEPS = ['Details', 'Content', 'Choices']
+
+// A three-step wizard. What changed:
+//
+//  • Every control is labelled. The genre row is a radiogroup rather than seven
+//    unrelated buttons, and the tag box — which is a div dressed as an input —
+//    now says so with a group role and an owned text field.
+//  • "Next" no longer sits greyed out with no explanation. It stays live, and
+//    pressing it on an incomplete step points at what's missing.
+//  • The step indicator reports progress ("Step 2 of 3") instead of being three
+//    decorative circles.
 
 export default function CreateStory() {
   const navigate = useNavigate()
   const { user, loading } = useAuth()
+  const toast = useToast()
   const [step, setStep] = useState(1)
   const [form, setForm] = useState({
     title: '',
@@ -23,7 +36,7 @@ export default function CreateStory() {
   })
   const [tagInput, setTagInput] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  const [errors, setErrors] = useState({})
 
   const addTag = (raw) => {
     const tag = raw.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
@@ -50,279 +63,256 @@ export default function CreateStory() {
     }
   }, [loading, user, navigate])
 
-  const update = (field, value) => setForm(f => ({ ...f, [field]: value }))
+  const update = (field, value) => {
+    setForm((f) => ({ ...f, [field]: value }))
+    if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }))
+  }
 
   const updateChoice = (i, val) => {
     const choices = [...form.choices]
     choices[i] = { text: val }
-    setForm(f => ({ ...f, choices }))
+    setForm((f) => ({ ...f, choices }))
+    if (errors.choices) setErrors((e) => ({ ...e, choices: undefined }))
   }
 
   const addChoice = () => {
     if (form.choices.length >= 4) return
-    setForm(f => ({ ...f, choices: [...f.choices, { text: '' }] }))
+    setForm((f) => ({ ...f, choices: [...f.choices, { text: '' }] }))
   }
 
   const removeChoice = (i) => {
     if (form.choices.length <= 2) return
-    setForm(f => ({ ...f, choices: f.choices.filter((_, idx) => idx !== i) }))
+    setForm((f) => ({ ...f, choices: f.choices.filter((_, idx) => idx !== i) }))
   }
 
-  const canProceed = () => {
-    if (step === 1) return form.title.trim() && form.genre
-    if (step === 2) return form.description.trim() && !form.openingEmpty
-    if (step === 3) return form.choices.every(c => c.text.trim())
-    return true
+  // Returns the problems on the current step, keyed by field.
+  const problemsOn = (which) => {
+    const found = {}
+    if (which === 1) {
+      if (!form.title.trim()) found.title = 'Your story needs a title.'
+      if (!form.genre) found.genre = 'Pick a genre so readers can find it.'
+    }
+    if (which === 2) {
+      if (!form.description.trim()) found.description = 'A short description is what readers see on the shelf.'
+      if (form.openingEmpty) found.opening = 'Write the opening passage before moving on.'
+    }
+    if (which === 3) {
+      if (!form.choices.every((c) => c.text.trim())) found.choices = 'Every choice needs text — or remove the empty one.'
+    }
+    return found
+  }
+
+  const goNext = () => {
+    const found = problemsOn(step)
+    if (Object.keys(found).length) { setErrors(found); return }
+    setErrors({})
+    setStep((s) => s + 1)
   }
 
   const handleSubmit = async () => {
+    const found = problemsOn(3)
+    if (Object.keys(found).length) { setErrors(found); return }
+
     setSubmitting(true)
-    setError('')
+    setErrors({})
     try {
       const res = await api.post('/api/stories', form)
+      toast.success('Your story is live. Now build out the branches.')
       // Straight into the story map so the author can build out the branches.
       navigate(`/story/${res.data._id}/edit`)
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not publish. Please try again.')
+      const message = err.response?.data?.message || 'Could not publish. Please try again.'
+      setErrors({ form: message })
+      toast.error(message)
       setSubmitting(false)
     }
   }
 
-  const inputStyle = {
-    width: '100%',
-    background: 'rgba(var(--panel-rgb),var(--pa04))',
-    border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
-    borderRadius: '4px',
-    padding: '12px 16px',
-    color: 'var(--parchment)',
-    fontSize: '15px',
-    outline: 'none',
-    transition: 'border-color 0.2s ease',
-    fontFamily: 'inherit',
-  }
-
-  const labelStyle = {
-    display: 'block',
-    fontSize: '11px',
-    letterSpacing: '0.15em',
-    textTransform: 'uppercase',
-    color: 'rgba(var(--text-rgb),var(--ta40))',
-    marginBottom: '8px',
-  }
-
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--ink)', paddingTop: '100px' }}>
-      <div style={{ maxWidth: '680px', margin: '0 auto', padding: '0 24px 100px' }}>
+    <div className="page-shell">
+      <div className="page-shell__inner page-shell__inner--form">
 
-        <div className="animate-fadeUp mb-12">
-          <p style={{ fontSize: '10px', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '12px', opacity: 0.7 }}>
-            New story
-          </p>
-          <h1 className="font-story" style={{ fontSize: 'clamp(28px, 4vw, 42px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em' }}>
-            Tell your story
-          </h1>
+        <div className="animate-fadeUp page-head">
+          <p className="eyebrow">New story</p>
+          <h1 className="font-story page-title">Tell your story</h1>
         </div>
 
-        {/* Step indicator */}
-        <div className="animate-fadeIn delay-100 flex gap-3 mb-12">
-          {[1, 2, 3].map(s => (
-            <div key={s} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div
-                style={{
-                  width: '24px',
-                  height: '24px',
-                  borderRadius: '50%',
-                  border: `1px solid ${step >= s ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa12))'}`,
-                  background: step > s ? 'rgba(var(--gold-rgb),0.2)' : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '11px',
-                  color: step >= s ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa30))',
-                  transition: 'all 0.3s ease',
-                }}
-              >
-                {step > s ? '✓' : s}
+        {/* Progress. The visible circles are decorative; the sentence beside
+            them is what a screen reader actually reports. */}
+        <div className="animate-fadeIn delay-100 wizard-steps">
+          <p className="sr-only" aria-live="polite">
+            Step {step} of {STEPS.length}: {STEPS[step - 1]}
+          </p>
+          {STEPS.map((labelText, idx) => {
+            const s = idx + 1
+            return (
+              <div key={labelText} className="wizard-step" aria-hidden="true">
+                <span className={`wizard-step__dot${step >= s ? ' is-reached' : ''}${step > s ? ' is-done' : ''}`}>
+                  {step > s ? '✓' : s}
+                </span>
+                <span className={`wizard-step__label${step === s ? ' is-current' : ''}`}>{labelText}</span>
+                {s < STEPS.length && <span className={`wizard-step__rule${step > s ? ' is-done' : ''}`} />}
               </div>
-              <span style={{ fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase', color: step === s ? 'var(--parchment)' : 'rgba(var(--panel-rgb),var(--pa25))', transition: 'color 0.3s ease' }}>
-                {['Details', 'Content', 'Choices'][s - 1]}
-              </span>
-              {s < 3 && <div style={{ width: '32px', height: '1px', background: step > s ? 'rgba(var(--gold-rgb),0.3)' : 'rgba(var(--panel-rgb),var(--pa08))', marginLeft: '4px', transition: 'background 0.3s ease' }} />}
-            </div>
-          ))}
+            )
+          })}
         </div>
 
         <div className="animate-pageFlip">
           {step === 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div>
-                <label style={labelStyle}>Title</label>
+            <div className="wizard-panel">
+              <Field label="Title" error={errors.title} required>
                 <input
-                  style={inputStyle}
                   placeholder="What is your story called?"
                   value={form.title}
-                  onChange={e => update('title', e.target.value)}
-                  onFocus={e => e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),var(--pa10))'}
+                  onChange={(e) => update('title', e.target.value)}
                 />
-              </div>
+              </Field>
 
-              <div>
-                <label style={labelStyle}>Genre</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {GENRES.map(g => (
+              {/* A single choice out of seven — that's a radiogroup, and saying
+                  so is what lets a screen-reader user arrow through it. */}
+              <fieldset className="wizard-fieldset">
+                <legend className="ct-label">
+                  Genre<span className="ct-label__req" aria-hidden="true">*</span>
+                  <span className="sr-only"> (required)</span>
+                </legend>
+                <div className="wizard-chips" role="radiogroup" aria-label="Genre">
+                  {GENRES.map((g) => (
                     <button
                       key={g}
+                      type="button"
+                      role="radio"
+                      aria-checked={form.genre === g}
                       onClick={() => update('genre', g)}
-                      style={{
-                        padding: '8px 16px',
-                        fontSize: '12px',
-                        letterSpacing: '0.08em',
-                        border: `1px solid ${form.genre === g ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa10))'}`,
-                        background: form.genre === g ? 'rgba(var(--gold-rgb),0.12)' : 'transparent',
-                        color: form.genre === g ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))',
-                        cursor: 'pointer',
-                        borderRadius: '4px',
-                        transition: 'all 0.2s ease',
-                        textTransform: 'capitalize',
-                      }}
+                      className="ct-chip"
+                      data-selected={form.genre === g || undefined}
                     >
-                      {g.replace('_', '-')}
+                      {GENRE_LABELS[g]}
                     </button>
                   ))}
                 </div>
-              </div>
+                {errors.genre && (
+                  <p className="ct-error" role="alert"><span>{errors.genre}</span></p>
+                )}
+              </fieldset>
 
-              <div>
-                <label style={labelStyle}>Tags <span style={{ textTransform: 'none', letterSpacing: 0, color: 'rgba(var(--text-rgb),var(--ta25))' }}>— up to 6, help readers find you</span></label>
+              <Field
+                label="Tags"
+                hint="Up to 6. Press Enter or comma to add each one — they help readers find you."
+              >
+                {/* The visible box is a div, so the real input inside it carries
+                    the id and the label points at that. Clicking anywhere in the
+                    box focuses it, the way a native field behaves. */}
                 <div
-                  style={{ ...inputStyle, display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', cursor: 'text' }}
+                  className="tag-box"
                   onClick={(e) => e.currentTarget.querySelector('input')?.focus()}
                 >
                   {form.tags.map((t) => (
-                    <span key={t} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '3px 8px', fontSize: '12px', borderRadius: '4px', background: 'rgba(var(--gold-rgb),0.12)', color: 'var(--gold)', border: '1px solid rgba(var(--gold-rgb),0.3)' }}>
+                    <span key={t} className="tag-chip">
                       #{t}
-                      <button type="button" onClick={() => removeTag(t)} style={{ background: 'none', border: 'none', color: 'var(--gold)', cursor: 'pointer', padding: 0, fontSize: '14px', lineHeight: 1 }}>×</button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); removeTag(t) }}
+                        aria-label={`Remove tag ${t}`}
+                        className="tag-chip__remove"
+                      >
+                        <CloseIcon size={11} />
+                      </button>
                     </span>
                   ))}
                   {form.tags.length < 6 && (
                     <input
+                      className="tag-box__input"
                       value={tagInput}
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={onTagKey}
                       onBlur={() => tagInput && addTag(tagInput)}
                       placeholder={form.tags.length ? 'Add another…' : 'e.g. dragons, slow-burn, heist'}
-                      style={{ flex: 1, minWidth: '140px', background: 'transparent', border: 'none', outline: 'none', color: 'var(--parchment)', fontSize: '14px', fontFamily: 'inherit' }}
                     />
                   )}
                 </div>
-                <p style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),var(--ta25))', marginTop: '8px' }}>
-                  Press Enter or comma to add each tag.
-                </p>
-              </div>
+              </Field>
 
               <SparkPanel genre={form.genre} />
             </div>
           )}
 
           {step === 2 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <div>
-                <label style={labelStyle}>Short description</label>
+            <div className="wizard-panel">
+              <Field label="Short description" error={errors.description} required>
                 <textarea
-                  style={{ ...inputStyle, resize: 'vertical', minHeight: '80px' }}
                   placeholder="A few sentences to hook the reader..."
                   value={form.description}
-                  onChange={e => update('description', e.target.value)}
-                  onFocus={e => e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),var(--pa10))'}
+                  onChange={(e) => update('description', e.target.value)}
                 />
-              </div>
+              </Field>
 
-              <div>
-                <label style={labelStyle}>Opening passage</label>
+              <div className="ct-field">
+                <span className="ct-label" id="opening-label">
+                  Opening passage<span className="ct-label__req" aria-hidden="true">*</span>
+                  <span className="sr-only"> (required)</span>
+                </span>
                 <RichTextEditor
                   initialContent={form.openingContent || undefined}
                   placeholder="Begin your story here. Set the scene. End at a moment of decision..."
                   minHeight="220px"
-                  onUpdate={ed => setForm(f => ({
+                  aria-labelledby="opening-label"
+                  onUpdate={(ed) => setForm((f) => ({
                     ...f,
                     openingText: ed.getText(),
                     openingContent: ed.getJSON(),
                     openingEmpty: ed.isEmpty,
                   }))}
                 />
-                <p style={{ fontSize: '11px', color: 'rgba(var(--text-rgb),var(--ta25))', marginTop: '8px' }}>
+                <p className="ct-hint" aria-live="polite">
                   {form.openingText.trim().length} characters
                 </p>
+                {errors.opening && (
+                  <p className="ct-error" role="alert"><span>{errors.opening}</span></p>
+                )}
               </div>
             </div>
           )}
 
           {step === 3 && (
             <div>
-              <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta50))', marginBottom: '24px', lineHeight: 1.6 }}>
+              <p className="wizard-intro">
                 Write 2–4 choices that readers can make at the end of your opening passage.
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
-                {form.choices.map((choice, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                    <span
-                      className="font-story"
-                      style={{ color: 'var(--gold)', opacity: 0.7, fontSize: '16px', marginTop: '12px', minWidth: '20px' }}
-                    >
-                      {String.fromCharCode(65 + i)}.
-                    </span>
-                    <input
-                      style={{ ...inputStyle, flex: 1 }}
-                      placeholder={`Choice ${String.fromCharCode(65 + i)}`}
-                      value={choice.text}
-                      onChange={e => updateChoice(i, e.target.value)}
-                      onFocus={e => e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)'}
-                      onBlur={e => e.target.style.borderColor = 'rgba(var(--panel-rgb),var(--pa10))'}
-                    />
-                    {form.choices.length > 2 && (
-                      <button
-                        onClick={() => removeChoice(i)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: 'rgba(var(--text-rgb),var(--ta25))',
-                          cursor: 'pointer',
-                          fontSize: '16px',
-                          marginTop: '10px',
-                          transition: 'color 0.2s ease',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.color = 'var(--crimson)'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta25))'}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                ))}
+              <div className="choice-rows">
+                {form.choices.map((choice, i) => {
+                  const letter = String.fromCharCode(65 + i)
+                  return (
+                    <div key={i} className="choice-row">
+                      <span className="font-story choice-row__letter" aria-hidden="true">{letter}.</span>
+                      <input
+                        className="ct-input"
+                        aria-label={`Choice ${letter}`}
+                        placeholder={`Choice ${letter}`}
+                        value={choice.text}
+                        onChange={(e) => updateChoice(i, e.target.value)}
+                      />
+                      {form.choices.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={() => removeChoice(i)}
+                          aria-label={`Remove choice ${letter}`}
+                          className="choice-row__remove tap-target"
+                        >
+                          <CloseIcon size={14} />
+                        </button>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
 
+              {errors.choices && (
+                <p className="ct-error" role="alert"><span>{errors.choices}</span></p>
+              )}
+
               {form.choices.length < 4 && (
-                <button
-                  onClick={addChoice}
-                  style={{
-                    background: 'none',
-                    border: '1px dashed rgba(var(--panel-rgb),var(--pa12))',
-                    color: 'rgba(var(--text-rgb),var(--ta35))',
-                    fontSize: '12px',
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    cursor: 'pointer',
-                    padding: '10px 20px',
-                    borderRadius: '4px',
-                    transition: 'all 0.2s ease',
-                    width: '100%',
-                  }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(var(--gold-rgb),0.3)'; e.currentTarget.style.color = 'var(--gold)' }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(var(--panel-rgb),var(--pa12))'; e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta35))' }}
-                >
+                <button type="button" onClick={addChoice} className="add-choice">
                   + Add choice
                 </button>
               )}
@@ -330,72 +320,23 @@ export default function CreateStory() {
           )}
         </div>
 
-        {/* Navigation */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '40px' }}>
-          <button
-            onClick={() => step > 1 && setStep(s => s - 1)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: step > 1 ? 'rgba(var(--text-rgb),var(--ta40))' : 'transparent',
-              fontSize: '12px',
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              cursor: step > 1 ? 'pointer' : 'default',
-              padding: 0,
-              transition: 'color 0.2s ease',
-            }}
-            onMouseEnter={e => step > 1 && (e.currentTarget.style.color = 'var(--parchment)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta40))')}
-          >
-            ← Back
-          </button>
+        <div className="wizard-nav">
+          {step > 1 ? (
+            <Button variant="ghost" onClick={() => setStep((s) => s - 1)}>← Back</Button>
+          ) : <span />}
 
-          {error && <p style={{ fontSize: '13px', color: 'var(--crimson)' }}>{error}</p>}
-
-          {step < 3 ? (
-            <button
-              onClick={() => canProceed() && setStep(s => s + 1)}
-              disabled={!canProceed()}
-              style={{
-                padding: '12px 32px',
-                background: canProceed() ? 'var(--gold)' : 'rgba(var(--gold-rgb),0.2)',
-                color: canProceed() ? 'var(--on-gold)' : 'rgba(var(--text-rgb),var(--ta30))',
-                border: 'none',
-                fontSize: '12px',
-                fontWeight: 600,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                cursor: canProceed() ? 'pointer' : 'not-allowed',
-                borderRadius: '4px',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={e => canProceed() && (e.currentTarget.style.background = 'var(--gold-dark)')}
-              onMouseLeave={e => canProceed() && (e.currentTarget.style.background = 'var(--gold)')}
-            >
-              Next →
-            </button>
-          ) : (
-            <button
-              onClick={handleSubmit}
-              disabled={!canProceed() || submitting}
-              style={{
-                padding: '12px 32px',
-                background: canProceed() ? 'var(--gold)' : 'rgba(var(--gold-rgb),0.2)',
-                color: canProceed() ? 'var(--on-gold)' : 'rgba(var(--text-rgb),var(--ta30))',
-                border: 'none',
-                fontSize: '12px',
-                fontWeight: 600,
-                letterSpacing: '0.12em',
-                textTransform: 'uppercase',
-                cursor: canProceed() && !submitting ? 'pointer' : 'not-allowed',
-                borderRadius: '4px',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              {submitting ? 'Publishing...' : 'Publish'}
-            </button>
-          )}
+          <div className="wizard-nav__end">
+            {errors.form && (
+              <p className="ct-error" role="alert"><span>{errors.form}</span></p>
+            )}
+            {step < STEPS.length ? (
+              <Button variant="primary" onClick={goNext}>Next →</Button>
+            ) : (
+              <Button variant="primary" onClick={handleSubmit} disabled={submitting}>
+                {submitting ? 'Publishing…' : 'Publish'}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

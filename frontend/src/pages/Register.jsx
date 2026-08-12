@@ -1,137 +1,132 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { inputStyle, labelStyle, focusBorder, blurBorder } from '../components/authStyles'
+import { Button, Field } from '../components/ui'
+
+// The rules that used to live in a single `valid` boolean — which only ever
+// expressed itself by greying out the button — are now per-field messages. The
+// reader is told which rule they've missed and where, instead of being left to
+// work out why the button won't light up.
+
+const RULES = {
+  displayName: (v) => (!v.trim() ? 'Readers need something to call you.' : null),
+  username: (v) => {
+    if (!v.trim()) return 'Pick a username.'
+    if (!/^[a-zA-Z0-9_]{3,20}$/.test(v)) return '3–20 characters: letters, numbers and underscores only.'
+    return null
+  },
+  email: (v) => {
+    if (!v.trim()) return 'We need an email to reach you.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'That doesn’t look like an email address.'
+    return null
+  },
+  password: (v) => (v.length < 8 ? 'At least 8 characters.' : null),
+}
 
 export default function Register() {
   const { register } = useAuth()
   const navigate = useNavigate()
 
-  const [form, setForm] = useState({
-    displayName: '',
-    username: '',
-    email: '',
-    password: '',
-  })
-  const [error, setError] = useState('')
+  const [form, setForm] = useState({ displayName: '', username: '', email: '', password: '' })
+  const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
 
-  const update = (field, value) => setForm((f) => ({ ...f, [field]: value }))
+  const update = (field, value) => {
+    setForm((f) => ({ ...f, [field]: value }))
+    if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }))
+  }
 
-  const valid =
-    form.displayName.trim() &&
-    /^[a-zA-Z0-9_]{3,20}$/.test(form.username) &&
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) &&
-    form.password.length >= 8
+  // Validate on blur as well as on submit, so a mistake in the username is
+  // caught while the reader is still looking at that field.
+  const checkField = (field) => {
+    const message = RULES[field](form[field])
+    setErrors((e) => ({ ...e, [field]: message || undefined }))
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const found = {}
+    for (const [field, rule] of Object.entries(RULES)) {
+      const message = rule(form[field])
+      if (message) found[field] = message
+    }
+    if (Object.keys(found).length) { setErrors(found); return }
+
     setSubmitting(true)
-    setError('')
+    setErrors({})
     try {
       const user = await register(form)
       navigate(`/author/${user.username}`, { replace: true })
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not create your account. Please try again.')
+      setErrors({ form: err.response?.data?.message || 'Could not create your account. Please try again.' })
       setSubmitting(false)
     }
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--ink)', paddingTop: '120px' }}>
-      <div style={{ maxWidth: '400px', margin: '0 auto', padding: '0 24px 100px' }}>
-        <div className="animate-fadeUp mb-10">
-          <p style={{ fontSize: '10px', letterSpacing: '0.25em', color: 'var(--gold)', textTransform: 'uppercase', marginBottom: '12px', opacity: 0.7 }}>
-            Join the guild
-          </p>
-          <h1 className="font-story" style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 400, color: 'var(--parchment)', letterSpacing: '-0.01em' }}>
-            Create an account
-          </h1>
+    <div className="auth-page">
+      <div className="auth-shell">
+        <div className="animate-fadeUp auth-head">
+          <p className="eyebrow">Join the guild</p>
+          <h1 className="font-story auth-title">Create an account</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="animate-fadeUp delay-100" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div>
-            <label style={labelStyle}>Pen name</label>
+        <form onSubmit={handleSubmit} className="animate-fadeUp delay-100 auth-form" noValidate>
+          <Field label="Pen name" error={errors.displayName} required>
             <input
-              style={inputStyle}
               placeholder="How readers will see you"
               value={form.displayName}
               onChange={(e) => update('displayName', e.target.value)}
-              onFocus={focusBorder}
-              onBlur={blurBorder}
+              onBlur={() => checkField('displayName')}
+              autoComplete="nickname"
             />
-          </div>
+          </Field>
 
-          <div>
-            <label style={labelStyle}>Username</label>
+          <Field
+            label="Username"
+            hint="3–20 characters. Letters, numbers and underscores."
+            error={errors.username}
+            required
+          >
             <input
-              style={inputStyle}
-              placeholder="3–20 letters, numbers, underscores"
               value={form.username}
               onChange={(e) => update('username', e.target.value.replace(/\s/g, ''))}
-              onFocus={focusBorder}
-              onBlur={blurBorder}
+              onBlur={() => checkField('username')}
               autoComplete="username"
             />
-          </div>
+          </Field>
 
-          <div>
-            <label style={labelStyle}>Email</label>
+          <Field label="Email" error={errors.email} required>
             <input
               type="email"
-              style={inputStyle}
               value={form.email}
               onChange={(e) => update('email', e.target.value)}
-              onFocus={focusBorder}
-              onBlur={blurBorder}
+              onBlur={() => checkField('email')}
               autoComplete="email"
             />
-          </div>
+          </Field>
 
-          <div>
-            <label style={labelStyle}>Password</label>
+          <Field label="Password" hint="At least 8 characters." error={errors.password} required>
             <input
               type="password"
-              style={inputStyle}
-              placeholder="At least 8 characters"
               value={form.password}
               onChange={(e) => update('password', e.target.value)}
-              onFocus={focusBorder}
-              onBlur={blurBorder}
+              onBlur={() => checkField('password')}
               autoComplete="new-password"
             />
-          </div>
+          </Field>
 
-          {error && <p style={{ fontSize: '13px', color: 'var(--crimson)', margin: 0 }}>{error}</p>}
+          {errors.form && (
+            <p className="ct-error" role="alert"><span>{errors.form}</span></p>
+          )}
 
-          <button
-            type="submit"
-            disabled={submitting || !valid}
-            style={{
-              padding: '13px 32px',
-              background: 'var(--gold-solid)',
-              color: 'var(--on-gold)',
-              border: 'none',
-              fontSize: '12px',
-              fontWeight: 600,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              cursor: submitting || !valid ? 'default' : 'pointer',
-              borderRadius: '4px',
-              transition: 'background 0.2s ease',
-              opacity: submitting || !valid ? 0.5 : 1,
-              marginTop: '4px',
-            }}
-          >
+          <Button type="submit" variant="primary" disabled={submitting}>
             {submitting ? 'Creating…' : 'Create account'}
-          </button>
+          </Button>
         </form>
 
-        <p style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '28px' }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--gold)', textDecoration: 'none' }}>
-            Sign in
-          </Link>
+        <p className="auth-foot">
+          Already have an account? <Link to="/login" className="auth-link">Sign in</Link>
         </p>
       </div>
     </div>

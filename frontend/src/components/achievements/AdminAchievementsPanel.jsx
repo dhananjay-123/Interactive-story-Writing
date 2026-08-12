@@ -7,6 +7,7 @@ import BadgeDetail from './BadgeDetail'
 import { rarityOf, rarityRank } from './rarity'
 import { avatarSrc } from '../../avatars/catalog'
 import { focusBorder, blurBorder } from '../authStyles'
+import { useConfirm, useToast } from '../ui'
 
 // Admin management for the achievement system. Three views: platform analytics,
 // per-user management (grant/revoke/tier/reset/recalculate with live preview), and
@@ -44,18 +45,30 @@ function Analytics() {
   const [data, setData] = useState(null)
   const [recalcing, setRecalcing] = useState(false)
   const [recalcMsg, setRecalcMsg] = useState('')
+  const toast = useToast()
+  const { confirm, dialog } = useConfirm()
 
   useEffect(() => {
     api.get('/api/admin/achievements/overview').then((r) => setData(r.data)).catch(() => setData({ error: true }))
   }, [])
 
   const recalcAll = async () => {
-    if (!window.confirm('Recalculate achievements for every user from source? This can take a moment on a large database.')) return
-    setRecalcing(true); setRecalcMsg('')
-    try {
-      const r = await api.post('/api/admin/achievements/recalculate-all')
-      setRecalcMsg(`Recalculated ${r.data.processed} users.`)
-    } catch { setRecalcMsg('Recalculation failed.') } finally { setRecalcing(false) }
+    await confirm({
+      title: 'Recalculate every badge?',
+      message: 'Every user’s achievements will be rebuilt from source. On a large database this can take a while, and the page will sit on this screen until it finishes.',
+      confirmLabel: 'Recalculate',
+      onConfirm: async () => {
+        setRecalcing(true); setRecalcMsg('')
+        try {
+          const r = await api.post('/api/admin/achievements/recalculate-all')
+          setRecalcMsg(`Recalculated ${r.data.processed} users.`)
+          toast.success(`Recalculated ${r.data.processed} users.`)
+        } catch {
+          setRecalcMsg('Recalculation failed.')
+          toast.error('Recalculation failed.')
+        } finally { setRecalcing(false) }
+      },
+    })
   }
 
   if (!data) return <ConnectingLoader fullScreen={false} message="Counting badges" />
@@ -135,6 +148,8 @@ function ManageUser() {
   const [busy, setBusy] = useState(false)
   const [detail, setDetail] = useState(null)
   const [roster, setRoster] = useState([])
+  const toast = useToast()
+  const { confirm, dialog } = useConfirm()
   const [focused, setFocused] = useState(false)
 
   useEffect(() => {
@@ -175,17 +190,30 @@ function ManageUser() {
 
   const reload = () => data && load(data.user.username)
 
-  const act = async (fn) => {
+  const act = async (fn, successMessage) => {
     setBusy(true)
-    try { await fn(); await reload() } catch (e) { window.alert(e?.response?.data?.message || 'That action failed.') } finally { setBusy(false) }
+    try {
+      await fn()
+      await reload()
+      if (successMessage) toast.success(successMessage)
+    } catch (e) {
+      toast.error(e?.response?.data?.message || 'That action failed.')
+    } finally { setBusy(false) }
   }
 
   const userId = data?.user?._id
-  const grant = () => pickBadge && act(() => api.post(`/api/admin/achievements/users/${userId}/grant`, { badgeId: pickBadge }))
-  const revoke = (badgeId) => act(() => api.post(`/api/admin/achievements/users/${userId}/revoke`, { badgeId }))
-  const assignTier = (trackId, tierId) => act(() => api.post(`/api/admin/achievements/users/${userId}/tier`, { trackId, tierId }))
-  const reset = () => window.confirm('Reset this user’s computed progress? Manual grants are kept.') && act(() => api.post(`/api/admin/achievements/users/${userId}/reset`))
-  const recalc = () => act(() => api.post(`/api/admin/achievements/users/${userId}/recalculate`))
+  const grant = () => pickBadge && act(() => api.post(`/api/admin/achievements/users/${userId}/grant`, { badgeId: pickBadge }), 'Badge granted.')
+  const revoke = (badgeId) => act(() => api.post(`/api/admin/achievements/users/${userId}/revoke`, { badgeId }), 'Badge revoked.')
+  const assignTier = (trackId, tierId) => act(() => api.post(`/api/admin/achievements/users/${userId}/tier`, { trackId, tierId }), 'Tier updated.')
+  const recalc = () => act(() => api.post(`/api/admin/achievements/users/${userId}/recalculate`), 'Recalculated from source.')
+
+  const reset = () => confirm({
+    title: 'Reset computed progress?',
+    message: 'Everything this reader earned through play is recalculated from zero. Badges an admin granted by hand are kept.',
+    confirmLabel: 'Reset progress',
+    danger: true,
+    onConfirm: () => act(() => api.post(`/api/admin/achievements/users/${userId}/reset`), 'Progress reset.'),
+  })
 
   const earned = data ? data.profile.badges.filter((b) => b.state === 'unlocked') : []
 
@@ -315,6 +343,7 @@ function ManageUser() {
       )}
 
       {detail && <BadgeDetail badge={detail} onClose={() => setDetail(null)} />}
+      {dialog}
     </div>
   )
 }

@@ -55,24 +55,18 @@ export default function StoryGames() {
           </p>
         </div>
 
-        <div className="animate-fadeUp delay-100" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '32px' }}>
+        <div
+          className="animate-fadeUp delay-100 ct-toolbar__group"
+          role="group"
+          aria-label="Filter by challenge type"
+          style={{ marginBottom: 'var(--s-8)' }}
+        >
           {[{ id: 'all', label: 'Everything' }, ...modes].map((m) => (
             <button
               key={m.id}
+              className="ct-chip"
+              aria-pressed={mode === m.id}
               onClick={() => setMode(m.id)}
-              style={{
-                padding: '6px 16px',
-                fontSize: '11px',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                border: `1px solid ${mode === m.id ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa12))'}`,
-                background: mode === m.id ? 'rgba(var(--gold-rgb),0.1)' : 'transparent',
-                color: mode === m.id ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))',
-                cursor: 'pointer',
-                borderRadius: '4px',
-                fontFamily: 'inherit',
-                transition: 'all 0.2s ease',
-              }}
             >
               {m.label}
             </button>

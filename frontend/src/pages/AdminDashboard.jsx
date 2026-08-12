@@ -4,6 +4,7 @@ import api from '../api/client'
 import ConnectingLoader from '../components/ConnectingLoader'
 import { useAuth } from '../context/AuthContext'
 import AdminAchievementsPanel from '../components/achievements/AdminAchievementsPanel'
+import { Badge as UiBadge, Button, DataTable, SearchIcon, useConfirm, useToast } from '../components/ui'
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -190,6 +191,8 @@ function StoriesPanel() {
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState('all')
   const [busy, setBusy] = useState(null)
+  const toast = useToast()
+  const { confirm, dialog } = useConfirm()
 
   const load = useCallback(() => {
     const params = new URLSearchParams()
@@ -213,7 +216,10 @@ function StoriesPanel() {
     try {
       const r = await api.put(`/api/admin/stories/${s._id}/featured`, { featured: !s.featured })
       patch(s._id, { featured: r.data.featured })
-    } catch {} finally { setBusy(null) }
+      toast.success(r.data.featured ? `“${s.title}” is now featured.` : `“${s.title}” is no longer featured.`)
+    } catch {
+      toast.error('Could not change the featured flag.')
+    } finally { setBusy(null) }
   }
 
   const togglePublished = async (s) => {
@@ -221,30 +227,92 @@ function StoriesPanel() {
     try {
       const r = await api.put(`/api/admin/stories/${s._id}/published`, { published: !s.published })
       patch(s._id, { published: r.data.published })
-    } catch {} finally { setBusy(null) }
+      toast.success(r.data.published ? `“${s.title}” is visible again.` : `“${s.title}” is hidden from readers.`)
+    } catch {
+      toast.error('Could not change visibility.')
+    } finally { setBusy(null) }
   }
 
   const remove = async (s) => {
-    if (!window.confirm(`Delete "${s.title}"? This removes the story and all its branches permanently.`)) return
-    setBusy(s._id)
-    try {
-      await api.delete(`/api/admin/stories/${s._id}`)
-      setStories((list) => list.filter((x) => x._id !== s._id))
-    } catch {} finally { setBusy(null) }
+    await confirm({
+      title: 'Delete this story?',
+      message: `“${s.title}” and all of its branches will be removed permanently. This cannot be undone.`,
+      confirmLabel: 'Delete story',
+      danger: true,
+      onConfirm: async () => {
+        await api.delete(`/api/admin/stories/${s._id}`)
+        setStories((list) => list.filter((x) => x._id !== s._id))
+        toast.success(`“${s.title}” was deleted.`)
+      },
+    })
   }
+
+  const columns = [
+    {
+      key: 'title',
+      header: 'Story',
+      sortable: true,
+      primary: true,
+      render: (s) => (
+        <div className="admin-cell">
+          <Link to={`/story/${s._id}`} className="admin-cell__title">{s.title}</Link>
+          <div className="admin-cell__badges">
+            {s.featured && <Badge tone="gold">Featured</Badge>}
+            {!s.published && <Badge tone="danger">Hidden</Badge>}
+          </div>
+        </div>
+      ),
+    },
+    { key: 'author', header: 'Author', sortable: true },
+    { key: 'genre', header: 'Genre', sortable: true, render: (s) => genreLabel(s.genre) },
+    { key: 'branchCount', header: 'Branches', sortable: true, align: 'right' },
+    { key: 'likeCount', header: 'Likes', sortable: true, align: 'right' },
+    { key: 'commentCount', header: 'Comments', sortable: true, align: 'right' },
+    {
+      key: 'actions',
+      header: 'Actions',
+      align: 'right',
+      render: (s) => (
+        <div className="admin-actions">
+          <ActionButton onClick={() => toggleFeatured(s)} disabled={busy === s._id} active={s.featured}>
+            {s.featured ? 'Unfeature' : 'Feature'}
+          </ActionButton>
+          <ActionButton onClick={() => togglePublished(s)} disabled={busy === s._id}>
+            {s.published ? 'Hide' : 'Restore'}
+          </ActionButton>
+          <ActionButton onClick={() => remove(s)} disabled={busy === s._id} danger>
+            Delete
+          </ActionButton>
+        </div>
+      ),
+    },
+  ]
 
   return (
     <div className="animate-fadeUp">
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', marginBottom: '20px' }}>
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search by title or author…"
-          style={inputStyle}
-        />
-        <div style={{ display: 'flex', gap: '6px' }}>
+      <div className="ct-toolbar">
+        <div className="ct-toolbar__group">
+          <label htmlFor="admin-story-search" className="sr-only">Search stories by title or author</label>
+          <div className="ct-search">
+            <span className="ct-search__icon"><SearchIcon size={15} /></span>
+            <input
+              id="admin-story-search"
+              type="search"
+              className="ct-input ct-input--auto"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search by title or author…"
+            />
+          </div>
+        </div>
+        <div className="ct-toolbar__group" role="group" aria-label="Filter stories">
           {['all', 'featured', 'unpublished'].map((f) => (
-            <button key={f} onClick={() => setFilter(f)} style={chip(filter === f)}>
+            <button
+              key={f}
+              className="ct-chip"
+              aria-pressed={filter === f}
+              onClick={() => setFilter(f)}
+            >
               {f === 'all' ? 'All' : f === 'featured' ? 'Featured' : 'Hidden'}
             </button>
           ))}
@@ -253,39 +321,15 @@ function StoriesPanel() {
 
       {!stories ? (
         <ConnectingLoader fullScreen={false} message="Loading the catalogue" />
-      ) : stories.length === 0 ? (
-        <Empty>No stories match.</Empty>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {stories.map((s) => (
-            <div key={s._id} style={{ ...panel, padding: '16px 18px', display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
-              <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  <Link to={`/story/${s._id}`} style={{ fontSize: '15px', color: 'var(--parchment)', textDecoration: 'none', fontWeight: 500 }}>
-                    {s.title}
-                  </Link>
-                  {s.featured && <Badge tone="gold">Featured</Badge>}
-                  {!s.published && <Badge tone="crimson">Hidden</Badge>}
-                </div>
-                <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta40))', marginTop: '4px' }}>
-                  {genreLabel(s.genre)} · by {s.author} · ♥ {s.likeCount} · 💬 {s.commentCount} · {s.branchCount} branches
-                </p>
-              </div>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                <ActionButton onClick={() => toggleFeatured(s)} disabled={busy === s._id} active={s.featured}>
-                  {s.featured ? 'Unfeature' : 'Feature'}
-                </ActionButton>
-                <ActionButton onClick={() => togglePublished(s)} disabled={busy === s._id}>
-                  {s.published ? 'Hide' : 'Restore'}
-                </ActionButton>
-                <ActionButton onClick={() => remove(s)} disabled={busy === s._id} danger>
-                  Delete
-                </ActionButton>
-              </div>
-            </div>
-          ))}
-        </div>
+        <DataTable
+          columns={columns}
+          rows={stories}
+          caption="Story catalogue"
+          empty={<Empty>No stories match.</Empty>}
+        />
       )}
+      {dialog}
     </div>
   )
 }
@@ -296,10 +340,16 @@ const REASON_LABEL = {
   spam: 'Spam', offensive: 'Offensive', plagiarism: 'Plagiarism', broken: 'Broken / bug', other: 'Other',
 }
 
+// The report queue stays a card list rather than a table: each entry carries a
+// free-text quote of arbitrary length, and a column of those would either clip
+// the evidence or blow the row height apart. Tables are for the panels whose
+// rows are genuinely comparable field-by-field.
 function ReportsPanel({ onChange }) {
   const [reports, setReports] = useState(null)
   const [status, setStatus] = useState('open')
   const [busy, setBusy] = useState(null)
+  const toast = useToast()
+  const { confirm, dialog } = useConfirm()
 
   const load = useCallback(() => {
     api.get(`/api/admin/reports?status=${status}`)
@@ -315,26 +365,34 @@ function ReportsPanel({ onChange }) {
       await api.put(`/api/admin/reports/${report._id}`, { status: nextStatus })
       load()
       onChange?.()
-    } catch {} finally { setBusy(null) }
+      toast.success(nextStatus === 'resolved' ? 'Report resolved.' : 'Report dismissed.')
+    } catch {
+      toast.error('Could not update that report.')
+    } finally { setBusy(null) }
   }
 
   const removeStory = async (report) => {
     if (!report.story) return
-    if (!window.confirm(`Delete "${report.story.title}"? This removes the story permanently.`)) return
-    setBusy(report._id)
-    try {
-      await api.delete(`/api/admin/stories/${report.storyId}`)
-      await api.put(`/api/admin/reports/${report._id}`, { status: 'resolved' })
-      load()
-      onChange?.()
-    } catch {} finally { setBusy(null) }
+    await confirm({
+      title: 'Delete the reported story?',
+      message: `“${report.story.title}” will be removed permanently and the report marked resolved. This cannot be undone.`,
+      confirmLabel: 'Delete story',
+      danger: true,
+      onConfirm: async () => {
+        await api.delete(`/api/admin/stories/${report.storyId}`)
+        await api.put(`/api/admin/reports/${report._id}`, { status: 'resolved' })
+        load()
+        onChange?.()
+        toast.success('Story deleted and the report resolved.')
+      },
+    })
   }
 
   return (
     <div className="animate-fadeUp">
-      <div style={{ display: 'flex', gap: '6px', marginBottom: '20px' }}>
+      <div className="ct-toolbar__group" role="group" aria-label="Filter reports by status" style={{ marginBottom: 'var(--s-5)' }}>
         {['open', 'resolved', 'dismissed', 'all'].map((s) => (
-          <button key={s} onClick={() => setStatus(s)} style={chip(status === s)}>
+          <button key={s} className="ct-chip" aria-pressed={status === s} onClick={() => setStatus(s)}>
             {s.charAt(0).toUpperCase() + s.slice(1)}
           </button>
         ))}
@@ -384,6 +442,7 @@ function ReportsPanel({ onChange }) {
           ))}
         </div>
       )}
+      {dialog}
     </div>
   )
 }
@@ -397,6 +456,7 @@ function PasswordRequestsPanel({ onChange }) {
   const [requests, setRequests] = useState(null)
   const [busy, setBusy] = useState(null)
   const [resetting, setResetting] = useState(null) // request id with an open form
+  const toast = useToast()
 
   const load = useCallback(() => {
     setRequests(null)
@@ -412,16 +472,19 @@ function PasswordRequestsPanel({ onChange }) {
       await api.put(`/api/admin/password-requests/${request._id}`, { status: 'dismissed' })
       load()
       onChange?.()
+      toast.success(`Dismissed ${request.user.displayName}'s request.`)
     } catch (e) {
-      window.alert(e?.response?.data?.message || 'Could not dismiss the request.')
+      toast.error(e?.response?.data?.message || 'Could not dismiss the request.')
     } finally { setBusy(null) }
   }
 
   return (
     <div className="animate-fadeUp">
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+      <div className="ct-toolbar__group" role="group" aria-label="Filter requests by status" style={{ marginBottom: 'var(--s-5)' }}>
         {['pending', 'resolved', 'dismissed', 'all'].map((s) => (
-          <button key={s} onClick={() => setStatus(s)} style={chip(status === s)}>{s}</button>
+          <button key={s} className="ct-chip" aria-pressed={status === s} onClick={() => setStatus(s)}>
+            {s.charAt(0).toUpperCase() + s.slice(1)}
+          </button>
         ))}
       </div>
 
@@ -560,6 +623,8 @@ function UsersPanel() {
   const [busy, setBusy] = useState(null)
   const [open, setOpen] = useState({}) // userId -> 'detail' | 'reset' | 'ban'
   const [q, setQ] = useState('')
+  const toast = useToast()
+  const { confirm, dialog } = useConfirm()
 
   const load = useCallback(() => {
     api.get('/api/admin/users').then((r) => setUsers(r.data)).catch(() => setUsers([]))
@@ -583,15 +648,30 @@ function UsersPanel() {
   const patch = (id, next) =>
     setUsers((list) => list.map((x) => (x._id === id ? { ...x, ...next } : x)))
 
-  const setRole = async (u, role) => {
-    if (role !== 'admin' && !window.confirm(`Remove admin access from ${u.displayName}?`)) return
+  const applyRole = async (u, role) => {
     setBusy(u._id)
     try {
       const r = await api.put(`/api/admin/users/${u._id}/role`, { role })
       patch(u._id, { role: r.data.role })
+      toast.success(role === 'admin'
+        ? `${u.displayName} is now an admin.`
+        : `Admin access removed from ${u.displayName}.`)
     } catch (e) {
-      window.alert(e?.response?.data?.message || 'Could not change role.')
+      toast.error(e?.response?.data?.message || 'Could not change role.')
     } finally { setBusy(null) }
+  }
+
+  // Granting admin is one click; taking it away asks first. The asymmetry is
+  // deliberate — demoting the wrong person can lock the team out of this screen.
+  const setRole = async (u, role) => {
+    if (role === 'admin') { applyRole(u, role); return }
+    await confirm({
+      title: 'Revoke admin access?',
+      message: `${u.displayName} will lose the control room and every moderation tool with it.`,
+      confirmLabel: 'Revoke access',
+      danger: true,
+      onConfirm: () => applyRole(u, role),
+    })
   }
 
   const reinstate = async (u) => {
@@ -599,8 +679,9 @@ function UsersPanel() {
     try {
       const r = await api.put(`/api/admin/users/${u._id}/ban`, { banned: false })
       patch(u._id, { banned: r.data.banned, banReason: null })
+      toast.success(`${u.displayName}'s account is active again.`)
     } catch (e) {
-      window.alert(e?.response?.data?.message || 'Could not reinstate the account.')
+      toast.error(e?.response?.data?.message || 'Could not reinstate the account.')
     } finally { setBusy(null) }
   }
 
@@ -609,15 +690,23 @@ function UsersPanel() {
 
   return (
     <div className="animate-fadeUp" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '10px' }}>
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search by name, username, or email…"
-          style={inputStyle}
-        />
-        <span style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta35))', whiteSpace: 'nowrap' }}>
-          {shown.length} of {users.length}
+      <div className="ct-toolbar">
+        <div className="ct-toolbar__group">
+          <label htmlFor="admin-user-search" className="sr-only">Search users by name, username or email</label>
+          <div className="ct-search">
+            <span className="ct-search__icon"><SearchIcon size={15} /></span>
+            <input
+              id="admin-user-search"
+              type="search"
+              className="ct-input ct-input--auto"
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search by name, username, or email…"
+            />
+          </div>
+        </div>
+        <span className="admin-count" aria-live="polite">
+          {shown.length} of {users.length} users
         </span>
       </div>
 
@@ -677,6 +766,7 @@ function UsersPanel() {
           {open[u._id] === 'detail' && <UserDetail userId={u._id} onStoriesChanged={load} />}
         </div>
       ))}
+      {dialog}
     </div>
   )
 }
@@ -727,6 +817,8 @@ function BanForm({ user, onDone }) {
 function UserDetail({ userId, onStoriesChanged }) {
   const [data, setData] = useState(null)
   const [busy, setBusy] = useState(null)
+  const toast = useToast()
+  const { confirm, dialog } = useConfirm()
 
   const load = useCallback(() => {
     api.get(`/api/admin/users/${userId}`)
@@ -738,7 +830,7 @@ function UserDetail({ userId, onStoriesChanged }) {
   const act = async (story, fn) => {
     setBusy(story._id)
     try { await fn() } catch (e) {
-      window.alert(e?.response?.data?.message || 'That action failed.')
+      toast.error(e?.response?.data?.message || 'That action failed.')
     } finally { setBusy(null) }
   }
 
@@ -753,16 +845,22 @@ function UserDetail({ userId, onStoriesChanged }) {
     setData((d) => ({ ...d, stories: d.stories.map((x) => (x._id === s._id ? { ...x, published: r.data.published } : x)) }))
   })
 
-  const remove = (s) => {
-    if (!window.confirm(`Delete "${s.title}"? This removes the story and all its branches permanently.`)) return
-    act(s, async () => {
-      await api.delete(`/api/admin/stories/${s._id}`)
-      setData((d) => ({ ...d, stories: d.stories.filter((x) => x._id !== s._id) }))
-      onStoriesChanged?.()
+  const remove = async (s) => {
+    await confirm({
+      title: 'Delete this story?',
+      message: `“${s.title}” and all of its branches will be removed permanently. This cannot be undone.`,
+      confirmLabel: 'Delete story',
+      danger: true,
+      onConfirm: () => act(s, async () => {
+        await api.delete(`/api/admin/stories/${s._id}`)
+        setData((d) => ({ ...d, stories: d.stories.filter((x) => x._id !== s._id) }))
+        onStoriesChanged?.()
+        toast.success(`“${s.title}” was deleted.`)
+      }),
     })
   }
 
-  if (!data) return <div style={subPanel}><Muted>Loading…</Muted></div>
+  if (!data) return <div style={subPanel}><ConnectingLoader fullScreen={false} message="Loading the account" /></div>
   if (data.error) return <div style={subPanel}><Muted>Could not load this account.</Muted></div>
 
   const { user, stories } = data
@@ -836,6 +934,7 @@ function UserDetail({ userId, onStoriesChanged }) {
           </div>
         )}
       </div>
+      {dialog}
     </div>
   )
 }
@@ -927,47 +1026,31 @@ const chip = (on) => ({
   transition: 'all 0.2s ease',
 })
 
+// A compact table-row action. Thin wrapper over the shared button so the
+// inline-action size stays consistent across all four admin panels.
 // type defaults to "button": these sit inside forms, and a bare <button> would
 // submit them.
 function ActionButton({ children, onClick, disabled, active, danger, type = 'button' }) {
-  const color = danger ? 'var(--crimson)' : active ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta60))'
-  const border = danger ? 'rgba(139,26,46,0.4)' : active ? 'rgba(var(--gold-rgb),0.4)' : 'rgba(var(--panel-rgb),var(--pa12))'
   return (
-    <button
+    <Button
       type={type}
+      size="sm"
+      variant={danger ? 'danger' : active ? 'secondary' : 'ghost'}
       onClick={onClick}
       disabled={disabled}
-      style={{
-        padding: '6px 12px',
-        fontSize: '12px',
-        letterSpacing: '0.04em',
-        border: `1px solid ${border}`,
-        background: 'transparent',
-        color,
-        borderRadius: '4px',
-        cursor: disabled ? 'default' : 'pointer',
-        opacity: disabled ? 0.5 : 1,
-        fontFamily: 'inherit',
-        transition: 'all 0.2s ease',
-      }}
     >
       {children}
-    </button>
+    </Button>
   )
 }
 
+// Maps the old local tone names onto the shared semantic set. The previous
+// version hardcoded #c45a6e for "crimson", which — like the genre chips — never
+// re-themed and failed contrast on the cream page.
+const BADGE_TONES = { gold: 'gold', crimson: 'danger', danger: 'danger', muted: 'neutral' }
+
 function Badge({ children, tone = 'muted' }) {
-  const tones = {
-    gold: { bg: 'rgba(var(--gold-rgb),0.12)', color: 'var(--gold)', border: 'rgba(var(--gold-rgb),0.3)' },
-    crimson: { bg: 'rgba(139,26,46,0.15)', color: '#c45a6e', border: 'rgba(139,26,46,0.4)' },
-    muted: { bg: 'rgba(var(--panel-rgb),var(--pa06))', color: 'rgba(var(--text-rgb),var(--ta45))', border: 'rgba(var(--panel-rgb),var(--pa12))' },
-  }
-  const t = tones[tone] || tones.muted
-  return (
-    <span style={{ fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', padding: '2px 7px', borderRadius: '4px', background: t.bg, color: t.color, border: `1px solid ${t.border}`, whiteSpace: 'nowrap' }}>
-      {children}
-    </span>
-  )
+  return <UiBadge tone={BADGE_TONES[tone] || 'neutral'}>{children}</UiBadge>
 }
 
 function SectionTitle({ children }) {

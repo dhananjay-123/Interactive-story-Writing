@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../api/client'
 import { useAuth } from '../context/AuthContext'
 import ConnectingLoader from '../components/ConnectingLoader'
-import { GENRE_COLORS } from '../components/StoryCard'
+import { GenreBadge } from '../components/ui'
 
 const GENRES = ['fantasy', 'mystery', 'sci_fi', 'romance', 'horror', 'thriller', 'literary']
 
@@ -109,61 +109,32 @@ export default function Contests() {
 }
 
 function ContestCard({ contest }) {
-  const [hovered, setHovered] = useState(false)
   const open = contest.status === 'open'
-  const genre = GENRE_COLORS[contest.genre] || GENRE_COLORS.default
   const timing = open ? timeLeft(contest.endsAt) : contest.status === 'upcoming' ? 'opens soon' : 'ended'
 
   return (
     <Link
       to={`/contests/${contest._id}`}
-      className="animate-fadeUp"
-      style={{ textDecoration: 'none' }}
+      className="animate-fadeUp contest-card ct-card ct-card--interactive"
     >
-      <div
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        style={{
-          background: 'var(--surface)',
-          border: `1px solid ${hovered ? 'rgba(var(--gold-rgb),0.45)' : 'rgba(var(--panel-rgb),var(--pa06))'}`,
-          borderRadius: '8px',
-          padding: '24px 26px',
-          cursor: 'pointer',
-          boxShadow: hovered ? 'var(--card-shadow-hover)' : 'var(--card-shadow)',
-          transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
-          transform: hovered ? 'translateY(-4px)' : 'translateY(0)',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '14px' }}>
-          <span
-            style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '4px 9px', borderRadius: '4px', background: genre.bg, border: `1px solid ${genre.border}`, color: genre.text }}
-          >
-            {contest.genre ? contest.genre.replace('_', '-') : 'Any genre'}
-          </span>
-          <span style={{ fontSize: '11px', letterSpacing: '0.14em', textTransform: 'uppercase', color: open ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta40))' }}>
-            {timing}
-          </span>
-        </div>
-
-        <h2
-          className="font-story"
-          style={{ fontSize: '22px', fontWeight: 400, color: hovered ? 'var(--gold)' : 'var(--parchment)', transition: 'color 0.3s ease', lineHeight: 1.2 }}
-        >
-          {contest.title}
-        </h2>
-
-        {contest.theme && (
-          <p style={{ fontSize: '14px', color: 'rgba(var(--text-rgb),var(--ta55))', lineHeight: 1.6, marginTop: '10px', maxWidth: '560px' }}>
-            {contest.theme}
-          </p>
-        )}
-
-        <p style={{ fontSize: '12px', color: 'rgba(var(--text-rgb),var(--ta35))', marginTop: '16px' }}>
-          {contest.entryCount} {contest.entryCount === 1 ? 'entry' : 'entries'}
-          {' · '}
-          {contest.voteCount} {contest.voteCount === 1 ? 'vote' : 'votes'}
-        </p>
+      <div className="contest-card__top">
+        {contest.genre
+          ? <GenreBadge genre={contest.genre} />
+          : <span className="ct-badge ct-badge--neutral">Any genre</span>}
+        <span className={`contest-card__timing${open ? ' is-open' : ''}`}>
+          {timing}
+        </span>
       </div>
+
+      <h2 className="font-story contest-card__title">{contest.title}</h2>
+
+      {contest.theme && <p className="contest-card__theme">{contest.theme}</p>}
+
+      <p className="contest-card__stats">
+        {contest.entryCount} {contest.entryCount === 1 ? 'entry' : 'entries'}
+        {' · '}
+        {contest.voteCount} {contest.voteCount === 1 ? 'vote' : 'votes'}
+      </p>
     </Link>
   )
 }

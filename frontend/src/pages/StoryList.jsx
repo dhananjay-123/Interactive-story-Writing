@@ -4,6 +4,7 @@ import api from '../api/client'
 import StoryCard from '../components/StoryCard'
 import ConnectingLoader from '../components/ConnectingLoader'
 import EmptyState from '../components/EmptyState'
+import { CloseIcon, SearchIcon } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
 
 const GENRES = ['all', 'fantasy', 'mystery', 'sci_fi', 'romance', 'horror', 'thriller', 'literary']
@@ -107,97 +108,93 @@ export default function StoryList() {
           </div>
         )}
 
-        {/* Trending tags */}
+        {/* Trending tags — toggles, so aria-pressed carries the state a sighted
+            reader gets from the gold fill. */}
         {trending.length > 0 && (
           <div className="animate-fadeUp delay-100 mb-6">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(var(--text-rgb),var(--ta35))' }}>
-                Trending tags
-              </span>
-              {trending.map(({ tag: t }) => {
-                const on = t === tag
-                return (
-                  <button
-                    key={t}
-                    onClick={() => setFilter('tag', on ? '' : t)}
-                    style={{
-                      padding: '4px 11px', fontSize: '12px', borderRadius: '4px', cursor: 'pointer', fontFamily: 'inherit',
-                      border: `1px solid ${on ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa10))'}`,
-                      background: on ? 'rgba(var(--gold-rgb),0.12)' : 'rgba(var(--panel-rgb),var(--pa04))',
-                      color: on ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta55))',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    #{t}
-                  </button>
-                )
-              })}
+            <div className="filter-row" role="group" aria-label="Filter by trending tag">
+              <span className="filter-row__label">Trending tags</span>
+              {trending.map(({ tag: t }) => (
+                <button
+                  key={t}
+                  className="ct-chip"
+                  aria-pressed={t === tag}
+                  onClick={() => setFilter('tag', t === tag ? '' : t)}
+                >
+                  #{t}
+                </button>
+              ))}
             </div>
           </div>
         )}
 
         {/* Genre + sort + search */}
-        <div className="animate-fadeUp delay-100 flex flex-wrap gap-3 mb-8 items-center justify-between">
-          <div className="flex flex-wrap gap-2">
+        <div className="animate-fadeUp delay-100 ct-toolbar">
+          <div className="ct-toolbar__group" role="group" aria-label="Filter by genre">
             {GENRES.map((g) => (
               <button
                 key={g}
+                className="ct-chip"
+                aria-pressed={genre === g}
                 onClick={() => setFilter('genre', g)}
-                style={{
-                  padding: '6px 16px', fontSize: '11px', letterSpacing: '0.1em', textTransform: 'uppercase',
-                  border: `1px solid ${genre === g ? 'var(--gold)' : 'rgba(var(--panel-rgb),var(--pa12))'}`,
-                  background: genre === g ? 'rgba(var(--gold-rgb),0.1)' : 'transparent',
-                  color: genre === g ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))',
-                  cursor: 'pointer', borderRadius: '4px', transition: 'all 0.2s ease',
-                }}
               >
                 {label(g)}
               </button>
             ))}
           </div>
 
-          <div className="flex gap-2 items-center">
+          <div className="ct-toolbar__group">
+            {/* Both controls were unlabelled — a screen reader reached a combo
+                box and a text field with no idea what either one filtered. */}
+            <label htmlFor="story-sort" className="sr-only">Sort stories by</label>
             <select
+              id="story-sort"
+              className="ct-input ct-input--auto"
               value={sort}
               onChange={(e) => setFilter('sort', e.target.value)}
-              style={{
-                background: 'rgba(var(--panel-rgb),var(--pa04))', border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
-                borderRadius: '4px', padding: '8px 12px', color: 'var(--parchment)', fontSize: '13px', outline: 'none',
-                cursor: 'pointer', fontFamily: 'inherit',
-              }}
             >
               {SORTS.map((s) => (
-                <option key={s.id} value={s.id} style={{ background: 'var(--ink-soft)' }}>{s.label}</option>
+                <option key={s.id} value={s.id}>{s.label}</option>
               ))}
             </select>
 
-            <input
-              type="text"
-              placeholder="Search stories..."
-              value={searchInput}
-              onChange={(e) => onSearch(e.target.value)}
-              style={{
-                background: 'rgba(var(--panel-rgb),var(--pa04))', border: '1px solid rgba(var(--panel-rgb),var(--pa10))',
-                borderRadius: '4px', padding: '8px 16px', color: 'var(--parchment)', fontSize: '14px', outline: 'none',
-                width: '200px', transition: 'border-color 0.2s ease',
-              }}
-              onFocus={(e) => (e.target.style.borderColor = 'rgba(var(--gold-rgb),0.4)')}
-              onBlur={(e) => (e.target.style.borderColor = 'rgba(var(--panel-rgb),var(--pa10))')}
-            />
+            <label htmlFor="story-search" className="sr-only">Search stories</label>
+            <div className="ct-search">
+              <span className="ct-search__icon"><SearchIcon size={15} /></span>
+              <input
+                id="story-search"
+                type="search"
+                className="ct-input ct-input--auto"
+                placeholder="Search stories…"
+                value={searchInput}
+                onChange={(e) => onSearch(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
         {/* Active tag pill */}
         {tag && (
-          <div className="mb-6" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '13px', color: 'rgba(var(--text-rgb),var(--ta45))' }}>Filtered by</span>
+          <div className="mb-6 filter-row">
+            <span className="filter-row__label">Filtered by</span>
             <button
+              className="ct-chip"
+              aria-pressed="true"
               onClick={() => setFilter('tag', '')}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 11px', fontSize: '12px', borderRadius: '4px', border: '1px solid var(--gold)', background: 'rgba(var(--gold-rgb),0.12)', color: 'var(--gold)', cursor: 'pointer', fontFamily: 'inherit' }}
             >
-              #{tag} <span style={{ fontSize: '14px', lineHeight: 1 }}>×</span>
+              #{tag}
+              <CloseIcon size={12} />
+              <span className="sr-only">Clear this tag filter</span>
             </button>
           </div>
+        )}
+
+        {/* The result count is the one thing that tells a screen-reader user
+            their filter did anything at all. */}
+        {!loading && !failed && (
+          <p className="sr-only" aria-live="polite">
+            {stories.length} {stories.length === 1 ? 'story' : 'stories'} found.
+          </p>
         )}
 
         {loading ? (

@@ -5,6 +5,7 @@ import Image from '@tiptap/extension-image'
 import Youtube from '@tiptap/extension-youtube'
 import { Placeholder } from '@tiptap/extensions'
 import { uploadImage, deleteImages } from '../api/uploads'
+import { Button, Field, Modal } from './ui'
 
 // The passage content schema, shared with the reader so saved passages render
 // exactly as written. Keep in sync with backend/utils/validateContent.js.
@@ -51,6 +52,8 @@ export default function RichTextEditor({ initialContent, placeholder, minHeight 
   const settledRef = useRef(false)
   const [uploading, setUploading] = useState(false)
   const [notice, setNotice] = useState('')
+  const [videoOpen, setVideoOpen] = useState(false)
+  const [videoUrl, setVideoUrl] = useState('')
 
   const editor = useEditor({
     extensions: [...editorExtensions, Placeholder.configure({ placeholder: placeholder || '' })],
@@ -124,11 +127,17 @@ export default function RichTextEditor({ initialContent, placeholder, minHeight 
     }
   }
 
-  const addVideo = () => {
-    const url = window.prompt('Paste a YouTube link')
-    if (!url || !editor) return
-    const ok = editor.chain().focus().setYoutubeVideo({ src: url.trim() }).run()
+  // The last native dialog in the app. window.prompt is unstyled, unlabelled and
+  // blocks the thread — and worse here, it steals focus out of the editor, so
+  // cancelling left the caret nowhere. This is a real modal that hands focus back.
+  const addVideo = () => { setVideoUrl(''); setVideoOpen(true) }
+
+  const submitVideo = (e) => {
+    e.preventDefault()
+    if (!videoUrl.trim() || !editor) return
+    const ok = editor.chain().focus().setYoutubeVideo({ src: videoUrl.trim() }).run()
     setNotice(ok ? '' : 'That doesn’t look like a YouTube link.')
+    setVideoOpen(false)
   }
 
   if (!editor) return null
@@ -163,7 +172,33 @@ export default function RichTextEditor({ initialContent, placeholder, minHeight 
         <EditorContent editor={editor} />
       </div>
 
-      {notice && <p style={{ fontSize: '12px', color: 'var(--crimson)', marginTop: '8px' }}>{notice}</p>}
+      {notice && (
+        <p className="ct-error" role="alert"><span>{notice}</span></p>
+      )}
+
+      <Modal
+        open={videoOpen}
+        onClose={() => setVideoOpen(false)}
+        title="Embed a video"
+        size="sm"
+        actions={
+          <>
+            <Button variant="ghost" onClick={() => setVideoOpen(false)}>Cancel</Button>
+            <Button variant="primary" onClick={submitVideo} disabled={!videoUrl.trim()}>Embed</Button>
+          </>
+        }
+      >
+        <form onSubmit={submitVideo}>
+          <Field label="YouTube link" hint="Paste the full watch or share URL.">
+            <input
+              type="url"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=…"
+            />
+          </Field>
+        </form>
+      </Modal>
     </div>
   )
 }
@@ -173,21 +208,10 @@ function ToolButton({ onClick, active, title, children }) {
     <button
       type="button"
       title={title}
+      aria-label={title}
+      aria-pressed={active}
       onClick={onClick}
-      style={{
-        background: active ? 'rgba(var(--gold-rgb),0.12)' : 'none',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        padding: '4px 9px',
-        fontSize: '12px',
-        letterSpacing: '0.04em',
-        fontFamily: 'Georgia, serif',
-        color: active ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta45))',
-        transition: 'color 0.2s ease',
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
-      onMouseLeave={(e) => (e.currentTarget.style.color = active ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta45))')}
+      className="rte-tool"
     >
       {children}
     </button>

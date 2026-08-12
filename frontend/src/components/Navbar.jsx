@@ -228,24 +228,20 @@ function IconButtons({ theme, toggleTheme, enabled, toggle }) {
   return (
     <>
       <button
-        className="tap-target"
+        className="ct-icon-btn tap-target"
         onClick={toggleTheme}
         aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
         title={theme === 'dark' ? 'Light theme' : 'Dark theme'}
-        style={iconButtonStyle('rgba(var(--text-rgb),var(--ta50))')}
-        onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--gold)')}
-        onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(var(--text-rgb),var(--ta50))')}
       >
         <ThemeIcon theme={theme} />
       </button>
 
       <button
-        className="tap-target"
+        className="ct-icon-btn tap-target"
         onClick={toggle}
         aria-pressed={enabled}
         aria-label={enabled ? 'Mute sound' : 'Enable sound'}
         title={enabled ? 'Sound on' : 'Sound off'}
-        style={iconButtonStyle(enabled ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta50))')}
       >
         <SoundIcon on={enabled} />
       </button>
@@ -260,37 +256,10 @@ function Avatar({ to, name, src, active }) {
       to={to}
       title={name}
       aria-label={`${name} — profile`}
-      className="font-story tap-target"
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        width: '32px',
-        height: '32px',
-        borderRadius: '50%',
-        flexShrink: 0,
-        overflow: 'hidden',
-        fontSize: '15px',
-        lineHeight: 1,
-        textDecoration: 'none',
-        color: 'var(--gold)',
-        border: active
-          ? '1px solid var(--gold)'
-          : '1px solid rgba(var(--gold-rgb),0.4)',
-        transition: 'border-color 0.2s ease',
-      }}
-      onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--gold)')}
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.borderColor = active
-          ? 'var(--gold)'
-          : 'rgba(var(--gold-rgb),0.4)')
-      }
+      className="font-story nav-avatar tap-target"
+      data-active={active || undefined}
     >
-      {src ? (
-        <img src={avatarSrc(src)} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-      ) : (
-        initial
-      )}
+      {src ? <img src={avatarSrc(src)} alt="" /> : initial}
     </Link>
   )
 }
@@ -353,12 +322,7 @@ const dropdownItemStyle = (active) => ({
 
 function DropdownLink({ to, label, active }) {
   return (
-    <Link
-      to={to}
-      style={dropdownItemStyle(active)}
-      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(var(--gold-rgb),0.1)'; e.currentTarget.style.color = 'var(--gold)' }}
-      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = active ? 'var(--gold)' : 'rgba(var(--text-rgb),var(--ta70))' }}
-    >
+    <Link to={to} className="nav-dropdown__item" data-active={active || undefined}>
       {label}
     </Link>
   )
