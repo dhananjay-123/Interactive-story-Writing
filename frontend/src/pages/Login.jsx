@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Button, Field } from '../components/ui'
+import { Button, Field, Logo } from '../components/ui'
 
 // Two changes worth noting beyond the styling.
 //
@@ -59,6 +59,7 @@ export default function Login() {
     <div className="auth-page">
       <div className="auth-shell">
         <div className="animate-fadeUp auth-head">
+          <Logo width={52} className="auth-logo" />
           <p className="eyebrow">Welcome back</p>
           <h1 className="font-story auth-title">Sign in</h1>
         </div>

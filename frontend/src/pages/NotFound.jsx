@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { Logo } from '../components/ui'
 
 // A mistyped or long-dead URL. Every other dead end in the app says so and
 // offers a way back; without this one, an unmatched route left nothing on the
@@ -6,6 +7,7 @@ import { Link } from 'react-router-dom'
 export default function NotFound() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--ink)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 24px', textAlign: 'center' }}>
+      <Logo variant="lockup" width={190} alt="Craft&Tales" className="notfound-logo" />
       <p className="font-story" style={{ fontSize: '22px', color: 'rgba(var(--text-rgb),var(--ta60))', fontStyle: 'italic', marginBottom: '20px' }}>
         There is no page at this address.
       </p>

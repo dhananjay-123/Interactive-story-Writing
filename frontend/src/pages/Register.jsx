@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { Button, Field } from '../components/ui'
+import { Button, Field, Logo } from '../components/ui'
 
 // The rules that used to live in a single `valid` boolean — which only ever
 // expressed itself by greying out the button — are now per-field messages. The
@@ -67,6 +67,7 @@ export default function Register() {
     <div className="auth-page">
       <div className="auth-shell">
         <div className="animate-fadeUp auth-head">
+          <Logo width={52} className="auth-logo" />
           <p className="eyebrow">Join the guild</p>
           <h1 className="font-story auth-title">Create an account</h1>
         </div>

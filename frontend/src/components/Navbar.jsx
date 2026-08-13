@@ -4,6 +4,7 @@ import { useAudio } from '../audio/AudioProvider'
 import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import NotificationBell from './NotificationBell'
+import { Logo } from './ui'
 import { avatarSrc } from '../avatars/catalog'
 
 export default function Navbar() {
@@ -61,18 +62,15 @@ export default function Navbar() {
       className="fixed top-0 left-0 right-0 z-50 px-6 py-4"
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between">
-        <Link
-          to="/"
-          className="font-story text-xl tracking-wide"
-          style={{ color: 'var(--gold)', textDecoration: 'none' }}
-        >
-          Craft&Tales
+        <Link to="/" className="nav-brand">
+          <Logo width={30} />
+          <span className="font-story nav-brand__word">Craft&Tales</span>
         </Link>
 
         {/* Desktop navigation — a short primary row; everything secondary lives
             under "More" so the bar keeps a clear hierarchy instead of a flat
             wall of equal-weight links. */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-6 nav-links">
           <NavLink to="/stories" label="Browse" active={location.pathname === '/stories'} />
           <NavLink to="/featured" label="Featured" active={location.pathname === '/featured'} />
           <NavLink to="/games" label="Story Games" active={location.pathname === '/games'} />

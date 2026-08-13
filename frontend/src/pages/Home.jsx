@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../api/client'
 import StoryCard from '../components/StoryCard'
 import ContinueReading from '../components/ContinueReading'
-import { Button } from '../components/ui'
+import { Button, Logo } from '../components/ui'
 
 const OPENING_LINES = [
   "Every choice rewrites the ending.",
@@ -90,6 +90,8 @@ export default function Home() {
         />
 
         <div className="text-center max-w-3xl mx-auto" style={{ position: 'relative', zIndex: 1 }}>
+          <Logo variant="mark" width={132} className="animate-fadeIn hero-logo" />
+
           <p
             className="animate-fadeUp text-xs uppercase tracking-widest mb-8"
             style={{ color: 'var(--gold)', letterSpacing: '0.25em', opacity: 0.8 }}

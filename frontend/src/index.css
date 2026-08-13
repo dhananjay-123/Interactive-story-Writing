@@ -1383,6 +1383,77 @@ select.ct-input { cursor: pointer; }
 }
 .section-link:hover { color: var(--gold); }
 
+/* ── Logo ──
+   Both artworks are in the DOM at once, stacked; only their opacity changes on
+   the theme flip. They are cut on a shared canvas by assets/build-icons.py, so
+   the two are pixel-registered and the cross-fade holds still. */
+.ct-logo {
+  position: relative;
+  display: inline-block;
+  width: var(--ct-logo-w, 40px);
+  flex-shrink: 0;
+  line-height: 0;
+}
+.ct-logo__art {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: opacity 0.45s ease;
+}
+.ct-logo__art--light {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+[data-theme='light'] .ct-logo__art { opacity: 0; }
+[data-theme='light'] .ct-logo__art--light { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .ct-logo__art { transition: none; }
+}
+
+/* The emblem crowning the home hero, sitting above the wordmark headline.
+   Width is set here rather than through --ct-logo-w so it can scale with the
+   viewport — the inline custom property would out-rank a media query. */
+.hero-logo {
+  width: clamp(88px, 17vw, 132px);
+  margin-bottom: var(--s-5);
+}
+
+/* The emblem above an auth form's heading. */
+.auth-logo { margin-bottom: var(--s-5); }
+
+/* The dead-end page has nothing else on it, so it gets the full lockup. */
+.notfound-logo { margin-bottom: var(--s-8); }
+
+/* The brand lockup in the navbar: mark plus wordmark, one link. */
+.nav-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  color: var(--gold);
+  text-decoration: none;
+}
+.nav-brand__word {
+  font-size: var(--t-xl);
+  letter-spacing: 0.02em;
+}
+/* Between the tablet breakpoint and 1024px the primary links, the write action
+   and the icon row already fill the bar. The mark carries the brand on its own
+   there, so the wordmark stands down rather than colliding with "Browse" — but
+   it is clipped, not removed: the mark is aria-hidden, so display:none here
+   would leave the home link with no accessible name at all. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .nav-brand__word {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+  .nav-links { gap: var(--s-4); }
+}
+
 /* ── Navbar ── */
 .nav-dropdown__item {
   display: block;

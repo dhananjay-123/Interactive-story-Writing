@@ -11,9 +11,9 @@
      Auth, admin, uploads and notifications are never cached.
    - Everything else passes straight through. */
 
-// Bumping this drops every old cache on activate — needed here to clear the
-// per-reader tree/progress responses a previous version had already stored.
-const VERSION = 'ct-v2'
+// Bumping this drops every old cache on activate — needed when a cached entry
+// would otherwise outlive its URL, as the retired app-icon.svg did.
+const VERSION = 'ct-v3'
 const SHELL_CACHE = `${VERSION}-shell`
 const ASSET_CACHE = `${VERSION}-assets`
 const API_CACHE = `${VERSION}-api`
@@ -26,7 +26,17 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches
       .open(SHELL_CACHE)
-      .then((cache) => cache.addAll(['/', '/manifest.webmanifest', '/app-icon.svg']))
+      // The brand art is in here too: it sits outside the hashed /assets/ bundle,
+      // so without this the navbar would come up logo-less offline.
+      .then((cache) =>
+        cache.addAll([
+          '/',
+          '/manifest.webmanifest',
+          '/icon-192.png',
+          '/brand/mark-dark.png',
+          '/brand/mark-light.png',
+        ])
+      )
       .then(() => self.skipWaiting())
   )
 })

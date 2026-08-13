@@ -4,6 +4,7 @@
 export { default as Button, IconButton } from './Button'
 export { default as Field } from './Field'
 export { default as Card } from './Card'
+export { default as Logo } from './Logo'
 export { default as Badge, GenreBadge, GENRE_LABELS, genreLabel } from './Badge'
 export { default as Modal } from './Modal'
 export { default as DataTable } from './DataTable'

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/client'
-import { Button, Field } from '../components/ui'
+import { Button, Field, Logo } from '../components/ui'
 
 // There's no reset-by-email on Craft&Tales. A locked-out writer leaves a request
 // and an admin sets them a new password by hand.
@@ -34,6 +34,7 @@ export default function ForgotPassword() {
     <div className="auth-page">
       <div className="auth-shell auth-shell--wide">
         <div className="animate-fadeUp auth-head">
+          <Logo width={52} className="auth-logo" />
           <p className="eyebrow">Locked out</p>
           <h1 className="font-story auth-title">Forgot your password</h1>
         </div>
